@@ -1,0 +1,95 @@
+{
+  "version": 1,
+  "purpose": "Seed sources for taste-first link packs. These are starting points, not fixed rules.",
+  "lookbook_images": [
+    {
+      "name": "Vogue Runway - Menswear",
+      "url": "https://www.vogue.com/fashion-shows/menswear",
+      "why": "Reliable runway/lookbook image archive with designer context."
+    },
+    {
+      "name": "Vogue Runway - Lemaire",
+      "url": "https://www.vogue.com/brands/lemaire",
+      "why": "Quiet uniform, relaxed tailoring, understated styling."
+    },
+    {
+      "name": "Vogue Runway - 032c",
+      "url": "https://www.vogue.com/brands/032c",
+      "why": "Sharper, Berlin-coded, conceptual street/tailoring energy."
+    },
+    {
+      "name": "032c Magazine",
+      "url": "https://www.032c.com/",
+      "why": "Fashion plus culture, useful for stronger attitude and article references."
+    },
+    {
+      "name": "Hypebeast Fashion",
+      "url": "https://hypebeast.com/fashion",
+      "why": "Lookbook and streetwear drops; needs strict taste filtering."
+    },
+    {
+      "name": "Highsnobiety Style",
+      "url": "https://www.highsnobiety.com/tag/style/",
+      "why": "Trend and editorial style links; useful but should avoid generic influencer pieces."
+    }
+  ],
+  "videos": [
+    {
+      "name": "SHOWstudio Fashion Film",
+      "url": "https://www.showstudio.com/projects/fashion_film_submissions",
+      "why": "Fashion film archive and submissions, better for wild visual references."
+    },
+    {
+      "name": "SHOWstudio Video",
+      "url": "https://www.showstudio.com/videos",
+      "why": "Experimental fashion moving image and process references."
+    },
+    {
+      "name": "NOWNESS Fashion",
+      "url": "https://www.nowness.com/topic/fashion",
+      "why": "Artful fashion/lifestyle video language."
+    },
+    {
+      "name": "Dazed Video",
+      "url": "https://www.dazeddigital.com/video",
+      "why": "Youth culture, art, music, fashion video references."
+    },
+    {
+      "name": "Vimeo Staff Picks",
+      "url": "https://vimeo.com/channels/staffpicks",
+      "why": "Useful for cinematic, unusual video language outside fashion."
+    }
+  ],
+  "articles": [
+    {
+      "name": "SSENSE Editorial",
+      "url": "https://www.ssense.com/en-us/editorial",
+      "why": "Culture and fashion essays with stronger point of view."
+    },
+    {
+      "name": "032c Magazine",
+      "url": "https://www.032c.com/",
+      "why": "Deep fashion/culture interviews and theory-adjacent pieces."
+    },
+    {
+      "name": "Dazed Fashion",
+      "url": "https://www.dazeddigital.com/fashion",
+      "why": "Fashion culture with attitude; good for article angles."
+    },
+    {
+      "name": "i-D Fashion",
+      "url": "https://i-d.co/category/fashion/",
+      "why": "Youth culture and fashion viewpoint."
+    },
+    {
+      "name": "The Guardian Art & Design",
+      "url": "https://www.theguardian.com/artanddesign",
+      "why": "Architecture/design/culture depth that can feed lifestyle positioning."
+    },
+    {
+      "name": "Vogue Business",
+      "url": "https://www.voguebusiness.com/",
+      "why": "Fashion industry context, useful for deeper posts and captions."
+    }
+  ]
+}

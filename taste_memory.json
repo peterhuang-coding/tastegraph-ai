@@ -1,0 +1,114 @@
+{
+  "version": 1,
+  "taste_name": "quiet-cool editorial travel lifestyle",
+  "north_star": [
+    "像一本私藏视觉参考册，而不是素材站合集",
+    "冷静、克制、都市、低饱和，但不能无聊",
+    "更接近 Hidden NY / JJJJound / archive mood，而不是网红旅行图",
+    "图片最好来自别人已经 curated 过的 moodboard、editorial board、视觉档案",
+    "每天可以借一个实时主题，但主题服务审美，不要为了热点牺牲品味"
+  ],
+  "prefer": {
+    "keywords": [
+      "archive",
+      "editorial",
+      "street",
+      "street style",
+      "city",
+      "city walk",
+      "travel",
+      "hotel",
+      "lobby",
+      "espresso",
+      "coffee",
+      "table",
+      "object",
+      "still life",
+      "architecture",
+      "concrete",
+      "shadow",
+      "uniform",
+      "menswear",
+      "denim",
+      "shirt",
+      "coat",
+      "sneakers",
+      "minimal",
+      "neutral",
+      "black and white",
+      "film",
+      "magazine",
+      "brutalist"
+    ],
+    "channels": [
+      "brian-curran/jjjjound-full-archive",
+      "lily-clempson-tfz8voo8tzo/editorial-fashion",
+      "jeremy-turner/photography-editorial-lifestyle-fashion"
+    ],
+    "visual_rules": [
+      "低饱和",
+      "留白",
+      "自然光或阴天光",
+      "物件和材质要有质感",
+      "人物不要太摆拍",
+      "旅行感要轻，不要游客照",
+      "穿搭最好像 everyday uniform",
+      "咖啡和食物要克制，不要甜品网红风"
+    ]
+  },
+  "avoid": {
+    "keywords": [
+      "cute",
+      "kawaii",
+      "pink",
+      "flower",
+      "princess",
+      "luxury logo",
+      "influencer",
+      "selfie",
+      "glam",
+      "neon",
+      "vibrant",
+      "colorful",
+      "template",
+      "poster",
+      "icon",
+      "logo",
+      "favicon",
+      "screenshot",
+      "placeholder",
+      "stock photo"
+    ],
+    "visual_rules": [
+      "不要甜妹感",
+      "不要明显网红摆拍",
+      "不要大 logo 炫耀",
+      "不要旅游宣传图",
+      "不要素材站味",
+      "不要图标、小缩略图、网页封面凑数",
+      "不要用我的本地视频截图当外部 moodboard"
+    ]
+  },
+  "feedback": [
+    {
+      "date": "2026-04-17",
+      "image": "",
+      "like": [
+        "brutalist",
+        "shadow"
+      ],
+      "avoid": [
+        "cute",
+        "influencer"
+      ],
+      "channels": [],
+      "note": "初始化：更冷、更像私藏参考册，少一点素材站和网红感"
+    }
+  ],
+  "score_weights": {
+    "preferred_keyword": 3,
+    "avoided_keyword": -6,
+    "preferred_channel": 8,
+    "source_bonus": 2
+  }
+}

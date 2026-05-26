@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TasteGraph AI</title>
+<link rel="stylesheet" href="/css/app.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+</head>
+<body>
+<div id="app">
+  <header class="app-header">
+    <h1 class="app-title">TasteGraph AI</h1>
+    <span class="app-subtitle">品味知识图谱 + 推荐引擎</span>
+    <div class="header-actions">
+      <span id="health-indicator" class="health-dot" title="系统状态">●</span>
+    </div>
+  </header>
+
+  <nav class="tab-nav">
+    <button class="tab-btn active" data-tab="sources">发现源审核 <span id="sources-badge" class="badge hidden">0</span></button>
+    <button class="tab-btn" data-tab="daily">今日推荐</button>
+    <button class="tab-btn" data-tab="graph">品味图谱</button>
+    <button class="tab-btn" data-tab="history">发布历史</button>
+  </nav>
+
+  <div class="task-bar" id="task-bar"></div>
+
+  <main class="content">
+    <section id="tab-sources" class="tab-panel active"></section>
+    <section id="tab-daily" class="tab-panel"></section>
+    <section id="tab-graph" class="tab-panel"></section>
+    <section id="tab-history" class="tab-panel"></section>
+  </main>
+
+  <div id="toast-container"></div>
+</div>
+
+<script src="/js/app.js"></script>
+<script src="/js/sources.js"></script>
+<script src="/js/daily.js"></script>
+<script src="/js/graph.js"></script>
+<script src="/js/tasks.js"></script>
+<script src="/js/history.js"></script>
+<script>App.init();</script>
+</body>
+</html>

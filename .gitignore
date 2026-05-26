@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+
+# Data (runtime)
+data/taste_graph.db
+data/events.log
+data/images/
+data/logs/
+
+# Environment
+.env
+*.env
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Scripts pycache
+scripts/__pycache__/

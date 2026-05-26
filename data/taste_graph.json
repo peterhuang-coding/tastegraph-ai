@@ -1,0 +1,2710 @@
+{
+  "nodes": [
+    {
+      "id": "concept:north_star",
+      "type": "concept",
+      "label": "north_star",
+      "properties": {
+        "description": "像一本私藏视觉参考册，而不是素材站合集 冷静、克制、都市、低饱和，但不能无聊 更接近 Hidden NY / JJJJound / archive mood，而不是网红旅行图 图片最好来自别人已经 curated 过的 moodboard、editorial board、视觉档案 每天可以借一个实时主题，但主题服务审美，不要为了热点牺牲品味"
+      }
+    },
+    {
+      "id": "concept:archive",
+      "type": "concept",
+      "label": "archive",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "preferred_keyword"
+      }
+    },
+    {
+      "id": "concept:editorial",
+      "type": "concept",
+      "label": "editorial",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "preferred_keyword"
+      }
+    },
+    {
+      "id": "concept:street",
+      "type": "concept",
+      "label": "street",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "preferred_keyword"
+      }
+    },
+    {
+      "id": "concept:street_style",
+      "type": "concept",
+      "label": "street style",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "preferred_keyword"
+      }
+    },
+    {
+      "id": "concept:city",
+      "type": "concept",
+      "label": "city",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "preferred_keyword"
+      }
+    },
+    {
+      "id": "concept:city_walk",
+      "type": "concept",
+      "label": "city walk",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "preferred_keyword"
+      }
+    },
+    {
+      "id": "concept:travel",
+      "type": "concept",
+      "label": "travel",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "preferred_keyword"
+      }
+    },
+    {
+      "id": "concept:hotel",
+      "type": "concept",
+      "label": "hotel",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "preferred_keyword"
+      }
+    },
+    {
+      "id": "concept:lobby",
+      "type": "concept",
+      "label": "lobby",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "preferred_keyword"
+      }
+    },
+    {
+      "id": "concept:espresso",
+      "type": "concept",
+      "label": "espresso",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "preferred_keyword"
+      }
+    },
+    {
+      "id": "concept:coffee",
+      "type": "concept",
+      "label": "coffee",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "preferred_keyword"
+      }
+    },
+    {
+      "id": "concept:table",
+      "type": "concept",
+      "label": "table",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "preferred_keyword"
+      }
+    },
+    {
+      "id": "concept:object",
+      "type": "concept",
+      "label": "object",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "preferred_keyword"
+      }
+    },
+    {
+      "id": "concept:still_life",
+      "type": "concept",
+      "label": "still life",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "preferred_keyword"
+      }
+    },
+    {
+      "id": "concept:architecture",
+      "type": "concept",
+      "label": "architecture",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "preferred_keyword"
+      }
+    },
+    {
+      "id": "concept:concrete",
+      "type": "concept",
+      "label": "concrete",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "preferred_keyword"
+      }
+    },
+    {
+      "id": "concept:shadow",
+      "type": "concept",
+      "label": "shadow",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "preferred_keyword"
+      }
+    },
+    {
+      "id": "concept:uniform",
+      "type": "concept",
+      "label": "uniform",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "preferred_keyword"
+      }
+    },
+    {
+      "id": "concept:menswear",
+      "type": "concept",
+      "label": "menswear",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "preferred_keyword"
+      }
+    },
+    {
+      "id": "concept:denim",
+      "type": "concept",
+      "label": "denim",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "preferred_keyword"
+      }
+    },
+    {
+      "id": "concept:shirt",
+      "type": "concept",
+      "label": "shirt",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "preferred_keyword"
+      }
+    },
+    {
+      "id": "concept:coat",
+      "type": "concept",
+      "label": "coat",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "preferred_keyword"
+      }
+    },
+    {
+      "id": "concept:sneakers",
+      "type": "concept",
+      "label": "sneakers",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "preferred_keyword"
+      }
+    },
+    {
+      "id": "concept:minimal",
+      "type": "concept",
+      "label": "minimal",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "preferred_keyword"
+      }
+    },
+    {
+      "id": "concept:neutral",
+      "type": "concept",
+      "label": "neutral",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "preferred_keyword"
+      }
+    },
+    {
+      "id": "concept:black_and_white",
+      "type": "concept",
+      "label": "black and white",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "preferred_keyword"
+      }
+    },
+    {
+      "id": "concept:film",
+      "type": "concept",
+      "label": "film",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "preferred_keyword"
+      }
+    },
+    {
+      "id": "concept:magazine",
+      "type": "concept",
+      "label": "magazine",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "preferred_keyword"
+      }
+    },
+    {
+      "id": "concept:brutalist",
+      "type": "concept",
+      "label": "brutalist",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "preferred_keyword"
+      }
+    },
+    {
+      "id": "source:brian-curran/jjjjound-full-archive",
+      "type": "source",
+      "label": "brian-curran/jjjjound-full-archive",
+      "properties": {
+        "source": "taste_memory.json",
+        "platform": "are.na",
+        "category": "preferred_channel"
+      }
+    },
+    {
+      "id": "source:lily-clempson-tfz8voo8tzo/editorial-fashion",
+      "type": "source",
+      "label": "lily-clempson-tfz8voo8tzo/editorial-fashion",
+      "properties": {
+        "source": "taste_memory.json",
+        "platform": "are.na",
+        "category": "preferred_channel"
+      }
+    },
+    {
+      "id": "source:jeremy-turner/photography-editorial-lifestyle-fashion",
+      "type": "source",
+      "label": "jeremy-turner/photography-editorial-lifestyle-fashion",
+      "properties": {
+        "source": "taste_memory.json",
+        "platform": "are.na",
+        "category": "preferred_channel"
+      }
+    },
+    {
+      "id": "visual_element:低饱和",
+      "type": "visual_element",
+      "label": "低饱和",
+      "properties": {
+        "source": "taste_memory.json"
+      }
+    },
+    {
+      "id": "visual_element:留白",
+      "type": "visual_element",
+      "label": "留白",
+      "properties": {
+        "source": "taste_memory.json"
+      }
+    },
+    {
+      "id": "visual_element:自然光或阴天光",
+      "type": "visual_element",
+      "label": "自然光或阴天光",
+      "properties": {
+        "source": "taste_memory.json"
+      }
+    },
+    {
+      "id": "visual_element:物件和材质要有质感",
+      "type": "visual_element",
+      "label": "物件和材质要有质感",
+      "properties": {
+        "source": "taste_memory.json"
+      }
+    },
+    {
+      "id": "visual_element:人物不要太摆拍",
+      "type": "visual_element",
+      "label": "人物不要太摆拍",
+      "properties": {
+        "source": "taste_memory.json"
+      }
+    },
+    {
+      "id": "visual_element:旅行感要轻，不要游客照",
+      "type": "visual_element",
+      "label": "旅行感要轻，不要游客照",
+      "properties": {
+        "source": "taste_memory.json"
+      }
+    },
+    {
+      "id": "visual_element:穿搭最好像_everyday_uniform",
+      "type": "visual_element",
+      "label": "穿搭最好像 everyday uniform",
+      "properties": {
+        "source": "taste_memory.json"
+      }
+    },
+    {
+      "id": "visual_element:咖啡和食物要克制，不要甜品网红风",
+      "type": "visual_element",
+      "label": "咖啡和食物要克制，不要甜品网红风",
+      "properties": {
+        "source": "taste_memory.json"
+      }
+    },
+    {
+      "id": "concept:cute",
+      "type": "concept",
+      "label": "cute",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "avoided_keyword"
+      }
+    },
+    {
+      "id": "concept:kawaii",
+      "type": "concept",
+      "label": "kawaii",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "avoided_keyword"
+      }
+    },
+    {
+      "id": "concept:pink",
+      "type": "concept",
+      "label": "pink",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "avoided_keyword"
+      }
+    },
+    {
+      "id": "concept:flower",
+      "type": "concept",
+      "label": "flower",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "avoided_keyword"
+      }
+    },
+    {
+      "id": "concept:princess",
+      "type": "concept",
+      "label": "princess",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "avoided_keyword"
+      }
+    },
+    {
+      "id": "concept:luxury_logo",
+      "type": "concept",
+      "label": "luxury logo",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "avoided_keyword"
+      }
+    },
+    {
+      "id": "concept:influencer",
+      "type": "concept",
+      "label": "influencer",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "avoided_keyword"
+      }
+    },
+    {
+      "id": "concept:selfie",
+      "type": "concept",
+      "label": "selfie",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "avoided_keyword"
+      }
+    },
+    {
+      "id": "concept:glam",
+      "type": "concept",
+      "label": "glam",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "avoided_keyword"
+      }
+    },
+    {
+      "id": "concept:neon",
+      "type": "concept",
+      "label": "neon",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "avoided_keyword"
+      }
+    },
+    {
+      "id": "concept:vibrant",
+      "type": "concept",
+      "label": "vibrant",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "avoided_keyword"
+      }
+    },
+    {
+      "id": "concept:colorful",
+      "type": "concept",
+      "label": "colorful",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "avoided_keyword"
+      }
+    },
+    {
+      "id": "concept:template",
+      "type": "concept",
+      "label": "template",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "avoided_keyword"
+      }
+    },
+    {
+      "id": "concept:poster",
+      "type": "concept",
+      "label": "poster",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "avoided_keyword"
+      }
+    },
+    {
+      "id": "concept:icon",
+      "type": "concept",
+      "label": "icon",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "avoided_keyword"
+      }
+    },
+    {
+      "id": "concept:logo",
+      "type": "concept",
+      "label": "logo",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "avoided_keyword"
+      }
+    },
+    {
+      "id": "concept:favicon",
+      "type": "concept",
+      "label": "favicon",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "avoided_keyword"
+      }
+    },
+    {
+      "id": "concept:screenshot",
+      "type": "concept",
+      "label": "screenshot",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "avoided_keyword"
+      }
+    },
+    {
+      "id": "concept:placeholder",
+      "type": "concept",
+      "label": "placeholder",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "avoided_keyword"
+      }
+    },
+    {
+      "id": "concept:stock_photo",
+      "type": "concept",
+      "label": "stock photo",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "avoided_keyword"
+      }
+    },
+    {
+      "id": "visual_element:不要甜妹感",
+      "type": "visual_element",
+      "label": "不要甜妹感",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "avoided_visual"
+      }
+    },
+    {
+      "id": "visual_element:不要明显网红摆拍",
+      "type": "visual_element",
+      "label": "不要明显网红摆拍",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "avoided_visual"
+      }
+    },
+    {
+      "id": "visual_element:不要大_logo_炫耀",
+      "type": "visual_element",
+      "label": "不要大 logo 炫耀",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "avoided_visual"
+      }
+    },
+    {
+      "id": "visual_element:不要旅游宣传图",
+      "type": "visual_element",
+      "label": "不要旅游宣传图",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "avoided_visual"
+      }
+    },
+    {
+      "id": "visual_element:不要素材站味",
+      "type": "visual_element",
+      "label": "不要素材站味",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "avoided_visual"
+      }
+    },
+    {
+      "id": "visual_element:不要图标、小缩略图、网页封面凑数",
+      "type": "visual_element",
+      "label": "不要图标、小缩略图、网页封面凑数",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "avoided_visual"
+      }
+    },
+    {
+      "id": "visual_element:不要用我的本地视频截图当外部_moodboard",
+      "type": "visual_element",
+      "label": "不要用我的本地视频截图当外部 moodboard",
+      "properties": {
+        "source": "taste_memory.json",
+        "category": "avoided_visual"
+      }
+    },
+    {
+      "id": "pillar:daily_archive",
+      "type": "pillar",
+      "label": "Daily Archive",
+      "properties": {
+        "description": "Build daily taste recognition.",
+        "source": "taste_ip_system.md"
+      }
+    },
+    {
+      "id": "pillar:lookbook_notes",
+      "type": "pillar",
+      "label": "Lookbook Notes",
+      "properties": {
+        "description": "Train the audience to understand the taste behind clothes.",
+        "source": "taste_ip_system.md"
+      }
+    },
+    {
+      "id": "pillar:moving_taste",
+      "type": "pillar",
+      "label": "Moving Taste",
+      "properties": {
+        "description": "Give the account a less static, more cinematic edge.",
+        "source": "taste_ip_system.md"
+      }
+    },
+    {
+      "id": "pillar:reading_taste",
+      "type": "pillar",
+      "label": "Reading Taste",
+      "properties": {
+        "description": "Make the account feel intelligent, not just pretty.",
+        "source": "taste_ip_system.md"
+      }
+    },
+    {
+      "id": "pillar:product_seeds",
+      "type": "pillar",
+      "label": "Product Seeds",
+      "properties": {
+        "description": "Turn taste into commercial direction.",
+        "source": "taste_ip_system.md"
+      }
+    },
+    {
+      "id": "concept:rule:_good_things_do_not_need_to_shout.",
+      "type": "concept",
+      "label": "rule: Good things do not need to shout.",
+      "properties": {
+        "description": "Good things do not need to shout.",
+        "source": "taste_ip_system.md"
+      }
+    },
+    {
+      "id": "concept:rule:_a_thing_can_be_expensive,_but_it_cannot_flex.",
+      "type": "concept",
+      "label": "rule: A thing can be expensive, but it cannot flex.",
+      "properties": {
+        "description": "A thing can be expensive, but it cannot flex.",
+        "source": "taste_ip_system.md"
+      }
+    },
+    {
+      "id": "concept:rule:_a_thing_can_be_weird,_but_it_cannot_feel_cheap.",
+      "type": "concept",
+      "label": "rule: A thing can be weird, but it cannot feel cheap.",
+      "properties": {
+        "description": "A thing can be weird, but it cannot feel cheap.",
+        "source": "taste_ip_system.md"
+      }
+    },
+    {
+      "id": "concept:rule:_a_thing_can_be_old,_but_it_cannot_feel_sloppy.",
+      "type": "concept",
+      "label": "rule: A thing can be old, but it cannot feel sloppy.",
+      "properties": {
+        "description": "A thing can be old, but it cannot feel sloppy.",
+        "source": "taste_ip_system.md"
+      }
+    },
+    {
+      "id": "concept:rule:_a_thing_can_be_minimal,_but_it_cannot_be_empty.",
+      "type": "concept",
+      "label": "rule: A thing can be minimal, but it cannot be empty.",
+      "properties": {
+        "description": "A thing can be minimal, but it cannot be empty.",
+        "source": "taste_ip_system.md"
+      }
+    },
+    {
+      "id": "concept:rule:_a_thing_can_be_daily,_but_it_must_have_some_tension.",
+      "type": "concept",
+      "label": "rule: A thing can be daily, but it must have some tension.",
+      "properties": {
+        "description": "A thing can be daily, but it must have some tension.",
+        "source": "taste_ip_system.md"
+      }
+    },
+    {
+      "id": "concept:rule:_a_thing_can_be_beautiful,_but_it_needs_a_reason_to_be_here.",
+      "type": "concept",
+      "label": "rule: A thing can be beautiful, but it needs a reason to be here.",
+      "properties": {
+        "description": "A thing can be beautiful, but it needs a reason to be here.",
+        "source": "taste_ip_system.md"
+      }
+    },
+    {
+      "id": "concept:voice:_姐妹们冲",
+      "type": "concept",
+      "label": "voice: 姐妹们冲",
+      "properties": {
+        "description": "姐妹们冲",
+        "category": "avoided_voice",
+        "source": "taste_ip_system.md"
+      }
+    },
+    {
+      "id": "concept:voice:_太绝了",
+      "type": "concept",
+      "label": "voice: 太绝了",
+      "properties": {
+        "description": "太绝了",
+        "category": "avoided_voice",
+        "source": "taste_ip_system.md"
+      }
+    },
+    {
+      "id": "concept:voice:_高级感拉满",
+      "type": "concept",
+      "label": "voice: 高级感拉满",
+      "properties": {
+        "description": "高级感拉满",
+        "category": "avoided_voice",
+        "source": "taste_ip_system.md"
+      }
+    },
+    {
+      "id": "concept:voice:_氛围感天花板",
+      "type": "concept",
+      "label": "voice: 氛围感天花板",
+      "properties": {
+        "description": "氛围感天花板",
+        "category": "avoided_voice",
+        "source": "taste_ip_system.md"
+      }
+    },
+    {
+      "id": "concept:voice:_普通人必看",
+      "type": "concept",
+      "label": "voice: 普通人必看",
+      "properties": {
+        "description": "普通人必看",
+        "category": "avoided_voice",
+        "source": "taste_ip_system.md"
+      }
+    },
+    {
+      "id": "concept:voice:_谁懂啊",
+      "type": "concept",
+      "label": "voice: 谁懂啊",
+      "properties": {
+        "description": "谁懂啊",
+        "category": "avoided_voice",
+        "source": "taste_ip_system.md"
+      }
+    },
+    {
+      "id": "concept:voice:_狠狠拿捏",
+      "type": "concept",
+      "label": "voice: 狠狠拿捏",
+      "properties": {
+        "description": "狠狠拿捏",
+        "category": "avoided_voice",
+        "source": "taste_ip_system.md"
+      }
+    },
+    {
+      "id": "source:vogue_runway_-_menswear",
+      "type": "source",
+      "label": "Vogue Runway - Menswear",
+      "properties": {
+        "url": "https://www.vogue.com/fashion-shows/menswear",
+        "source_type": "lookbook",
+        "why": "Reliable runway/lookbook image archive with designer context.",
+        "source": "link_sources.json"
+      }
+    },
+    {
+      "id": "source:vogue_runway_-_lemaire",
+      "type": "source",
+      "label": "Vogue Runway - Lemaire",
+      "properties": {
+        "url": "https://www.vogue.com/brands/lemaire",
+        "source_type": "lookbook",
+        "why": "Quiet uniform, relaxed tailoring, understated styling.",
+        "source": "link_sources.json"
+      }
+    },
+    {
+      "id": "source:vogue_runway_-_032c",
+      "type": "source",
+      "label": "Vogue Runway - 032c",
+      "properties": {
+        "url": "https://www.vogue.com/brands/032c",
+        "source_type": "lookbook",
+        "why": "Sharper, Berlin-coded, conceptual street/tailoring energy.",
+        "source": "link_sources.json"
+      }
+    },
+    {
+      "id": "source:032c_magazine",
+      "type": "source",
+      "label": "032c Magazine",
+      "properties": {
+        "url": "https://www.032c.com/",
+        "source_type": "article",
+        "why": "Deep fashion/culture interviews and theory-adjacent pieces.",
+        "source": "link_sources.json"
+      }
+    },
+    {
+      "id": "source:hypebeast_fashion",
+      "type": "source",
+      "label": "Hypebeast Fashion",
+      "properties": {
+        "url": "https://hypebeast.com/fashion",
+        "source_type": "lookbook",
+        "why": "Lookbook and streetwear drops; needs strict taste filtering.",
+        "source": "link_sources.json"
+      }
+    },
+    {
+      "id": "source:highsnobiety_style",
+      "type": "source",
+      "label": "Highsnobiety Style",
+      "properties": {
+        "url": "https://www.highsnobiety.com/tag/style/",
+        "source_type": "lookbook",
+        "why": "Trend and editorial style links; useful but should avoid generic influencer pieces.",
+        "source": "link_sources.json"
+      }
+    },
+    {
+      "id": "source:showstudio_fashion_film",
+      "type": "source",
+      "label": "SHOWstudio Fashion Film",
+      "properties": {
+        "url": "https://www.showstudio.com/projects/fashion_film_submissions",
+        "source_type": "video",
+        "why": "Fashion film archive and submissions, better for wild visual references.",
+        "source": "link_sources.json"
+      }
+    },
+    {
+      "id": "source:showstudio_video",
+      "type": "source",
+      "label": "SHOWstudio Video",
+      "properties": {
+        "url": "https://www.showstudio.com/videos",
+        "source_type": "video",
+        "why": "Experimental fashion moving image and process references.",
+        "source": "link_sources.json"
+      }
+    },
+    {
+      "id": "source:nowness_fashion",
+      "type": "source",
+      "label": "NOWNESS Fashion",
+      "properties": {
+        "url": "https://www.nowness.com/topic/fashion",
+        "source_type": "video",
+        "why": "Artful fashion/lifestyle video language.",
+        "source": "link_sources.json"
+      }
+    },
+    {
+      "id": "source:dazed_video",
+      "type": "source",
+      "label": "Dazed Video",
+      "properties": {
+        "url": "https://www.dazeddigital.com/video",
+        "source_type": "video",
+        "why": "Youth culture, art, music, fashion video references.",
+        "source": "link_sources.json"
+      }
+    },
+    {
+      "id": "source:vimeo_staff_picks",
+      "type": "source",
+      "label": "Vimeo Staff Picks",
+      "properties": {
+        "url": "https://vimeo.com/channels/staffpicks",
+        "source_type": "video",
+        "why": "Useful for cinematic, unusual video language outside fashion.",
+        "source": "link_sources.json"
+      }
+    },
+    {
+      "id": "source:ssense_editorial",
+      "type": "source",
+      "label": "SSENSE Editorial",
+      "properties": {
+        "url": "https://www.ssense.com/en-us/editorial",
+        "source_type": "article",
+        "why": "Culture and fashion essays with stronger point of view.",
+        "source": "link_sources.json"
+      }
+    },
+    {
+      "id": "source:dazed_fashion",
+      "type": "source",
+      "label": "Dazed Fashion",
+      "properties": {
+        "url": "https://www.dazeddigital.com/fashion",
+        "source_type": "article",
+        "why": "Fashion culture with attitude; good for article angles.",
+        "source": "link_sources.json"
+      }
+    },
+    {
+      "id": "source:i-d_fashion",
+      "type": "source",
+      "label": "i-D Fashion",
+      "properties": {
+        "url": "https://i-d.co/category/fashion/",
+        "source_type": "article",
+        "why": "Youth culture and fashion viewpoint.",
+        "source": "link_sources.json"
+      }
+    },
+    {
+      "id": "source:the_guardian_art_&_design",
+      "type": "source",
+      "label": "The Guardian Art & Design",
+      "properties": {
+        "url": "https://www.theguardian.com/artanddesign",
+        "source_type": "article",
+        "why": "Architecture/design/culture depth that can feed lifestyle positioning.",
+        "source": "link_sources.json"
+      }
+    },
+    {
+      "id": "source:vogue_business",
+      "type": "source",
+      "label": "Vogue Business",
+      "properties": {
+        "url": "https://www.voguebusiness.com/",
+        "source_type": "article",
+        "why": "Fashion industry context, useful for deeper posts and captions.",
+        "source": "link_sources.json"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "concept:north_star",
+      "target": "concept:archive",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167260"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:editorial",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167269"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:street",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167274"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:street_style",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167277"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:city",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167280"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:city_walk",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167282"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:travel",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167284"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:hotel",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167286"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:lobby",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167288"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:espresso",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167290"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:coffee",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167292"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:table",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167294"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:object",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167295"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:still_life",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167340"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:architecture",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167343"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:concrete",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167345"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:shadow",
+      "relation": "prefers",
+      "weight": 4,
+      "feedback_count": 1,
+      "last_updated": "2026-05-26T23:09:37.167458"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:uniform",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167349"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:menswear",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167350"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:denim",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167352"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:shirt",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167354"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:coat",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167356"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:sneakers",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167358"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:minimal",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167359"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:neutral",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167361"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:black_and_white",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167363"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:film",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167365"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:magazine",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167366"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:brutalist",
+      "relation": "prefers",
+      "weight": 4,
+      "feedback_count": 1,
+      "last_updated": "2026-05-26T23:09:37.167455"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "source:brian-curran/jjjjound-full-archive",
+      "relation": "prefers",
+      "weight": 8,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167371"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "source:lily-clempson-tfz8voo8tzo/editorial-fashion",
+      "relation": "prefers",
+      "weight": 8,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167373"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "source:jeremy-turner/photography-editorial-lifestyle-fashion",
+      "relation": "prefers",
+      "weight": 8,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167375"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "visual_element:低饱和",
+      "relation": "prefers",
+      "weight": 2,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167381"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "visual_element:留白",
+      "relation": "prefers",
+      "weight": 2,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167383"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "visual_element:自然光或阴天光",
+      "relation": "prefers",
+      "weight": 2,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167385"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "visual_element:物件和材质要有质感",
+      "relation": "prefers",
+      "weight": 2,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167386"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "visual_element:人物不要太摆拍",
+      "relation": "prefers",
+      "weight": 2,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167388"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "visual_element:旅行感要轻，不要游客照",
+      "relation": "prefers",
+      "weight": 2,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167390"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "visual_element:穿搭最好像_everyday_uniform",
+      "relation": "prefers",
+      "weight": 2,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167392"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "visual_element:咖啡和食物要克制，不要甜品网红风",
+      "relation": "prefers",
+      "weight": 2,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167394"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:cute",
+      "relation": "avoids",
+      "weight": -7,
+      "feedback_count": 1,
+      "last_updated": "2026-05-26T23:09:37.167461"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:kawaii",
+      "relation": "avoids",
+      "weight": -6,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167399"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:pink",
+      "relation": "avoids",
+      "weight": -6,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167401"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:flower",
+      "relation": "avoids",
+      "weight": -6,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167403"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:princess",
+      "relation": "avoids",
+      "weight": -6,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167405"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:luxury_logo",
+      "relation": "avoids",
+      "weight": -6,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167407"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:influencer",
+      "relation": "avoids",
+      "weight": -7,
+      "feedback_count": 1,
+      "last_updated": "2026-05-26T23:09:37.167462"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:selfie",
+      "relation": "avoids",
+      "weight": -6,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167412"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:glam",
+      "relation": "avoids",
+      "weight": -6,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167413"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:neon",
+      "relation": "avoids",
+      "weight": -6,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167415"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:vibrant",
+      "relation": "avoids",
+      "weight": -6,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167417"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:colorful",
+      "relation": "avoids",
+      "weight": -6,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167418"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:template",
+      "relation": "avoids",
+      "weight": -6,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167420"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:poster",
+      "relation": "avoids",
+      "weight": -6,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167422"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:icon",
+      "relation": "avoids",
+      "weight": -6,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167423"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:logo",
+      "relation": "avoids",
+      "weight": -6,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167425"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:favicon",
+      "relation": "avoids",
+      "weight": -6,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167427"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:screenshot",
+      "relation": "avoids",
+      "weight": -6,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167428"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:placeholder",
+      "relation": "avoids",
+      "weight": -6,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167430"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:stock_photo",
+      "relation": "avoids",
+      "weight": -6,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167432"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "visual_element:不要甜妹感",
+      "relation": "avoids",
+      "weight": -4,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167434"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "visual_element:不要明显网红摆拍",
+      "relation": "avoids",
+      "weight": -4,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167435"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "visual_element:不要大_logo_炫耀",
+      "relation": "avoids",
+      "weight": -4,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167437"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "visual_element:不要旅游宣传图",
+      "relation": "avoids",
+      "weight": -4,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167439"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "visual_element:不要素材站味",
+      "relation": "avoids",
+      "weight": -4,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167441"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "visual_element:不要图标、小缩略图、网页封面凑数",
+      "relation": "avoids",
+      "weight": -4,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167442"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "visual_element:不要用我的本地视频截图当外部_moodboard",
+      "relation": "avoids",
+      "weight": -4,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167444"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:voice:_姐妹们冲",
+      "relation": "avoids",
+      "weight": -3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167739"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:voice:_太绝了",
+      "relation": "avoids",
+      "weight": -3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167743"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:voice:_高级感拉满",
+      "relation": "avoids",
+      "weight": -3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167746"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:voice:_氛围感天花板",
+      "relation": "avoids",
+      "weight": -3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167748"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:voice:_普通人必看",
+      "relation": "avoids",
+      "weight": -3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167750"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:voice:_谁懂啊",
+      "relation": "avoids",
+      "weight": -3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167754"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "concept:voice:_狠狠拿捏",
+      "relation": "avoids",
+      "weight": -3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167756"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "source:vogue_runway_-_menswear",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167807"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "source:vogue_runway_-_lemaire",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167861"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "source:vogue_runway_-_032c",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167902"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "source:032c_magazine",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168294"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "source:hypebeast_fashion",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167982"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "source:highsnobiety_style",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168021"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "source:showstudio_fashion_film",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168065"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "source:showstudio_video",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168107"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "source:nowness_fashion",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168145"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "source:dazed_video",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168182"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "source:vimeo_staff_picks",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168217"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "source:ssense_editorial",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168254"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "source:dazed_fashion",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168325"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "source:i-d_fashion",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168361"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "source:the_guardian_art_&_design",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168397"
+    },
+    {
+      "source": "concept:north_star",
+      "target": "source:vogue_business",
+      "relation": "prefers",
+      "weight": 3,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168452"
+    },
+    {
+      "source": "pillar:daily_archive",
+      "target": "concept:north_star",
+      "relation": "belongs_to",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167621"
+    },
+    {
+      "source": "pillar:lookbook_notes",
+      "target": "concept:north_star",
+      "relation": "belongs_to",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167630"
+    },
+    {
+      "source": "pillar:moving_taste",
+      "target": "concept:north_star",
+      "relation": "belongs_to",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167637"
+    },
+    {
+      "source": "pillar:reading_taste",
+      "target": "concept:north_star",
+      "relation": "belongs_to",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167643"
+    },
+    {
+      "source": "pillar:product_seeds",
+      "target": "concept:north_star",
+      "relation": "belongs_to",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167657"
+    },
+    {
+      "source": "source:vogue_runway_-_menswear",
+      "target": "concept:archive",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167818"
+    },
+    {
+      "source": "source:vogue_runway_-_menswear",
+      "target": "concept:rule:_a_thing_can_be_expensive,_but_it_cannot_flex.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167843"
+    },
+    {
+      "source": "source:vogue_runway_-_menswear",
+      "target": "concept:rule:_a_thing_can_be_weird,_but_it_cannot_feel_cheap.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167846"
+    },
+    {
+      "source": "source:vogue_runway_-_menswear",
+      "target": "concept:rule:_a_thing_can_be_old,_but_it_cannot_feel_sloppy.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167848"
+    },
+    {
+      "source": "source:vogue_runway_-_menswear",
+      "target": "concept:rule:_a_thing_can_be_minimal,_but_it_cannot_be_empty.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167850"
+    },
+    {
+      "source": "source:vogue_runway_-_menswear",
+      "target": "concept:rule:_a_thing_can_be_daily,_but_it_must_have_some_tension.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167852"
+    },
+    {
+      "source": "source:vogue_runway_-_menswear",
+      "target": "concept:rule:_a_thing_can_be_beautiful,_but_it_needs_a_reason_to_be_here.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167854"
+    },
+    {
+      "source": "source:vogue_runway_-_lemaire",
+      "target": "concept:uniform",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167872"
+    },
+    {
+      "source": "source:vogue_runway_-_lemaire",
+      "target": "concept:rule:_a_thing_can_be_expensive,_but_it_cannot_flex.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167887"
+    },
+    {
+      "source": "source:vogue_runway_-_lemaire",
+      "target": "concept:rule:_a_thing_can_be_weird,_but_it_cannot_feel_cheap.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167889"
+    },
+    {
+      "source": "source:vogue_runway_-_lemaire",
+      "target": "concept:rule:_a_thing_can_be_old,_but_it_cannot_feel_sloppy.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167891"
+    },
+    {
+      "source": "source:vogue_runway_-_lemaire",
+      "target": "concept:rule:_a_thing_can_be_minimal,_but_it_cannot_be_empty.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167893"
+    },
+    {
+      "source": "source:vogue_runway_-_lemaire",
+      "target": "concept:rule:_a_thing_can_be_daily,_but_it_must_have_some_tension.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167894"
+    },
+    {
+      "source": "source:vogue_runway_-_lemaire",
+      "target": "concept:rule:_a_thing_can_be_beautiful,_but_it_needs_a_reason_to_be_here.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167896"
+    },
+    {
+      "source": "source:vogue_runway_-_032c",
+      "target": "concept:street",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167907"
+    },
+    {
+      "source": "source:vogue_runway_-_032c",
+      "target": "concept:street_style",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167908"
+    },
+    {
+      "source": "source:vogue_runway_-_032c",
+      "target": "concept:rule:_a_thing_can_be_expensive,_but_it_cannot_flex.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167928"
+    },
+    {
+      "source": "source:vogue_runway_-_032c",
+      "target": "concept:rule:_a_thing_can_be_weird,_but_it_cannot_feel_cheap.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167930"
+    },
+    {
+      "source": "source:vogue_runway_-_032c",
+      "target": "concept:rule:_a_thing_can_be_old,_but_it_cannot_feel_sloppy.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167932"
+    },
+    {
+      "source": "source:vogue_runway_-_032c",
+      "target": "concept:rule:_a_thing_can_be_minimal,_but_it_cannot_be_empty.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167933"
+    },
+    {
+      "source": "source:vogue_runway_-_032c",
+      "target": "concept:rule:_a_thing_can_be_daily,_but_it_must_have_some_tension.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167935"
+    },
+    {
+      "source": "source:vogue_runway_-_032c",
+      "target": "concept:rule:_a_thing_can_be_beautiful,_but_it_needs_a_reason_to_be_here.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167937"
+    },
+    {
+      "source": "source:032c_magazine",
+      "target": "concept:black_and_white",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167955"
+    },
+    {
+      "source": "source:032c_magazine",
+      "target": "concept:rule:_a_thing_can_be_expensive,_but_it_cannot_flex.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167968"
+    },
+    {
+      "source": "source:032c_magazine",
+      "target": "concept:rule:_a_thing_can_be_weird,_but_it_cannot_feel_cheap.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167969"
+    },
+    {
+      "source": "source:032c_magazine",
+      "target": "concept:rule:_a_thing_can_be_old,_but_it_cannot_feel_sloppy.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167971"
+    },
+    {
+      "source": "source:032c_magazine",
+      "target": "concept:rule:_a_thing_can_be_minimal,_but_it_cannot_be_empty.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167973"
+    },
+    {
+      "source": "source:032c_magazine",
+      "target": "concept:rule:_a_thing_can_be_daily,_but_it_must_have_some_tension.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167975"
+    },
+    {
+      "source": "source:032c_magazine",
+      "target": "concept:rule:_a_thing_can_be_beautiful,_but_it_needs_a_reason_to_be_here.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167977"
+    },
+    {
+      "source": "source:hypebeast_fashion",
+      "target": "concept:street",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167986"
+    },
+    {
+      "source": "source:hypebeast_fashion",
+      "target": "concept:street_style",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167988"
+    },
+    {
+      "source": "source:hypebeast_fashion",
+      "target": "concept:black_and_white",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.167996"
+    },
+    {
+      "source": "source:hypebeast_fashion",
+      "target": "concept:rule:_good_things_do_not_need_to_shout.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168006"
+    },
+    {
+      "source": "source:hypebeast_fashion",
+      "target": "concept:rule:_a_thing_can_be_expensive,_but_it_cannot_flex.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168008"
+    },
+    {
+      "source": "source:hypebeast_fashion",
+      "target": "concept:rule:_a_thing_can_be_weird,_but_it_cannot_feel_cheap.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168010"
+    },
+    {
+      "source": "source:hypebeast_fashion",
+      "target": "concept:rule:_a_thing_can_be_old,_but_it_cannot_feel_sloppy.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168011"
+    },
+    {
+      "source": "source:hypebeast_fashion",
+      "target": "concept:rule:_a_thing_can_be_minimal,_but_it_cannot_be_empty.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168013"
+    },
+    {
+      "source": "source:hypebeast_fashion",
+      "target": "concept:rule:_a_thing_can_be_daily,_but_it_must_have_some_tension.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168015"
+    },
+    {
+      "source": "source:hypebeast_fashion",
+      "target": "concept:rule:_a_thing_can_be_beautiful,_but_it_needs_a_reason_to_be_here.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168016"
+    },
+    {
+      "source": "source:highsnobiety_style",
+      "target": "concept:editorial",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168024"
+    },
+    {
+      "source": "source:highsnobiety_style",
+      "target": "concept:street_style",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168027"
+    },
+    {
+      "source": "source:highsnobiety_style",
+      "target": "concept:black_and_white",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168035"
+    },
+    {
+      "source": "source:highsnobiety_style",
+      "target": "concept:influencer",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168040"
+    },
+    {
+      "source": "source:highsnobiety_style",
+      "target": "concept:rule:_good_things_do_not_need_to_shout.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168048"
+    },
+    {
+      "source": "source:highsnobiety_style",
+      "target": "concept:rule:_a_thing_can_be_expensive,_but_it_cannot_flex.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168050"
+    },
+    {
+      "source": "source:highsnobiety_style",
+      "target": "concept:rule:_a_thing_can_be_weird,_but_it_cannot_feel_cheap.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168052"
+    },
+    {
+      "source": "source:highsnobiety_style",
+      "target": "concept:rule:_a_thing_can_be_old,_but_it_cannot_feel_sloppy.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168054"
+    },
+    {
+      "source": "source:highsnobiety_style",
+      "target": "concept:rule:_a_thing_can_be_minimal,_but_it_cannot_be_empty.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168055"
+    },
+    {
+      "source": "source:highsnobiety_style",
+      "target": "concept:rule:_a_thing_can_be_daily,_but_it_must_have_some_tension.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168057"
+    },
+    {
+      "source": "source:highsnobiety_style",
+      "target": "concept:rule:_a_thing_can_be_beautiful,_but_it_needs_a_reason_to_be_here.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168059"
+    },
+    {
+      "source": "source:showstudio_fashion_film",
+      "target": "concept:archive",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168070"
+    },
+    {
+      "source": "source:showstudio_fashion_film",
+      "target": "concept:black_and_white",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168080"
+    },
+    {
+      "source": "source:showstudio_fashion_film",
+      "target": "concept:film",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168082"
+    },
+    {
+      "source": "source:showstudio_fashion_film",
+      "target": "concept:rule:_a_thing_can_be_expensive,_but_it_cannot_flex.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168093"
+    },
+    {
+      "source": "source:showstudio_fashion_film",
+      "target": "concept:rule:_a_thing_can_be_weird,_but_it_cannot_feel_cheap.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168094"
+    },
+    {
+      "source": "source:showstudio_fashion_film",
+      "target": "concept:rule:_a_thing_can_be_old,_but_it_cannot_feel_sloppy.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168096"
+    },
+    {
+      "source": "source:showstudio_fashion_film",
+      "target": "concept:rule:_a_thing_can_be_minimal,_but_it_cannot_be_empty.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168098"
+    },
+    {
+      "source": "source:showstudio_fashion_film",
+      "target": "concept:rule:_a_thing_can_be_daily,_but_it_must_have_some_tension.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168100"
+    },
+    {
+      "source": "source:showstudio_fashion_film",
+      "target": "concept:rule:_a_thing_can_be_beautiful,_but_it_needs_a_reason_to_be_here.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168102"
+    },
+    {
+      "source": "source:showstudio_video",
+      "target": "concept:black_and_white",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168119"
+    },
+    {
+      "source": "source:showstudio_video",
+      "target": "concept:rule:_a_thing_can_be_expensive,_but_it_cannot_flex.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168130"
+    },
+    {
+      "source": "source:showstudio_video",
+      "target": "concept:rule:_a_thing_can_be_weird,_but_it_cannot_feel_cheap.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168132"
+    },
+    {
+      "source": "source:showstudio_video",
+      "target": "concept:rule:_a_thing_can_be_old,_but_it_cannot_feel_sloppy.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168134"
+    },
+    {
+      "source": "source:showstudio_video",
+      "target": "concept:rule:_a_thing_can_be_minimal,_but_it_cannot_be_empty.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168136"
+    },
+    {
+      "source": "source:showstudio_video",
+      "target": "concept:rule:_a_thing_can_be_daily,_but_it_must_have_some_tension.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168138"
+    },
+    {
+      "source": "source:showstudio_video",
+      "target": "concept:rule:_a_thing_can_be_beautiful,_but_it_needs_a_reason_to_be_here.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168139"
+    },
+    {
+      "source": "source:nowness_fashion",
+      "target": "concept:street_style",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168149"
+    },
+    {
+      "source": "source:nowness_fashion",
+      "target": "concept:still_life",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168154"
+    },
+    {
+      "source": "source:nowness_fashion",
+      "target": "concept:rule:_a_thing_can_be_expensive,_but_it_cannot_flex.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168168"
+    },
+    {
+      "source": "source:nowness_fashion",
+      "target": "concept:rule:_a_thing_can_be_weird,_but_it_cannot_feel_cheap.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168170"
+    },
+    {
+      "source": "source:nowness_fashion",
+      "target": "concept:rule:_a_thing_can_be_old,_but_it_cannot_feel_sloppy.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168171"
+    },
+    {
+      "source": "source:nowness_fashion",
+      "target": "concept:rule:_a_thing_can_be_minimal,_but_it_cannot_be_empty.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168173"
+    },
+    {
+      "source": "source:nowness_fashion",
+      "target": "concept:rule:_a_thing_can_be_daily,_but_it_must_have_some_tension.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168175"
+    },
+    {
+      "source": "source:nowness_fashion",
+      "target": "concept:rule:_a_thing_can_be_beautiful,_but_it_needs_a_reason_to_be_here.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168176"
+    },
+    {
+      "source": "source:dazed_video",
+      "target": "concept:rule:_a_thing_can_be_expensive,_but_it_cannot_flex.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168203"
+    },
+    {
+      "source": "source:dazed_video",
+      "target": "concept:rule:_a_thing_can_be_weird,_but_it_cannot_feel_cheap.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168205"
+    },
+    {
+      "source": "source:dazed_video",
+      "target": "concept:rule:_a_thing_can_be_old,_but_it_cannot_feel_sloppy.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168206"
+    },
+    {
+      "source": "source:dazed_video",
+      "target": "concept:rule:_a_thing_can_be_minimal,_but_it_cannot_be_empty.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168208"
+    },
+    {
+      "source": "source:dazed_video",
+      "target": "concept:rule:_a_thing_can_be_daily,_but_it_must_have_some_tension.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168210"
+    },
+    {
+      "source": "source:dazed_video",
+      "target": "concept:rule:_a_thing_can_be_beautiful,_but_it_needs_a_reason_to_be_here.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168212"
+    },
+    {
+      "source": "source:vimeo_staff_picks",
+      "target": "concept:rule:_a_thing_can_be_expensive,_but_it_cannot_flex.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168239"
+    },
+    {
+      "source": "source:vimeo_staff_picks",
+      "target": "concept:rule:_a_thing_can_be_weird,_but_it_cannot_feel_cheap.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168241"
+    },
+    {
+      "source": "source:vimeo_staff_picks",
+      "target": "concept:rule:_a_thing_can_be_old,_but_it_cannot_feel_sloppy.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168243"
+    },
+    {
+      "source": "source:vimeo_staff_picks",
+      "target": "concept:rule:_a_thing_can_be_minimal,_but_it_cannot_be_empty.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168244"
+    },
+    {
+      "source": "source:vimeo_staff_picks",
+      "target": "concept:rule:_a_thing_can_be_daily,_but_it_must_have_some_tension.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168246"
+    },
+    {
+      "source": "source:vimeo_staff_picks",
+      "target": "concept:rule:_a_thing_can_be_beautiful,_but_it_needs_a_reason_to_be_here.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168248"
+    },
+    {
+      "source": "source:ssense_editorial",
+      "target": "concept:black_and_white",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168266"
+    },
+    {
+      "source": "source:ssense_editorial",
+      "target": "concept:rule:_a_thing_can_be_expensive,_but_it_cannot_flex.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168278"
+    },
+    {
+      "source": "source:ssense_editorial",
+      "target": "concept:rule:_a_thing_can_be_weird,_but_it_cannot_feel_cheap.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168279"
+    },
+    {
+      "source": "source:ssense_editorial",
+      "target": "concept:rule:_a_thing_can_be_old,_but_it_cannot_feel_sloppy.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168281"
+    },
+    {
+      "source": "source:ssense_editorial",
+      "target": "concept:rule:_a_thing_can_be_minimal,_but_it_cannot_be_empty.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168283"
+    },
+    {
+      "source": "source:ssense_editorial",
+      "target": "concept:rule:_a_thing_can_be_daily,_but_it_must_have_some_tension.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168286"
+    },
+    {
+      "source": "source:ssense_editorial",
+      "target": "concept:rule:_a_thing_can_be_beautiful,_but_it_needs_a_reason_to_be_here.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168288"
+    },
+    {
+      "source": "source:dazed_fashion",
+      "target": "concept:rule:_good_things_do_not_need_to_shout.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168345"
+    },
+    {
+      "source": "source:dazed_fashion",
+      "target": "concept:rule:_a_thing_can_be_expensive,_but_it_cannot_flex.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168347"
+    },
+    {
+      "source": "source:dazed_fashion",
+      "target": "concept:rule:_a_thing_can_be_weird,_but_it_cannot_feel_cheap.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168349"
+    },
+    {
+      "source": "source:dazed_fashion",
+      "target": "concept:rule:_a_thing_can_be_old,_but_it_cannot_feel_sloppy.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168350"
+    },
+    {
+      "source": "source:dazed_fashion",
+      "target": "concept:rule:_a_thing_can_be_minimal,_but_it_cannot_be_empty.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168352"
+    },
+    {
+      "source": "source:dazed_fashion",
+      "target": "concept:rule:_a_thing_can_be_daily,_but_it_must_have_some_tension.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168354"
+    },
+    {
+      "source": "source:dazed_fashion",
+      "target": "concept:rule:_a_thing_can_be_beautiful,_but_it_needs_a_reason_to_be_here.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168356"
+    },
+    {
+      "source": "source:i-d_fashion",
+      "target": "concept:black_and_white",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168372"
+    },
+    {
+      "source": "source:i-d_fashion",
+      "target": "concept:rule:_a_thing_can_be_expensive,_but_it_cannot_flex.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168383"
+    },
+    {
+      "source": "source:i-d_fashion",
+      "target": "concept:rule:_a_thing_can_be_weird,_but_it_cannot_feel_cheap.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168384"
+    },
+    {
+      "source": "source:i-d_fashion",
+      "target": "concept:rule:_a_thing_can_be_old,_but_it_cannot_feel_sloppy.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168386"
+    },
+    {
+      "source": "source:i-d_fashion",
+      "target": "concept:rule:_a_thing_can_be_minimal,_but_it_cannot_be_empty.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168387"
+    },
+    {
+      "source": "source:i-d_fashion",
+      "target": "concept:rule:_a_thing_can_be_daily,_but_it_must_have_some_tension.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168389"
+    },
+    {
+      "source": "source:i-d_fashion",
+      "target": "concept:rule:_a_thing_can_be_beautiful,_but_it_needs_a_reason_to_be_here.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168391"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "concept:street_style",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168401"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "concept:still_life",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168407"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "concept:architecture",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168408"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "concept:rule:_a_thing_can_be_expensive,_but_it_cannot_flex.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168424"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "concept:rule:_a_thing_can_be_weird,_but_it_cannot_feel_cheap.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168438"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "concept:rule:_a_thing_can_be_old,_but_it_cannot_feel_sloppy.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168440"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "concept:rule:_a_thing_can_be_minimal,_but_it_cannot_be_empty.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168442"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "concept:rule:_a_thing_can_be_daily,_but_it_must_have_some_tension.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168444"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "concept:rule:_a_thing_can_be_beautiful,_but_it_needs_a_reason_to_be_here.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168446"
+    },
+    {
+      "source": "source:vogue_business",
+      "target": "concept:black_and_white",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168464"
+    },
+    {
+      "source": "source:vogue_business",
+      "target": "concept:rule:_a_thing_can_be_expensive,_but_it_cannot_flex.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168475"
+    },
+    {
+      "source": "source:vogue_business",
+      "target": "concept:rule:_a_thing_can_be_weird,_but_it_cannot_feel_cheap.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168477"
+    },
+    {
+      "source": "source:vogue_business",
+      "target": "concept:rule:_a_thing_can_be_old,_but_it_cannot_feel_sloppy.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168479"
+    },
+    {
+      "source": "source:vogue_business",
+      "target": "concept:rule:_a_thing_can_be_minimal,_but_it_cannot_be_empty.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168481"
+    },
+    {
+      "source": "source:vogue_business",
+      "target": "concept:rule:_a_thing_can_be_daily,_but_it_must_have_some_tension.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168482"
+    },
+    {
+      "source": "source:vogue_business",
+      "target": "concept:rule:_a_thing_can_be_beautiful,_but_it_needs_a_reason_to_be_here.",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-05-26T23:09:37.168484"
+    }
+  ]
+}
