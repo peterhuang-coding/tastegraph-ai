@@ -13,8 +13,11 @@ from taste_graph_ai.services.feedback import FeedbackService
 
 
 async def get_db():
-    async with _get_db() as db:
+    db = await _get_db()
+    try:
         yield db
+    finally:
+        await db.close()
 
 
 async def get_source_repo(db=Depends(get_db)):
@@ -46,3 +49,15 @@ def get_feedback_service(
     event_log: EventLog = Depends(get_event_log),
 ) -> FeedbackService:
     return FeedbackService(feedback_repo, event_log)
+
+
+from taste_graph_ai.services.tasks import TaskService
+
+
+def get_task_service(
+    source_repo: SourceRepository = Depends(get_source_repo),
+    pack_repo: PackRepository = Depends(get_pack_repo),
+    task_repo: TaskRepository = Depends(get_task_repo),
+    event_log: EventLog = Depends(get_event_log),
+) -> TaskService:
+    return TaskService(source_repo, pack_repo, task_repo, event_log)

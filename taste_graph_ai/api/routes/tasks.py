@@ -1,18 +1,25 @@
 from fastapi import APIRouter, Depends, HTTPException
 
 from taste_graph_ai.api import schemas
-from taste_graph_ai.api.deps import get_task_repo, get_event_log
+from taste_graph_ai.api.deps import get_task_repo, get_task_service, get_event_log
 from taste_graph_ai.infrastructure.repos.tasks import TaskRepository
 from taste_graph_ai.infrastructure.db.event_log import EventLog
+from taste_graph_ai.services.tasks import TaskService
 
 router = APIRouter(prefix="/api/v1/tasks", tags=["tasks"])
 
 
 @router.get("/today", response_model=list[schemas.TaskResponse])
-async def get_today_tasks(repo: TaskRepository = Depends(get_task_repo)):
+async def get_today_tasks(
+    repo: TaskRepository = Depends(get_task_repo),
+    task_service: TaskService = Depends(get_task_service),
+):
     from datetime import date
     today = date.today().isoformat()
-    return [_task_to_response(t) for t in await repo.list_today(today)]
+    existing = await repo.list_today(today)
+    if not existing:
+        existing = await task_service.persist_daily_tasks()
+    return [_task_to_response(t) for t in existing]
 
 
 @router.get("/pending", response_model=list[schemas.TaskResponse])
