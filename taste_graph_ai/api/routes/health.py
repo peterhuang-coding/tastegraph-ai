@@ -1,3 +1,5 @@
+import os
+
 from fastapi import APIRouter
 
 from taste_graph_ai.api import schemas
@@ -27,8 +29,13 @@ async def health_check():
     # CLIP
     components["clip"] = "not_loaded"
 
-    # Claude
-    components["claude"] = "not_configured"
+    # AI provider
+    if os.environ.get("DEEPSEEK_API_KEY"):
+        components["ai"] = f"deepseek ({os.environ.get('DEEPSEEK_MODEL', 'deepseek-chat')})"
+    elif os.environ.get("ANTHROPIC_API_KEY"):
+        components["ai"] = f"claude ({os.environ.get('CLAUDE_MODEL', 'claude-sonnet-4-6')})"
+    else:
+        components["ai"] = "not_configured"
 
     all_ok = all(not v.startswith("error") for v in components.values())
     return schemas.HealthResponse(

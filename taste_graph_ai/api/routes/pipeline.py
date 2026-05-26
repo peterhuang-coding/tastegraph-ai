@@ -11,7 +11,7 @@ from taste_graph_ai.infrastructure.repos.sources import SourceRepository
 from taste_graph_ai.infrastructure.repos.packs import PackRepository
 from taste_graph_ai.infrastructure.repos.tasks import TaskRepository
 from taste_graph_ai.infrastructure.db.event_log import EventLog
-from taste_graph_ai.infrastructure.ai.claude import ClaudeClient
+from taste_graph_ai.infrastructure.ai.client import AIClient
 from taste_graph_ai.services.discovery import DiscoveryService
 from taste_graph_ai.services.tasks import TaskService
 
@@ -24,10 +24,10 @@ async def trigger_discover(
     event_log: EventLog = Depends(get_event_log),
 ):
     try:
-        claude = ClaudeClient()
-        discovery = DiscoveryService(source_repo, event_log, claude)
+        ai = AIClient()
+        discovery = DiscoveryService(source_repo, event_log, ai)
         new_sources = await discovery.run_discovery()
-        await claude.close()
+        await ai.close()
         return schemas.PipelineResult(
             success=True,
             message=f"Found {len(new_sources)} new sources",
@@ -47,9 +47,9 @@ async def trigger_generate(
     event_log: EventLog = Depends(get_event_log),
 ):
     try:
-        claude = ClaudeClient()
-        # Placeholder: full theme generation will come in Phase 5
-        await claude.close()
+        ai = AIClient()
+        # Placeholder: full theme generation will come later
+        await ai.close()
         return schemas.PipelineResult(
             success=True,
             message="Daily pack generation triggered (placeholder).",
@@ -70,17 +70,17 @@ async def trigger_full(
     event_log: EventLog = Depends(get_event_log),
 ):
     try:
-        claude = ClaudeClient()
+        ai = AIClient()
 
         # 1. Discovery
-        discovery = DiscoveryService(source_repo, event_log, claude)
+        discovery = DiscoveryService(source_repo, event_log, ai)
         new_sources = await discovery.run_discovery()
 
         # 2. Tasks
         task_service = TaskService(source_repo, pack_repo, task_repo, event_log)
         tasks = await task_service.persist_daily_tasks()
 
-        await claude.close()
+        await ai.close()
 
         return schemas.PipelineResult(
             success=True,

@@ -22,7 +22,7 @@ from taste_graph_ai.infrastructure.db.event_log import EventLog
 from taste_graph_ai.infrastructure.repos.sources import SourceRepository
 from taste_graph_ai.infrastructure.repos.tasks import TaskRepository
 from taste_graph_ai.infrastructure.repos.packs import PackRepository
-from taste_graph_ai.infrastructure.ai.claude import ClaudeClient
+from taste_graph_ai.infrastructure.ai.client import AIClient
 from taste_graph_ai.services.discovery import DiscoveryService
 from taste_graph_ai.services.tasks import TaskService
 
@@ -34,6 +34,7 @@ async def run():
 
     db = await get_db()
     event_log = EventLog()
+    ai = AIClient()
 
     try:
         source_repo = SourceRepository(db)
@@ -42,11 +43,9 @@ async def run():
 
         # 1. Discovery
         print("[1/3] Running discovery engine...")
-        claude = ClaudeClient()
-        discovery = DiscoveryService(source_repo, event_log, claude)
+        discovery = DiscoveryService(source_repo, event_log, ai)
         new_sources = await discovery.run_discovery()
         print(f"  Found {len(new_sources)} new sources")
-        await claude.close()
 
         # 2. Generate daily tasks
         print("[2/3] Generating daily tasks...")
@@ -64,6 +63,7 @@ async def run():
         })
 
     finally:
+        await ai.close()
         await db.close()
 
     print("Daily pipeline complete.")

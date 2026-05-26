@@ -1,6 +1,15 @@
 import os
 from pathlib import Path
 
+# Load .env file if present
+try:
+    from dotenv import load_dotenv
+    _env_file = Path(__file__).resolve().parent.parent / ".env"
+    if _env_file.exists():
+        load_dotenv(_env_file)
+except ImportError:
+    pass
+
 # ── Paths ────────────────────────────────────────────────────
 
 BASE_DIR = Path(os.environ.get(

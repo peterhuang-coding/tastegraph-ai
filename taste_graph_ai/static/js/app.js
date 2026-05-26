@@ -5,6 +5,7 @@ const App = {
   async init() {
     this.bindTabs();
     this.bindKeyboard();
+    this.bindRefresh();
     await this.checkHealth();
     await this.loadTaskBar();
     SourcesTab.load();
@@ -36,6 +37,30 @@ const App = {
 
   switchTab(name) {
     document.querySelector(`[data-tab="${name}"]`).click();
+  },
+
+  bindRefresh() {
+    document.getElementById('refresh-btn').addEventListener('click', () => this.refresh());
+    document.addEventListener('keydown', e => {
+      if (e.key === 'r' && e.metaKey && !e.shiftKey) { e.preventDefault(); this.refresh(); }
+    });
+  },
+
+  async refresh() {
+    const btn = document.getElementById('refresh-btn');
+    btn.textContent = '⟳ 刷新中...';
+    btn.disabled = true;
+    await this.checkHealth();
+    await this.loadTaskBar();
+    await this.refreshBadges();
+    const activeTab = document.querySelector('.tab-btn.active')?.dataset?.tab;
+    if (activeTab === 'sources') SourcesTab.load();
+    if (activeTab === 'daily') DailyTab.load();
+    if (activeTab === 'graph') GraphTab.load();
+    if (activeTab === 'history') HistoryTab.load();
+    btn.textContent = '⟳ 刷新';
+    btn.disabled = false;
+    this.toast('已刷新');
   },
 
   async onTabChange(tab) {

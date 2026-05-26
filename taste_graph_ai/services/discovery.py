@@ -7,7 +7,7 @@ from taste_graph_ai.domain.models import Source
 from taste_graph_ai.infrastructure.crawlers.arena import ArenaCrawler
 from taste_graph_ai.infrastructure.crawlers.unsplash import UnsplashCrawler
 from taste_graph_ai.infrastructure.crawlers.base import DiscoveredSource
-from taste_graph_ai.infrastructure.ai.claude import ClaudeClient
+from taste_graph_ai.infrastructure.ai.client import AIClient
 from taste_graph_ai.infrastructure.repos.sources import SourceRepository
 from taste_graph_ai.infrastructure.db.event_log import EventLog
 
@@ -19,11 +19,11 @@ class DiscoveryService:
         self,
         source_repo: SourceRepository,
         event_log: EventLog,
-        claude: ClaudeClient = None,
+        ai: AIClient = None,
     ):
         self.source_repo = source_repo
         self.event_log = event_log
-        self.claude = claude
+        self.ai = ai
 
     async def run_discovery(self) -> list[Source]:
         """Run all crawlers and return newly discovered sources."""
@@ -53,9 +53,9 @@ class DiscoveryService:
             ai_score = 0.5
             ai_reason = ""
             ai_risk = ""
-            if self.claude:
+            if self.ai:
                 try:
-                    eval_result = await self.claude.evaluate_source(
+                    eval_result = await self.ai.evaluate_source(
                         ds.url, ds.name,
                         ds.raw_metadata.get("bio", "") or ds.raw_metadata.get("description", ""),
                     )
