@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TasteGraph AI</title>
-<link rel="stylesheet" href="/css/app.css">
+<link rel="stylesheet" href="/css/app.css?v=3">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
 </head>
 <body>
@@ -23,6 +23,7 @@
     <button class="tab-btn" data-tab="daily">今日推荐</button>
     <button class="tab-btn" data-tab="graph">品味图谱</button>
     <button class="tab-btn" data-tab="history">发布历史</button>
+    <button class="tab-btn" data-tab="curation">手动选图</button>
   </nav>
 
   <div class="task-bar" id="task-bar"></div>
@@ -32,17 +33,20 @@
     <section id="tab-daily" class="tab-panel"></section>
     <section id="tab-graph" class="tab-panel"></section>
     <section id="tab-history" class="tab-panel"></section>
+    <section id="tab-curation" class="tab-panel"></section>
   </main>
 
   <div id="toast-container"></div>
+  <div id="image-modal-overlay" class="modal-overlay" style="display:none"></div>
 </div>
 
-<script src="/js/app.js"></script>
-<script src="/js/sources.js"></script>
-<script src="/js/daily.js"></script>
-<script src="/js/graph.js"></script>
-<script src="/js/tasks.js"></script>
-<script src="/js/history.js"></script>
+<script src="/js/app.js?v=3"></script>
+<script src="/js/sources.js?v=3"></script>
+<script src="/js/daily.js?v=3"></script>
+<script src="/js/graph.js?v=3"></script>
+<script src="/js/tasks.js?v=3"></script>
+<script src="/js/history.js?v=3"></script>
+<script src="/js/curation.js?v=1"></script>
 <script>App.init();</script>
 </body>
 </html>

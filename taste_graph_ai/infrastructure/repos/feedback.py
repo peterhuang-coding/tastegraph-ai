@@ -34,6 +34,15 @@ class FeedbackRepository:
         )
         return [self._row_to_feedback(r) for r in await cursor.fetchall()]
 
+    async def get_liked_image_ids(self) -> set[str]:
+        """Return all image IDs ever marked '对味', for scoring bonuses."""
+        cursor = await self.db.execute(
+            "SELECT DISTINCT target_id FROM feedback_log "
+            "WHERE target_type = 'image' AND label = '对味'"
+        )
+        rows = await cursor.fetchall()
+        return {r["target_id"] for r in rows}
+
     async def list_recent(self, limit: int = 50) -> list[Feedback]:
         cursor = await self.db.execute(
             "SELECT * FROM feedback_log ORDER BY created_at DESC LIMIT ?", (limit,)

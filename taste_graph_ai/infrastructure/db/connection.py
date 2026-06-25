@@ -4,10 +4,11 @@ from taste_graph_ai.config import DB_FILE
 
 
 async def get_db() -> aiosqlite.Connection:
-    db = await aiosqlite.connect(str(DB_FILE))
+    db = await aiosqlite.connect(str(DB_FILE), timeout=10)
     db.row_factory = aiosqlite.Row
     await db.execute("PRAGMA journal_mode=WAL")
     await db.execute("PRAGMA foreign_keys=ON")
+    await db.execute("PRAGMA busy_timeout=5000")
     return db
 
 
@@ -15,6 +16,11 @@ async def init_db() -> None:
     db = await get_db()
     try:
         await db.executescript(SCHEMA)
+        # Migration: add is_curated to daily_packs
+        try:
+            await db.execute("ALTER TABLE daily_packs ADD COLUMN is_curated INTEGER DEFAULT 0")
+        except Exception:
+            pass
         await db.commit()
     finally:
         await db.close()
@@ -109,6 +115,16 @@ CREATE TABLE IF NOT EXISTS publish_history (
     comments INTEGER DEFAULT 0,
     engagement_rate REAL DEFAULT 0.0,
     FOREIGN KEY (pack_id) REFERENCES daily_packs(id)
+);
+
+CREATE TABLE IF NOT EXISTS scrape_failures (
+    id TEXT PRIMARY KEY,
+    source_id TEXT DEFAULT '',
+    source_name TEXT DEFAULT '',
+    url TEXT DEFAULT '',
+    reason TEXT NOT NULL,
+    detail TEXT DEFAULT '',
+    created_at TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS event_log (

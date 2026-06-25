@@ -9,6 +9,7 @@ from taste_graph_ai.infrastructure.repos import (
     FeedbackRepository,
     TaskRepository,
 )
+from taste_graph_ai.infrastructure.repos.publish_history import PublishHistoryRepository
 from taste_graph_ai.services.feedback import FeedbackService
 
 
@@ -61,3 +62,12 @@ def get_task_service(
     event_log: EventLog = Depends(get_event_log),
 ) -> TaskService:
     return TaskService(source_repo, pack_repo, task_repo, event_log)
+
+
+async def get_failure_repo(db=Depends(get_db)):
+    from taste_graph_ai.infrastructure.repos.scrape_failures import ScrapeFailureRepository
+    return ScrapeFailureRepository(db)
+
+
+async def get_publish_repo(db=Depends(get_db)):
+    return PublishHistoryRepository(db)

@@ -38,6 +38,13 @@ app.add_middleware(
 
 app.include_router(api_router)
 
+# Serve images directory (must be mounted before / to avoid interception)
+from taste_graph_ai.config import IMAGES_DIR, EXPORTS_DIR
+if IMAGES_DIR.exists():
+    app.mount("/images", StaticFiles(directory=str(IMAGES_DIR)), name="images")
+if EXPORTS_DIR.exists():
+    app.mount("/exports", StaticFiles(directory=str(EXPORTS_DIR)), name="exports")
+
 # Static files (HTML frontend)
 static_dir = Path(__file__).parent / "static"
 if static_dir.exists():

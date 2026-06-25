@@ -40,7 +40,9 @@ class PackImageResponse(BaseModel):
     url: str
     page_url: str = ""
     local_path: str = ""
+    image_url: str = ""
     keywords: list[str] = []
+    source_name: str = ""
 
 class DailyPackResponse(BaseModel):
     id: str
@@ -161,6 +163,46 @@ class PipelineResult(BaseModel):
     success: bool
     message: str
     data: dict = {}
+
+
+# ── Export ─────────────────────────────────────────────────────
+
+class ExportResponse(BaseModel):
+    pack_id: str
+    filename: str
+    url: str
+    theme: str = ""
+    caption: str = ""
+
+class AutoPublishResponse(BaseModel):
+    success: bool
+    post_url: str = ""
+    error: str = ""
+
+
+# ── Curation ───────────────────────────────────────────────────
+
+class PendingImageResponse(BaseModel):
+    image_id: str
+    url: str
+    local_path: str = ""
+    image_url: str = ""
+    keywords: list[str] = []
+    final_score: float = 0.0
+    page_url: str = ""
+    source_name: str = ""
+
+class PendingImagesResponse(BaseModel):
+    images: list[PendingImageResponse]
+    total: int
+    page: int
+    limit: int
+
+class CuratedPackRequest(BaseModel):
+    image_ids: list[str] = Field(..., min_length=9, max_length=9)
+    theme: str = Field(..., min_length=1, max_length=50)
+    title: str = ""
+    caption: str = ""
 
 
 # ── Health ────────────────────────────────────────────────────

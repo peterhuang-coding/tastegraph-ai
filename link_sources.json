@@ -9,12 +9,12 @@
     },
     {
       "name": "Vogue Runway - Lemaire",
-      "url": "https://www.vogue.com/brands/lemaire",
-      "why": "Quiet uniform, relaxed tailoring, understated styling."
+      "url": "https://www.vogue.com/fashion-shows/designer/lemaire",
+      "why": "Quiet uniform, relaxed tailoring, understated styling. Runway archive with full lookbook images."
     },
     {
       "name": "Vogue Runway - 032c",
-      "url": "https://www.vogue.com/brands/032c",
+      "url": "https://www.vogue.com/fashion-shows/designer/032c",
       "why": "Sharper, Berlin-coded, conceptual street/tailoring energy."
     },
     {
@@ -31,6 +31,26 @@
       "name": "Highsnobiety Style",
       "url": "https://www.highsnobiety.com/tag/style/",
       "why": "Trend and editorial style links; useful but should avoid generic influencer pieces."
+    },
+    {
+      "name": "BranD Magazine",
+      "url": "http://www.brandmagazine.com.hk",
+      "why": "Hong Kong bilingual design magazine. Strong editorial curation on branding, typography, objects, visual culture. Uses HTTP (no SSL) — web scraper only."
+    },
+    {
+      "name": "Das Programm — Dieter Rams Archive",
+      "url": "https://www.dasprogramm.org",
+      "why": "Comprehensive Dieter Rams archive: Braun electronics 1955–1995 and Vitsoe furniture. Product images are small (~300px) — uses lowered dimension threshold."
+    },
+    {
+      "name": "Toshio Saeki — WikiArt Archive",
+      "url": "https://www.wikiart.org/en/toshio-saeki",
+      "why": "17 artworks on WikiArt. Japanese ero-guro illustrator (1945–2019). Surreal, dark, traditionally-rooted but modern."
+    },
+    {
+      "name": "Toshio Saeki Estate",
+      "url": "https://www.toshiosaeki.estate",
+      "why": "Official estate site. Mostly text/about — primary image source is WikiArt above."
     }
   ],
   "videos": [
@@ -58,6 +78,11 @@
       "name": "Vimeo Staff Picks",
       "url": "https://vimeo.com/channels/staffpicks",
       "why": "Useful for cinematic, unusual video language outside fashion."
+    },
+    {
+      "name": "Rams — Gary Hustwit",
+      "url": "https://www.hustwit.com/rams",
+      "why": "Documentary on Dieter Rams. Design philosophy, object culture, 'less, but better'. Feeds the quiet, functional, timeless taste direction with visual and conceptual depth."
     }
   ],
   "articles": [
@@ -90,6 +115,21 @@
       "name": "Vogue Business",
       "url": "https://www.voguebusiness.com/",
       "why": "Fashion industry context, useful for deeper posts and captions."
+    },
+    {
+      "name": "BranD Magazine",
+      "url": "http://www.brandmagazine.com.hk",
+      "why": "Bilingual design culture and branding thinking. Uses HTTP. Translates visual taste into conceptual frameworks."
+    },
+    {
+      "name": "Vitsoe — Dieter Rams Philosophy",
+      "url": "https://www.vitsoe.com/gb/about/good-design",
+      "why": "Dieter Rams' Ten Principles of Good Design. Foundation-level taste text: 'less, but better', 'good design is as little design as possible'. Aligns with quiet editorial tone."
+    },
+    {
+      "name": "Toshio Saeki — Selected Works & Essays",
+      "url": "https://anothersomething.org/saeki-selected-works",
+      "why": "Deep archive of Saeki's illustrated works 1972–2016 with critical context. Erotic-grotesque tradition meets modern surrealism — useful for understanding visual provocation with restraint."
     }
   ]
 }

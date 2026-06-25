@@ -4,12 +4,12 @@
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.user.tastegraph</string>
+    <string>com.user.tastegraph.scrape</string>
     <key>ProgramArguments</key>
     <array>
         <string>/opt/anaconda3/bin/python3</string>
         <string>-m</string>
-        <string>taste_graph_ai.scheduler.daily_pipeline</string>
+        <string>taste_graph_ai.scheduler.scrape_cron</string>
     </array>
     <key>WorkingDirectory</key>
     <string>/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound</string>
@@ -20,18 +20,13 @@
         <key>HOME</key>
         <string>/Users/peter_mini</string>
     </dict>
-    <key>StartCalendarInterval</key>
-    <dict>
-        <key>Hour</key>
-        <integer>8</integer>
-        <key>Minute</key>
-        <integer>0</integer>
-    </dict>
-    <key>StandardOutPath</key>
-    <string>/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/data/logs/pipeline.log</string>
-    <key>StandardErrorPath</key>
-    <string>/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/data/logs/pipeline.err</string>
+    <key>StartInterval</key>
+    <integer>7200</integer>
     <key>RunAtLoad</key>
-    <false/>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/data/logs/scrape_cron.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/data/logs/scrape_cron.err</string>
 </dict>
 </plist>

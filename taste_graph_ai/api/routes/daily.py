@@ -1,4 +1,5 @@
-from datetime import date
+import uuid
+from datetime import date, datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -9,12 +10,18 @@ from taste_graph_ai.api.deps import (
     get_feedback_repo,
     get_feedback_service,
     get_event_log,
+    get_publish_repo,
+    get_image_repo,
 )
-from taste_graph_ai.domain.enums import FeedbackLabel, FeedbackTargetType
+from taste_graph_ai.domain.enums import FeedbackLabel, FeedbackTargetType, ImageStatus
+from taste_graph_ai.domain.models import PublishRecord
 from taste_graph_ai.infrastructure.repos.packs import PackRepository
 from taste_graph_ai.infrastructure.repos.tasks import TaskRepository
 from taste_graph_ai.infrastructure.repos.feedback import FeedbackRepository
+from taste_graph_ai.infrastructure.repos.publish_history import PublishHistoryRepository
+from taste_graph_ai.infrastructure.repos.images import ImageRepository
 from taste_graph_ai.infrastructure.db.event_log import EventLog
+from modules.xhs_publisher.composer import MoodboardComposer
 from taste_graph_ai.services.feedback import FeedbackService
 
 router = APIRouter(prefix="/api/v1/daily", tags=["daily"])
@@ -72,6 +79,7 @@ async def select_pack(
 async def reject_pack(
     pack_id: str,
     pack_repo: PackRepository = Depends(get_pack_repo),
+    image_repo: ImageRepository = Depends(get_image_repo),
     event_log: EventLog = Depends(get_event_log),
 ):
     pack = await pack_repo.get_by_id(pack_id)
@@ -79,6 +87,14 @@ async def reject_pack(
         raise HTTPException(status_code=404, detail="Pack not found")
     pack.reject()
     await pack_repo.save(pack)
+
+    # Release images back to the pending pool
+    images = await pack_repo.get_pack_images(pack_id)
+    if images:
+        await image_repo.mark_many_status(
+            [img["id"] for img in images], ImageStatus.PENDING
+        )
+
     event_log.append("pack.rejected", {"pack_id": pack_id, "theme": pack.theme})
     return {"status": "ok"}
 
@@ -115,11 +131,46 @@ async def replace_image(
     return {"status": "ok", "new_image_id": body.new_image_id}
 
 
+@router.post("/{pack_id}/export", response_model=schemas.ExportResponse)
+async def export_pack(
+    pack_id: str,
+    pack_repo: PackRepository = Depends(get_pack_repo),
+):
+    pack = await pack_repo.get_by_id(pack_id)
+    if not pack:
+        raise HTTPException(status_code=404, detail="Pack not found")
+    images = await pack_repo.get_pack_images(pack_id)
+    if not images:
+        raise HTTPException(status_code=400, detail="No images in pack")
+
+    image_paths = [img["local_path"] for img in images if img.get("local_path")]
+    if not image_paths:
+        raise HTTPException(status_code=400, detail="No local images available")
+
+    composer = MoodboardComposer()
+    title = pack.title_options[0] if pack.title_options else pack.theme
+    output_path = composer.compose(
+        image_paths=image_paths,
+        theme=pack.theme,
+        caption=pack.caption,
+        title=title,
+    )
+
+    return schemas.ExportResponse(
+        pack_id=pack_id,
+        filename=output_path.name,
+        url=f"/exports/{output_path.name}",
+        theme=pack.theme,
+        caption=pack.caption,
+    )
+
+
 @router.post("/{pack_id}/publish")
 async def publish_pack(
     pack_id: str,
     body: schemas.PackPublishRequest,
     pack_repo: PackRepository = Depends(get_pack_repo),
+    publish_repo: PublishHistoryRepository = Depends(get_publish_repo),
     event_log: EventLog = Depends(get_event_log),
 ):
     pack = await pack_repo.get_by_id(pack_id)
@@ -127,15 +178,110 @@ async def publish_pack(
         raise HTTPException(status_code=404, detail="Pack not found")
     pack.publish()
     await pack_repo.save(pack)
+
+    now = datetime.now(timezone.utc).isoformat()
+    record = PublishRecord(
+        id=uuid.uuid4().hex[:12],
+        pack_id=pack_id,
+        published_at=now,
+        platform=body.platform,
+        post_url=body.post_url,
+    )
+    await publish_repo.save(record)
+
     event_log.append("pack.published", {
         "pack_id": pack_id,
         "platform": body.platform,
         "post_url": body.post_url,
+        "publish_record_id": record.id,
     })
     return {"status": "ok"}
 
 
+@router.post("/{pack_id}/auto-publish", response_model=schemas.AutoPublishResponse)
+async def auto_publish_pack(
+    pack_id: str,
+    pack_repo: PackRepository = Depends(get_pack_repo),
+    publish_repo: PublishHistoryRepository = Depends(get_publish_repo),
+    event_log: EventLog = Depends(get_event_log),
+):
+    pack = await pack_repo.get_by_id(pack_id)
+    if not pack:
+        raise HTTPException(status_code=404, detail="Pack not found")
+
+    # First export
+    images = await pack_repo.get_pack_images(pack_id)
+    if not images:
+        return schemas.AutoPublishResponse(success=False, error="No images in pack")
+
+    image_paths = [img["local_path"] for img in images if img.get("local_path")]
+    if not image_paths:
+        return schemas.AutoPublishResponse(success=False, error="No local images available")
+
+    composer = MoodboardComposer()
+    title = pack.title_options[0] if pack.title_options else pack.theme
+    export_path = composer.compose(
+        image_paths=image_paths,
+        theme=pack.theme,
+        caption=pack.caption,
+        title=title,
+    )
+
+    # Try Playwright publish
+    try:
+        from modules.xhs_publisher.publisher import XiaohongshuPublisher
+        from taste_graph_ai.config import XHS_COOKIES_FILE
+        async with XiaohongshuPublisher(cookies_path=XHS_COOKIES_FILE) as publisher:
+            post_url = await publisher.publish(
+                image_path=str(export_path),
+                title=title,
+                caption=pack.caption,
+            )
+    except ImportError:
+        return schemas.AutoPublishResponse(
+            success=False,
+            error="Playwright 未安装。请运行: pip install playwright && playwright install chromium",
+        )
+    except Exception as e:
+        event_log.append("publish.auto_failed", {"pack_id": pack_id, "error": str(e)})
+        return schemas.AutoPublishResponse(
+            success=False,
+            error=f"自动发布失败: {e}。请使用手动导出。导出文件: /exports/{export_path.name}",
+        )
+
+    # Success
+    pack.publish()
+    await pack_repo.save(pack)
+
+    now = datetime.now(timezone.utc).isoformat()
+    record = PublishRecord(
+        id=uuid.uuid4().hex[:12],
+        pack_id=pack_id,
+        published_at=now,
+        platform="xiaohongshu",
+        post_url=post_url,
+    )
+    await publish_repo.save(record)
+
+    event_log.append("pack.auto_published", {
+        "pack_id": pack_id,
+        "post_url": post_url,
+        "publish_record_id": record.id,
+    })
+    return schemas.AutoPublishResponse(success=True, post_url=post_url)
+
+
 def _pack_to_response(pack, images: list[dict]) -> schemas.DailyPackResponse:
+    from pathlib import Path
+    enriched = []
+    for img in images:
+        local = img.get("local_path", "")
+        if local:
+            fname = Path(local).name
+            img["image_url"] = f"/images/{fname}"
+        else:
+            img["image_url"] = ""
+        enriched.append(img)
     return schemas.DailyPackResponse(
         id=pack.id,
         date=pack.date,
@@ -145,7 +291,7 @@ def _pack_to_response(pack, images: list[dict]) -> schemas.DailyPackResponse:
         caption=pack.caption,
         taste_score=pack.taste_score,
         status=pack.status.value,
-        images=[schemas.PackImageResponse(**img) for img in images],
+        images=[schemas.PackImageResponse(**img) for img in enriched],
         created_at=pack.created_at,
         selected_at=pack.selected_at,
     )

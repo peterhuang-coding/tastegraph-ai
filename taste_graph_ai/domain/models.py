@@ -73,6 +73,7 @@ class DailyPack:
     caption: str = ""
     taste_score: float = 0.0
     status: PackStatus = PackStatus.DRAFT
+    is_curated: bool = False
     created_at: str = field(default_factory=lambda: datetime.now().isoformat())
     selected_at: Optional[str] = None
     published_at: Optional[str] = None
@@ -125,6 +126,17 @@ class Feedback:
     target_id: str
     label: FeedbackLabel
     note: str = ""
+    created_at: str = field(default_factory=lambda: datetime.now().isoformat())
+
+
+@dataclass
+class ScrapeFailure:
+    id: str
+    source_id: str = ""
+    source_name: str = ""
+    url: str = ""
+    reason: str = ""
+    detail: str = ""
     created_at: str = field(default_factory=lambda: datetime.now().isoformat())
 
 

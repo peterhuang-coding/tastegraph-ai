@@ -20,12 +20,13 @@ class PackRepository:
         await self.db.execute(
             """INSERT OR REPLACE INTO daily_packs
             (id, date, theme, why_today, title_options_json, caption,
-             taste_score, status, created_at, selected_at, published_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+             taste_score, status, is_curated, created_at, selected_at, published_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 pack.id, pack.date, pack.theme, pack.why_today,
                 json.dumps(pack.title_options, ensure_ascii=False),
                 pack.caption, pack.taste_score, pack.status.value,
+                1 if pack.is_curated else 0,
                 pack.created_at, pack.selected_at, pack.published_at,
             ),
         )
@@ -44,9 +45,11 @@ class PackRepository:
 
     async def get_pack_images(self, pack_id: str) -> list[dict]:
         cursor = await self.db.execute(
-            """SELECT pi.*, i.url, i.page_url, i.local_path, i.keywords_json
+            """SELECT pi.*, i.url, i.page_url, i.local_path, i.keywords_json,
+                      s.name as source_name
             FROM pack_images pi
             JOIN images i ON pi.image_id = i.id
+            LEFT JOIN sources s ON i.source_id = s.id
             WHERE pi.pack_id = ?
             ORDER BY pi.position""",
             (pack_id,),
@@ -61,6 +64,7 @@ class PackRepository:
                 "page_url": r["page_url"],
                 "local_path": r["local_path"],
                 "keywords": json.loads(r["keywords_json"] or "[]"),
+                "source_name": r["source_name"] or "",
             }
             for r in rows
         ]
@@ -78,6 +82,14 @@ class PackRepository:
             "SELECT * FROM daily_packs ORDER BY date DESC LIMIT ?", (limit,)
         )
         return [self._row_to_pack(r) for r in await cursor.fetchall()]
+
+    async def get_published_themes(self) -> list[str]:
+        """Return all themes that have been published, for duplication avoidance."""
+        cursor = await self.db.execute(
+            "SELECT DISTINCT theme FROM daily_packs WHERE status = 'published' ORDER BY date DESC"
+        )
+        rows = await cursor.fetchall()
+        return [r["theme"] for r in rows]
 
     async def get_top_theme(self, days: int = 7) -> Optional[dict]:
         cursor = await self.db.execute(
@@ -105,6 +117,7 @@ class PackRepository:
             caption=row["caption"],
             taste_score=row["taste_score"],
             status=PackStatus(row["status"]),
+            is_curated=bool(row["is_curated"]) if "is_curated" in row.keys() else False,
             created_at=row["created_at"],
             selected_at=row["selected_at"],
             published_at=row["published_at"],

@@ -116,6 +116,24 @@ Evaluate if this source's content style fits the account. Return ONLY valid JSON
 }}"""
         return await self.chat_json(prompt, 500)
 
+    async def extract_entities(self, page_title: str, page_description: str, alt_texts: list[str]) -> dict:
+        """Extract structured taste entities from page metadata for graph enrichment."""
+        if not self.client:
+            return {"brands": [], "designers": [], "colors": [], "materials": [], "moods": [], "objects": [], "locations": []}
+
+        alt_sample = "; ".join(alt_texts[:10]) if alt_texts else "N/A"
+        prompt = f"""Extract taste-relevant entities from this fashion/design page metadata.
+Account aesthetic: quiet, editorial, low-saturation, city-walking, archive, brutalist.
+
+Page title: {page_title[:200]}
+Page description: {page_description[:300]}
+Image alt texts: {alt_sample[:300]}
+
+Return ONLY valid JSON (no markdown):
+{{"brands": ["brand name"], "designers": ["full name"], "colors": ["descriptive color"], "materials": ["fabric or texture"], "moods": ["atmosphere keyword"], "objects": ["physical object"], "locations": ["city or place"]}}
+Only include items you're confident about. Empty lists for missing categories. Max 3 items per list. Keep each item short (1-4 words)."""
+        return await self.chat_json(prompt, 500)
+
     async def evaluate_image(self, image_description: str, keywords: list[str]) -> dict:
         if not self.client:
             return {"score": 0.5, "reason": "AI not configured", "suggested_keywords": keywords}

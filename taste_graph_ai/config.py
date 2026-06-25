@@ -26,6 +26,7 @@ GRAPH_FILE = DATA_DIR / "taste_graph.json"
 DB_FILE = DATA_DIR / "taste_graph.db"
 EVENT_LOG_FILE = DATA_DIR / "events.log"
 IMAGES_DIR = DATA_DIR / "images"
+EXPORTS_DIR = DATA_DIR / "exports"
 LOGS_DIR = DATA_DIR / "logs"
 
 # ── Server ───────────────────────────────────────────────────
@@ -70,7 +71,14 @@ FEEDBACK_PROPAGATION_DEPTH = int(os.environ.get("TASTEGRAPH_FEEDBACK_DEPTH", "2"
 FEEDBACK_PROPAGATION_DECAY = float(os.environ.get("TASTEGRAPH_FEEDBACK_DECAY", "0.5"))
 
 
+# ── Xiaohongshu Publish ───────────────────────────────────────
+
+XHS_COOKIES_FILE = DATA_DIR / "xhs_cookies.json"
+XHS_CREATOR_URL = "https://creator.xiaohongshu.com"
+XHS_HEADLESS = not bool(os.environ.get("TASTEGRAPH_XHS_HEADFUL"))
+
+
 def ensure_dirs() -> None:
     """Create all required directories."""
-    for d in [DATA_DIR, IMAGES_DIR, LOGS_DIR]:
+    for d in [DATA_DIR, IMAGES_DIR, EXPORTS_DIR, LOGS_DIR]:
         d.mkdir(parents=True, exist_ok=True)

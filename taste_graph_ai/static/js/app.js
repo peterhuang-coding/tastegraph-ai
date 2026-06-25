@@ -32,6 +32,7 @@ const App = {
       if (e.key === '2' && e.metaKey) { e.preventDefault(); this.switchTab('daily'); }
       if (e.key === '3' && e.metaKey) { e.preventDefault(); this.switchTab('graph'); }
       if (e.key === '4' && e.metaKey) { e.preventDefault(); this.switchTab('history'); }
+      if (e.key === '5' && e.metaKey) { e.preventDefault(); this.switchTab('curation'); }
     });
   },
 
@@ -48,19 +49,37 @@ const App = {
 
   async refresh() {
     const btn = document.getElementById('refresh-btn');
-    btn.textContent = '⟳ 刷新中...';
+    btn.textContent = '⟳ 运行中...';
     btn.disabled = true;
+
+    const activeTab = document.querySelector('.tab-btn.active')?.dataset?.tab;
+    const container = document.getElementById(`tab-${activeTab}`);
+    if (container) {
+      container.innerHTML = '<div class="loading"><div class="spinner"></div><p style="margin-top:12px">正在运行推荐引擎...</p><p style="font-size:12px;color:var(--text-dim);margin-top:4px">发现新源 → 评估质量 → 生成运营任务</p></div>';
+    }
+
+    try {
+      const result = await API.post('/api/v1/pipeline/full');
+      if (result.success) {
+        this.toast(result.message, 'success');
+      } else {
+        this.toast(result.message, 'error');
+      }
+    } catch(e) {
+      this.toast(`Pipeline 失败: ${e.message}`, 'error');
+    }
+
     await this.checkHealth();
     await this.loadTaskBar();
     await this.refreshBadges();
-    const activeTab = document.querySelector('.tab-btn.active')?.dataset?.tab;
     if (activeTab === 'sources') SourcesTab.load();
     if (activeTab === 'daily') DailyTab.load();
     if (activeTab === 'graph') GraphTab.load();
     if (activeTab === 'history') HistoryTab.load();
+    if (activeTab === 'curation') CurationTab.load();
+
     btn.textContent = '⟳ 刷新';
     btn.disabled = false;
-    this.toast('已刷新');
   },
 
   async onTabChange(tab) {
@@ -68,6 +87,7 @@ const App = {
     if (tab === 'daily') DailyTab.load();
     if (tab === 'graph') GraphTab.load();
     if (tab === 'history') HistoryTab.load();
+    if (tab === 'curation') CurationTab.load();
   },
 
   async checkHealth() {

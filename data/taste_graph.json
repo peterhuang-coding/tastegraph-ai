@@ -959,6 +959,1266 @@
         "why": "Fashion industry context, useful for deeper posts and captions.",
         "source": "link_sources.json"
       }
+    },
+    {
+      "id": "pillar:virgil_abloh",
+      "type": "pillar",
+      "label": "Virgil Abloh",
+      "properties": {}
+    },
+    {
+      "id": "concept:off-white",
+      "type": "concept",
+      "label": "Off-White",
+      "properties": {}
+    },
+    {
+      "id": "concept:3%_rule",
+      "type": "concept",
+      "label": "3% Rule",
+      "properties": {}
+    },
+    {
+      "id": "concept:工业字体与引号",
+      "type": "concept",
+      "label": "工业字体与引号",
+      "properties": {}
+    },
+    {
+      "id": "concept:街头与奢侈的中间地带",
+      "type": "concept",
+      "label": "街头与奢侈的中间地带",
+      "properties": {}
+    },
+    {
+      "id": "concept:解构主义时装",
+      "type": "concept",
+      "label": "解构主义时装",
+      "properties": {}
+    },
+    {
+      "id": "concept:跨学科引用",
+      "type": "concept",
+      "label": "跨学科引用",
+      "properties": {}
+    },
+    {
+      "id": "concept:diet_prada",
+      "type": "concept",
+      "label": "DIET_PRADA",
+      "properties": {}
+    },
+    {
+      "id": "concept:alyx_1017_alyx_9sm",
+      "type": "concept",
+      "label": "ALYX_1017_ALYX_9SM",
+      "properties": {}
+    },
+    {
+      "id": "concept:建筑感剪裁",
+      "type": "concept",
+      "label": "建筑感剪裁",
+      "properties": {}
+    },
+    {
+      "id": "concept:archive_culture",
+      "type": "concept",
+      "label": "archive_culture",
+      "properties": {}
+    },
+    {
+      "id": "visual_element:quotation_marks",
+      "type": "visual_element",
+      "label": "quotation_marks",
+      "properties": {}
+    },
+    {
+      "id": "visual_element:zip_tie",
+      "type": "visual_element",
+      "label": "zip_tie",
+      "properties": {}
+    },
+    {
+      "id": "visual_element:industrial_strap",
+      "type": "visual_element",
+      "label": "industrial_strap",
+      "properties": {}
+    },
+    {
+      "id": "visual_element:helvetica_bold",
+      "type": "visual_element",
+      "label": "helvetica_bold",
+      "properties": {}
+    },
+    {
+      "id": "visual_element:arrow_motif",
+      "type": "visual_element",
+      "label": "arrow_motif",
+      "properties": {}
+    },
+    {
+      "id": "visual_element:construction_tape",
+      "type": "visual_element",
+      "label": "construction_tape",
+      "properties": {}
+    },
+    {
+      "id": "brand:moschino",
+      "type": "brand",
+      "label": "Moschino",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:vogue_business",
+      "type": "brand",
+      "label": "Vogue Business",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:adrian_appiolaza",
+      "type": "brand",
+      "label": "Adrian Appiolaza",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:blondey_mccoy",
+      "type": "brand",
+      "label": "Blondey McCoy",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "color:low-saturation",
+      "type": "color",
+      "label": "low-saturation",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "mood:quiet",
+      "type": "mood",
+      "label": "quiet",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "mood:editorial",
+      "type": "mood",
+      "label": "editorial",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "mood:archive",
+      "type": "mood",
+      "label": "archive",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "mood:brutalist",
+      "type": "mood",
+      "label": "brutalist",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:hairbrush",
+      "type": "object",
+      "label": "hairbrush",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:funding_tracker",
+      "type": "object",
+      "label": "funding tracker",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:trend_tracker",
+      "type": "object",
+      "label": "trend tracker",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "location:city-walking",
+      "type": "location",
+      "label": "city-walking",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:david_hockney",
+      "type": "brand",
+      "label": "David Hockney",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:vincent_van_gogh",
+      "type": "brand",
+      "label": "Vincent van Gogh",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "color:grey",
+      "type": "color",
+      "label": "grey",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "color:red",
+      "type": "color",
+      "label": "red",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "color:white",
+      "type": "color",
+      "label": "white",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "color:dark_blue",
+      "type": "color",
+      "label": "dark blue",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:chair",
+      "type": "object",
+      "label": "chair",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:tree_branch",
+      "type": "object",
+      "label": "tree branch",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:sunflowers_painting",
+      "type": "object",
+      "label": "Sunflowers painting",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:car_park_entrance",
+      "type": "object",
+      "label": "car park entrance",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:umbro",
+      "type": "brand",
+      "label": "Umbro",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:carpet_company",
+      "type": "brand",
+      "label": "carpet company",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:maxfield",
+      "type": "brand",
+      "label": "Maxfield",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:a.presse",
+      "type": "brand",
+      "label": "A.Presse",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:carpet",
+      "type": "object",
+      "label": "carpet",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "location:los_angeles",
+      "type": "location",
+      "label": "Los Angeles",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:hypebeast",
+      "type": "brand",
+      "label": "Hypebeast",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:nn.07",
+      "type": "brand",
+      "label": "NN.07",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:fear_of_god",
+      "type": "brand",
+      "label": "Fear of God",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:kwasi_kessie",
+      "type": "brand",
+      "label": "Kwasi Kessie",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:satin",
+      "type": "object",
+      "label": "satin",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:leather",
+      "type": "object",
+      "label": "leather",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "mood:understated",
+      "type": "mood",
+      "label": "understated",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:qr_code",
+      "type": "object",
+      "label": "QR Code",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:app_store",
+      "type": "object",
+      "label": "App Store",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:google_play",
+      "type": "object",
+      "label": "Google Play",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "location:marseille",
+      "type": "location",
+      "label": "Marseille",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "source:toshio_saeki_—_selected_works_&_essays",
+      "type": "source",
+      "label": "Toshio Saeki — Selected Works & Essays",
+      "properties": {
+        "auto_discovered": true,
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:toshio_saeki",
+      "type": "brand",
+      "label": "Toshio Saeki",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "location:toronto",
+      "type": "location",
+      "label": "Toronto",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "source:vitsoe_—_dieter_rams_philosophy",
+      "type": "source",
+      "label": "Vitsoe — Dieter Rams Philosophy",
+      "properties": {
+        "auto_discovered": true,
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:vitsœ",
+      "type": "brand",
+      "label": "Vitsœ",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:dieter_rams",
+      "type": "brand",
+      "label": "Dieter Rams",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "color:off-white",
+      "type": "color",
+      "label": "off-white",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:620_chair",
+      "type": "object",
+      "label": "620 Chair",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:606_universal_shelving_system",
+      "type": "object",
+      "label": "606 Universal Shelving System",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:braun_tp_1_radio/phono",
+      "type": "object",
+      "label": "Braun TP 1 radio/phono",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "source:rams_—_gary_hustwit",
+      "type": "source",
+      "label": "Rams — Gary Hustwit",
+      "properties": {
+        "auto_discovered": true,
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:gary_hustwit",
+      "type": "brand",
+      "label": "Gary Hustwit",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "source:highsnobiety_virgil_abloh",
+      "type": "source",
+      "label": "Highsnobiety Virgil Abloh",
+      "properties": {
+        "auto_discovered": true,
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:off-white",
+      "type": "brand",
+      "label": "Off-White",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:nike",
+      "type": "brand",
+      "label": "Nike",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:louis_vuitton",
+      "type": "brand",
+      "label": "Louis Vuitton",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:virgil_abloh",
+      "type": "brand",
+      "label": "Virgil Abloh",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:sneakers",
+      "type": "object",
+      "label": "sneakers",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:sound_system",
+      "type": "object",
+      "label": "sound system",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:sunnei",
+      "type": "brand",
+      "label": "Sunnei",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "location:city",
+      "type": "location",
+      "label": "city",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:miss_sixty",
+      "type": "brand",
+      "label": "Miss Sixty",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:dazed",
+      "type": "brand",
+      "label": "Dazed",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:simone_rocha",
+      "type": "brand",
+      "label": "Simone Rocha",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:cover",
+      "type": "object",
+      "label": "cover",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:award",
+      "type": "object",
+      "label": "award",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:sashiko_ga",
+      "type": "brand",
+      "label": "SASHIKO GA",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:collectible_cup",
+      "type": "object",
+      "label": "collectible cup",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:braun",
+      "type": "brand",
+      "label": "Braun",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "color:gray",
+      "type": "color",
+      "label": "gray",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "color:beige",
+      "type": "color",
+      "label": "beige",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "location:london",
+      "type": "location",
+      "label": "London",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "source:vogue_off-white_archive",
+      "type": "source",
+      "label": "Vogue Off-White Archive",
+      "properties": {
+        "auto_discovered": true,
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:lab_coat",
+      "type": "object",
+      "label": "lab coat",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:overcoat",
+      "type": "object",
+      "label": "overcoat",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "mood:archival",
+      "type": "mood",
+      "label": "archival",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:coat",
+      "type": "object",
+      "label": "coat",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:blazer",
+      "type": "object",
+      "label": "blazer",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:jacket",
+      "type": "object",
+      "label": "jacket",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:accessories",
+      "type": "object",
+      "label": "accessories",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:glasses",
+      "type": "object",
+      "label": "glasses",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:footwear",
+      "type": "object",
+      "label": "footwear",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "source:louis_vuitton_runway",
+      "type": "source",
+      "label": "Louis Vuitton Runway",
+      "properties": {
+        "auto_discovered": true,
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:cashmere",
+      "type": "object",
+      "label": "cashmere",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "mood:city-walking",
+      "type": "mood",
+      "label": "city-walking",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:handbag",
+      "type": "object",
+      "label": "handbag",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:boots",
+      "type": "object",
+      "label": "boots",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "color:brutalist_gray",
+      "type": "color",
+      "label": "brutalist gray",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:sound_systems",
+      "type": "object",
+      "label": "sound systems",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "location:galilee",
+      "type": "location",
+      "label": "Galilee",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:suit",
+      "type": "object",
+      "label": "suit",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:tie",
+      "type": "object",
+      "label": "tie",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:cap",
+      "type": "object",
+      "label": "cap",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:chairs",
+      "type": "object",
+      "label": "chairs",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:sunflowers",
+      "type": "object",
+      "label": "Sunflowers",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:car_park",
+      "type": "object",
+      "label": "car park",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:dazed_cover",
+      "type": "object",
+      "label": "Dazed cover",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:032c",
+      "type": "brand",
+      "label": "032c",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:archive",
+      "type": "object",
+      "label": "archive",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "location:berlin",
+      "type": "location",
+      "label": "Berlin",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:highsnobiety",
+      "type": "brand",
+      "label": "Highsnobiety",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "location:galaxy_store",
+      "type": "location",
+      "label": "Galaxy Store",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:vest",
+      "type": "object",
+      "label": "vest",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:pants",
+      "type": "object",
+      "label": "pants",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:high_heel_shoes",
+      "type": "object",
+      "label": "high heel shoes",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "color:low_saturation",
+      "type": "color",
+      "label": "low saturation",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:tiktok",
+      "type": "brand",
+      "label": "TikTok",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:i-d",
+      "type": "brand",
+      "label": "i-D",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:prada",
+      "type": "brand",
+      "label": "Prada",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:denim",
+      "type": "object",
+      "label": "denim",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:kits",
+      "type": "object",
+      "label": "kits",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:awards",
+      "type": "object",
+      "label": "awards",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "color:quiet",
+      "type": "color",
+      "label": "quiet",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:ready-to-wear",
+      "type": "object",
+      "label": "ready-to-wear",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:magazine",
+      "type": "object",
+      "label": "magazine",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:sashiko",
+      "type": "brand",
+      "label": "SASHIKO",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "color:saturated",
+      "type": "color",
+      "label": "saturated",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:maodo_lô",
+      "type": "brand",
+      "label": "Maodo Lô",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:vogue",
+      "type": "brand",
+      "label": "Vogue",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "color:earthy_tones",
+      "type": "color",
+      "label": "earthy tones",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:high_heel",
+      "type": "object",
+      "label": "high heel",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "color:desaturated",
+      "type": "color",
+      "label": "desaturated",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:still_photograph",
+      "type": "object",
+      "label": "still photograph",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:screenshot",
+      "type": "object",
+      "label": "screenshot",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:pyrex_vision",
+      "type": "object",
+      "label": "Pyrex Vision",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "color:neutral",
+      "type": "color",
+      "label": "neutral",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "mood:urban",
+      "type": "mood",
+      "label": "urban",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "location:milan",
+      "type": "location",
+      "label": "Milan",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "location:paris",
+      "type": "location",
+      "label": "Paris",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:ghislaine_leung",
+      "type": "brand",
+      "label": "Ghislaine Leung",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "color:muted_tones",
+      "type": "color",
+      "label": "muted tones",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:concrete",
+      "type": "object",
+      "label": "concrete",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:glass",
+      "type": "object",
+      "label": "glass",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:soccer_ball",
+      "type": "object",
+      "label": "soccer ball",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:photography",
+      "type": "object",
+      "label": "photography",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "location:boston",
+      "type": "location",
+      "label": "Boston",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "location:foxborough",
+      "type": "location",
+      "label": "Foxborough",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:saint_laurent",
+      "type": "brand",
+      "label": "Saint Laurent",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:ralph_lauren",
+      "type": "brand",
+      "label": "Ralph Lauren",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:connor_storrie",
+      "type": "brand",
+      "label": "Connor Storrie",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:mia_mazzocchi",
+      "type": "brand",
+      "label": "MIA MAZZOCCHI",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "brand:kadiata_diallo",
+      "type": "brand",
+      "label": "Kadiata Diallo",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:brutalist",
+      "type": "object",
+      "label": "brutalist",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
+    },
+    {
+      "id": "object:shopper_images",
+      "type": "object",
+      "label": "shopper images",
+      "properties": {
+        "source": "ai_entity_extraction"
+      }
     }
   ],
   "edges": [
@@ -1899,6 +3159,110 @@
       "last_updated": "2026-05-26T23:09:37.167937"
     },
     {
+      "source": "source:vogue_runway_-_032c",
+      "target": "mood:quiet",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:27:32.375231"
+    },
+    {
+      "source": "source:vogue_runway_-_032c",
+      "target": "mood:editorial",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:27:32.375262"
+    },
+    {
+      "source": "source:vogue_runway_-_032c",
+      "target": "mood:brutalist",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:27:32.375271"
+    },
+    {
+      "source": "source:vogue_runway_-_032c",
+      "target": "object:vest",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:27:32.375289"
+    },
+    {
+      "source": "source:vogue_runway_-_032c",
+      "target": "object:pants",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:27:32.375296"
+    },
+    {
+      "source": "source:vogue_runway_-_032c",
+      "target": "object:high_heel_shoes",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:27:32.375307"
+    },
+    {
+      "source": "source:vogue_runway_-_032c",
+      "target": "location:city-walking",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:27:32.375313"
+    },
+    {
+      "source": "source:vogue_runway_-_032c",
+      "target": "brand:032c",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:50:57.821237"
+    },
+    {
+      "source": "source:vogue_runway_-_032c",
+      "target": "brand:maodo_lô",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:50:57.821284"
+    },
+    {
+      "source": "source:vogue_runway_-_032c",
+      "target": "brand:vogue",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:50:57.821295"
+    },
+    {
+      "source": "source:vogue_runway_-_032c",
+      "target": "color:low-saturation",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:50:57.821304"
+    },
+    {
+      "source": "source:vogue_runway_-_032c",
+      "target": "color:earthy_tones",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:50:57.821311"
+    },
+    {
+      "source": "source:vogue_runway_-_032c",
+      "target": "object:high_heel",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:50:57.821323"
+    },
+    {
       "source": "source:032c_magazine",
       "target": "concept:black_and_white",
       "relation": "appears_with",
@@ -1953,6 +3317,110 @@
       "weight": 1.0,
       "feedback_count": 0,
       "last_updated": "2026-05-26T23:09:37.167977"
+    },
+    {
+      "source": "source:032c_magazine",
+      "target": "brand:032c",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:27:06.248253"
+    },
+    {
+      "source": "source:032c_magazine",
+      "target": "color:low-saturation",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:27:06.248297"
+    },
+    {
+      "source": "source:032c_magazine",
+      "target": "mood:quiet",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:27:06.248316"
+    },
+    {
+      "source": "source:032c_magazine",
+      "target": "mood:editorial",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:27:06.248327"
+    },
+    {
+      "source": "source:032c_magazine",
+      "target": "mood:brutalist",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:27:06.248339"
+    },
+    {
+      "source": "source:032c_magazine",
+      "target": "object:archive",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:27:06.248355"
+    },
+    {
+      "source": "source:032c_magazine",
+      "target": "location:berlin",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:27:06.248368"
+    },
+    {
+      "source": "source:032c_magazine",
+      "target": "color:quiet",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T07:53:03.170276"
+    },
+    {
+      "source": "source:032c_magazine",
+      "target": "color:brutalist_gray",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T07:53:03.170306"
+    },
+    {
+      "source": "source:032c_magazine",
+      "target": "mood:archive",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T07:53:03.170318"
+    },
+    {
+      "source": "source:032c_magazine",
+      "target": "mood:city-walking",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T07:53:03.170324"
+    },
+    {
+      "source": "source:032c_magazine",
+      "target": "object:ready-to-wear",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T07:53:03.170336"
+    },
+    {
+      "source": "source:032c_magazine",
+      "target": "object:magazine",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T07:53:03.170344"
     },
     {
       "source": "source:hypebeast_fashion",
@@ -2033,6 +3501,166 @@
       "weight": 1.0,
       "feedback_count": 0,
       "last_updated": "2026-05-26T23:09:37.168016"
+    },
+    {
+      "source": "source:hypebeast_fashion",
+      "target": "brand:hypebeast",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:40.328160"
+    },
+    {
+      "source": "source:hypebeast_fashion",
+      "target": "brand:nn.07",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:40.328188"
+    },
+    {
+      "source": "source:hypebeast_fashion",
+      "target": "brand:fear_of_god",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:40.328197"
+    },
+    {
+      "source": "source:hypebeast_fashion",
+      "target": "brand:kwasi_kessie",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:40.328204"
+    },
+    {
+      "source": "source:hypebeast_fashion",
+      "target": "color:low-saturation",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:40.328211"
+    },
+    {
+      "source": "source:hypebeast_fashion",
+      "target": "object:satin",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:40.328220"
+    },
+    {
+      "source": "source:hypebeast_fashion",
+      "target": "object:leather",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:40.328226"
+    },
+    {
+      "source": "source:hypebeast_fashion",
+      "target": "mood:quiet",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:40.328232"
+    },
+    {
+      "source": "source:hypebeast_fashion",
+      "target": "mood:editorial",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:40.328237"
+    },
+    {
+      "source": "source:hypebeast_fashion",
+      "target": "mood:understated",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:40.328245"
+    },
+    {
+      "source": "source:hypebeast_fashion",
+      "target": "object:qr_code",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:40.328251"
+    },
+    {
+      "source": "source:hypebeast_fashion",
+      "target": "object:app_store",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:40.328257"
+    },
+    {
+      "source": "source:hypebeast_fashion",
+      "target": "object:google_play",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:40.328266"
+    },
+    {
+      "source": "source:hypebeast_fashion",
+      "target": "location:marseille",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:40.328276"
+    },
+    {
+      "source": "source:hypebeast_fashion",
+      "target": "brand:sashiko_ga",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:20:51.876665"
+    },
+    {
+      "source": "source:hypebeast_fashion",
+      "target": "mood:brutalist",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:20:51.876677"
+    },
+    {
+      "source": "source:hypebeast_fashion",
+      "target": "object:collectible_cup",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:20:51.876681"
+    },
+    {
+      "source": "source:hypebeast_fashion",
+      "target": "location:galaxy_store",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:27:28.821249"
+    },
+    {
+      "source": "source:hypebeast_fashion",
+      "target": "brand:sashiko",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T07:53:05.164610"
+    },
+    {
+      "source": "source:hypebeast_fashion",
+      "target": "color:saturated",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T07:53:05.164630"
     },
     {
       "source": "source:highsnobiety_style",
@@ -2121,6 +3749,102 @@
       "weight": 1.0,
       "feedback_count": 0,
       "last_updated": "2026-05-26T23:09:37.168059"
+    },
+    {
+      "source": "source:highsnobiety_style",
+      "target": "brand:umbro",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:32.176864"
+    },
+    {
+      "source": "source:highsnobiety_style",
+      "target": "brand:carpet_company",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:32.176881"
+    },
+    {
+      "source": "source:highsnobiety_style",
+      "target": "brand:maxfield",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:32.176887"
+    },
+    {
+      "source": "source:highsnobiety_style",
+      "target": "brand:a.presse",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:32.176893"
+    },
+    {
+      "source": "source:highsnobiety_style",
+      "target": "color:low-saturation",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:32.176897"
+    },
+    {
+      "source": "source:highsnobiety_style",
+      "target": "mood:quiet",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:32.176902"
+    },
+    {
+      "source": "source:highsnobiety_style",
+      "target": "mood:editorial",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:32.176906"
+    },
+    {
+      "source": "source:highsnobiety_style",
+      "target": "mood:brutalist",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:32.176910"
+    },
+    {
+      "source": "source:highsnobiety_style",
+      "target": "object:carpet",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:32.176915"
+    },
+    {
+      "source": "source:highsnobiety_style",
+      "target": "location:los_angeles",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:32.176920"
+    },
+    {
+      "source": "source:highsnobiety_style",
+      "target": "brand:highsnobiety",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:27:12.781791"
+    },
+    {
+      "source": "source:highsnobiety_style",
+      "target": "object:shopper_images",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:51:22.039808"
     },
     {
       "source": "source:showstudio_fashion_film",
@@ -2315,6 +4039,46 @@
       "last_updated": "2026-05-26T23:09:37.168176"
     },
     {
+      "source": "source:nowness_fashion",
+      "target": "color:low-saturation",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:27:10.415722"
+    },
+    {
+      "source": "source:nowness_fashion",
+      "target": "mood:quiet",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:27:10.415767"
+    },
+    {
+      "source": "source:nowness_fashion",
+      "target": "mood:editorial",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:27:10.415779"
+    },
+    {
+      "source": "source:nowness_fashion",
+      "target": "mood:brutalist",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:27:10.415790"
+    },
+    {
+      "source": "source:nowness_fashion",
+      "target": "location:city-walking",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:27:10.415801"
+    },
+    {
       "source": "source:dazed_video",
       "target": "concept:rule:_a_thing_can_be_expensive,_but_it_cannot_flex.",
       "relation": "appears_with",
@@ -2363,6 +4127,62 @@
       "last_updated": "2026-05-26T23:09:37.168212"
     },
     {
+      "source": "source:dazed_video",
+      "target": "brand:dazed",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:51:19.115418"
+    },
+    {
+      "source": "source:dazed_video",
+      "target": "color:low-saturation",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:51:19.115463"
+    },
+    {
+      "source": "source:dazed_video",
+      "target": "mood:quiet",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:51:19.115481"
+    },
+    {
+      "source": "source:dazed_video",
+      "target": "mood:editorial",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:51:19.115494"
+    },
+    {
+      "source": "source:dazed_video",
+      "target": "mood:city-walking",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:51:19.115509"
+    },
+    {
+      "source": "source:dazed_video",
+      "target": "object:archive",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:51:19.115526"
+    },
+    {
+      "source": "source:dazed_video",
+      "target": "object:brutalist",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:51:19.115551"
+    },
+    {
       "source": "source:vimeo_staff_picks",
       "target": "concept:rule:_a_thing_can_be_expensive,_but_it_cannot_flex.",
       "relation": "appears_with",
@@ -2409,6 +4229,30 @@
       "weight": 1.0,
       "feedback_count": 0,
       "last_updated": "2026-05-26T23:09:37.168248"
+    },
+    {
+      "source": "source:vimeo_staff_picks",
+      "target": "mood:editorial",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:27:08.013144"
+    },
+    {
+      "source": "source:vimeo_staff_picks",
+      "target": "mood:quiet",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:27:08.013163"
+    },
+    {
+      "source": "source:vimeo_staff_picks",
+      "target": "mood:city-walking",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:27:08.013170"
     },
     {
       "source": "source:ssense_editorial",
@@ -2523,6 +4367,182 @@
       "last_updated": "2026-05-26T23:09:37.168356"
     },
     {
+      "source": "source:dazed_fashion",
+      "target": "brand:miss_sixty",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:48.331806"
+    },
+    {
+      "source": "source:dazed_fashion",
+      "target": "brand:dazed",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:48.331839"
+    },
+    {
+      "source": "source:dazed_fashion",
+      "target": "brand:simone_rocha",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:48.331850"
+    },
+    {
+      "source": "source:dazed_fashion",
+      "target": "color:low-saturation",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:48.331859"
+    },
+    {
+      "source": "source:dazed_fashion",
+      "target": "mood:quiet",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:48.331876"
+    },
+    {
+      "source": "source:dazed_fashion",
+      "target": "mood:editorial",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:48.331885"
+    },
+    {
+      "source": "source:dazed_fashion",
+      "target": "mood:brutalist",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:48.331892"
+    },
+    {
+      "source": "source:dazed_fashion",
+      "target": "object:cover",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:48.331903"
+    },
+    {
+      "source": "source:dazed_fashion",
+      "target": "object:award",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:48.331911"
+    },
+    {
+      "source": "source:dazed_fashion",
+      "target": "mood:city-walking",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:27:03.851022"
+    },
+    {
+      "source": "source:dazed_fashion",
+      "target": "object:dazed_cover",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:27:03.851069"
+    },
+    {
+      "source": "source:dazed_fashion",
+      "target": "brand:prada",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T07:53:01.059356"
+    },
+    {
+      "source": "source:dazed_fashion",
+      "target": "object:denim",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T07:53:01.059392"
+    },
+    {
+      "source": "source:dazed_fashion",
+      "target": "object:kits",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T07:53:01.059408"
+    },
+    {
+      "source": "source:dazed_fashion",
+      "target": "object:awards",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T07:53:01.059415"
+    },
+    {
+      "source": "source:dazed_fashion",
+      "target": "location:city",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T07:53:01.059424"
+    },
+    {
+      "source": "source:dazed_fashion",
+      "target": "brand:saint_laurent",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:51:10.893206"
+    },
+    {
+      "source": "source:dazed_fashion",
+      "target": "brand:ralph_lauren",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:51:10.893242"
+    },
+    {
+      "source": "source:dazed_fashion",
+      "target": "brand:connor_storrie",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:51:10.893253"
+    },
+    {
+      "source": "source:dazed_fashion",
+      "target": "brand:mia_mazzocchi",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:51:10.893261"
+    },
+    {
+      "source": "source:dazed_fashion",
+      "target": "brand:kadiata_diallo",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:51:10.893268"
+    },
+    {
+      "source": "source:dazed_fashion",
+      "target": "location:city-walking",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:51:10.893283"
+    },
+    {
       "source": "source:i-d_fashion",
       "target": "concept:black_and_white",
       "relation": "appears_with",
@@ -2577,6 +4597,70 @@
       "weight": 1.0,
       "feedback_count": 0,
       "last_updated": "2026-05-26T23:09:37.168391"
+    },
+    {
+      "source": "source:i-d_fashion",
+      "target": "mood:editorial",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:46.266131"
+    },
+    {
+      "source": "source:i-d_fashion",
+      "target": "mood:quiet",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:46.266156"
+    },
+    {
+      "source": "source:i-d_fashion",
+      "target": "mood:archive",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:46.266163"
+    },
+    {
+      "source": "source:i-d_fashion",
+      "target": "location:city",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:46.266175"
+    },
+    {
+      "source": "source:i-d_fashion",
+      "target": "color:low-saturation",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:27:02.225632"
+    },
+    {
+      "source": "source:i-d_fashion",
+      "target": "brand:i-d",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T07:52:59.382184"
+    },
+    {
+      "source": "source:i-d_fashion",
+      "target": "mood:city-walking",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T07:52:59.382219"
+    },
+    {
+      "source": "source:i-d_fashion",
+      "target": "mood:brutalist",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T07:52:59.382230"
     },
     {
       "source": "source:the_guardian_art_&_design",
@@ -2651,6 +4735,230 @@
       "last_updated": "2026-05-26T23:09:37.168446"
     },
     {
+      "source": "source:the_guardian_art_&_design",
+      "target": "brand:david_hockney",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:18.193633"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "brand:vincent_van_gogh",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:18.193646"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "color:grey",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:18.193653"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "color:red",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:18.193660"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "color:white",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:18.193665"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "color:dark_blue",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:18.193669"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "mood:quiet",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:18.193674"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "mood:editorial",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:18.193678"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "mood:brutalist",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:18.193681"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "object:chair",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:18.193686"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "object:tree_branch",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:18.193690"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "object:sunflowers_painting",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:18.193701"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "object:car_park_entrance",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:18.193705"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "object:suit",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:27:00.349540"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "object:tie",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:27:00.349566"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "object:cap",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:27:00.349576"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "object:chairs",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:27:00.349585"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "object:sunflowers",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:27:00.349597"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "object:car_park",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:27:00.349606"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "brand:ghislaine_leung",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:51:08.566008"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "color:low-saturation",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:51:08.566023"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "color:muted_tones",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:51:08.566029"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "object:concrete",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:51:08.566034"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "object:glass",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:51:08.566038"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "object:soccer_ball",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:51:08.566045"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "object:photography",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:51:08.566049"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "location:boston",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:51:08.566053"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "location:foxborough",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:51:08.566057"
+    },
+    {
       "source": "source:vogue_business",
       "target": "concept:black_and_white",
       "relation": "appears_with",
@@ -2705,6 +5013,1038 @@
       "weight": 1.0,
       "feedback_count": 0,
       "last_updated": "2026-05-26T23:09:37.168484"
+    },
+    {
+      "source": "source:vogue_business",
+      "target": "brand:moschino",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:07.571546"
+    },
+    {
+      "source": "source:vogue_business",
+      "target": "brand:vogue_business",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:07.571563"
+    },
+    {
+      "source": "source:vogue_business",
+      "target": "brand:adrian_appiolaza",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:07.571571"
+    },
+    {
+      "source": "source:vogue_business",
+      "target": "brand:blondey_mccoy",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:07.571577"
+    },
+    {
+      "source": "source:vogue_business",
+      "target": "color:low-saturation",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:07.571583"
+    },
+    {
+      "source": "source:vogue_business",
+      "target": "mood:quiet",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:07.571589"
+    },
+    {
+      "source": "source:vogue_business",
+      "target": "mood:editorial",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:07.571593"
+    },
+    {
+      "source": "source:vogue_business",
+      "target": "mood:archive",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:07.571597"
+    },
+    {
+      "source": "source:vogue_business",
+      "target": "mood:brutalist",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:07.571602"
+    },
+    {
+      "source": "source:vogue_business",
+      "target": "object:hairbrush",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:07.571606"
+    },
+    {
+      "source": "source:vogue_business",
+      "target": "object:funding_tracker",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:07.571611"
+    },
+    {
+      "source": "source:vogue_business",
+      "target": "object:trend_tracker",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:07.571616"
+    },
+    {
+      "source": "source:vogue_business",
+      "target": "location:city-walking",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:10:07.571620"
+    },
+    {
+      "source": "source:vogue_business",
+      "target": "brand:sunnei",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:44.183168"
+    },
+    {
+      "source": "source:vogue_business",
+      "target": "brand:tiktok",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T07:52:57.509911"
+    },
+    {
+      "source": "source:vogue_business",
+      "target": "color:neutral",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:51:05.801822"
+    },
+    {
+      "source": "source:vogue_business",
+      "target": "mood:urban",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:51:05.801874"
+    },
+    {
+      "source": "source:vogue_business",
+      "target": "location:city",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:51:05.801896"
+    },
+    {
+      "source": "source:vogue_business",
+      "target": "location:milan",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:51:05.801912"
+    },
+    {
+      "source": "source:vogue_business",
+      "target": "location:paris",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:51:05.801928"
+    },
+    {
+      "source": "pillar:virgil_abloh",
+      "target": "concept:3%_rule",
+      "relation": "prefers",
+      "weight": 0.9,
+      "feedback_count": 0,
+      "last_updated": "2026-06-01T22:26:26.042417"
+    },
+    {
+      "source": "pillar:virgil_abloh",
+      "target": "concept:工业字体与引号",
+      "relation": "prefers",
+      "weight": 0.88,
+      "feedback_count": 0,
+      "last_updated": "2026-06-01T22:26:26.058319"
+    },
+    {
+      "source": "pillar:virgil_abloh",
+      "target": "concept:街头与奢侈的中间地带",
+      "relation": "prefers",
+      "weight": 0.92,
+      "feedback_count": 0,
+      "last_updated": "2026-06-01T22:26:26.073266"
+    },
+    {
+      "source": "pillar:virgil_abloh",
+      "target": "concept:解构主义时装",
+      "relation": "prefers",
+      "weight": 0.85,
+      "feedback_count": 0,
+      "last_updated": "2026-06-01T22:26:26.087081"
+    },
+    {
+      "source": "pillar:virgil_abloh",
+      "target": "concept:跨学科引用",
+      "relation": "prefers",
+      "weight": 0.87,
+      "feedback_count": 0,
+      "last_updated": "2026-06-01T22:26:26.102697"
+    },
+    {
+      "source": "pillar:virgil_abloh",
+      "target": "concept:建筑感剪裁",
+      "relation": "prefers",
+      "weight": 0.8,
+      "feedback_count": 0,
+      "last_updated": "2026-06-01T22:26:26.124409"
+    },
+    {
+      "source": "pillar:virgil_abloh",
+      "target": "concept:archive_culture",
+      "relation": "prefers",
+      "weight": 0.83,
+      "feedback_count": 0,
+      "last_updated": "2026-06-01T22:26:26.139949"
+    },
+    {
+      "source": "pillar:virgil_abloh",
+      "target": "concept:diet_prada",
+      "relation": "appears_with",
+      "weight": 0.6,
+      "feedback_count": 0,
+      "last_updated": "2026-06-01T22:26:26.155243"
+    },
+    {
+      "source": "pillar:virgil_abloh",
+      "target": "concept:alyx_1017_alyx_9sm",
+      "relation": "appears_with",
+      "weight": 0.7,
+      "feedback_count": 0,
+      "last_updated": "2026-06-01T22:26:26.169752"
+    },
+    {
+      "source": "concept:3%_rule",
+      "target": "concept:工业字体与引号",
+      "relation": "prefers",
+      "weight": 0.75,
+      "feedback_count": 0,
+      "last_updated": "2026-06-01T22:26:26.196601"
+    },
+    {
+      "source": "concept:3%_rule",
+      "target": "concept:minimal",
+      "relation": "prefers",
+      "weight": 0.73,
+      "feedback_count": 0,
+      "last_updated": "2026-06-01T22:27:21.243362"
+    },
+    {
+      "source": "concept:工业字体与引号",
+      "target": "concept:magazine",
+      "relation": "prefers",
+      "weight": 0.72,
+      "feedback_count": 0,
+      "last_updated": "2026-06-01T22:27:21.139089"
+    },
+    {
+      "source": "concept:工业字体与引号",
+      "target": "concept:editorial",
+      "relation": "prefers",
+      "weight": 0.76,
+      "feedback_count": 0,
+      "last_updated": "2026-06-01T22:27:21.152608"
+    },
+    {
+      "source": "concept:街头与奢侈的中间地带",
+      "target": "concept:uniform",
+      "relation": "prefers",
+      "weight": 0.78,
+      "feedback_count": 0,
+      "last_updated": "2026-06-01T22:27:21.098231"
+    },
+    {
+      "source": "concept:街头与奢侈的中间地带",
+      "target": "concept:menswear",
+      "relation": "prefers",
+      "weight": 0.82,
+      "feedback_count": 0,
+      "last_updated": "2026-06-01T22:27:21.113250"
+    },
+    {
+      "source": "concept:街头与奢侈的中间地带",
+      "target": "concept:luxury_logo",
+      "relation": "avoids",
+      "weight": 0.85,
+      "feedback_count": 0,
+      "last_updated": "2026-06-01T22:27:21.126463"
+    },
+    {
+      "source": "concept:解构主义时装",
+      "target": "concept:建筑感剪裁",
+      "relation": "appears_with",
+      "weight": 0.8,
+      "feedback_count": 0,
+      "last_updated": "2026-06-01T22:26:26.210116"
+    },
+    {
+      "source": "concept:解构主义时装",
+      "target": "concept:uniform",
+      "relation": "prefers",
+      "weight": 0.7,
+      "feedback_count": 0,
+      "last_updated": "2026-06-01T22:27:21.216675"
+    },
+    {
+      "source": "concept:解构主义时装",
+      "target": "concept:coat",
+      "relation": "prefers",
+      "weight": 0.68,
+      "feedback_count": 0,
+      "last_updated": "2026-06-01T22:27:21.230137"
+    },
+    {
+      "source": "concept:建筑感剪裁",
+      "target": "concept:architecture",
+      "relation": "prefers",
+      "weight": 0.85,
+      "feedback_count": 0,
+      "last_updated": "2026-06-01T22:27:21.191381"
+    },
+    {
+      "source": "concept:建筑感剪裁",
+      "target": "concept:brutalist",
+      "relation": "prefers",
+      "weight": 0.8,
+      "feedback_count": 0,
+      "last_updated": "2026-06-01T22:27:21.203850"
+    },
+    {
+      "source": "concept:archive_culture",
+      "target": "concept:archive",
+      "relation": "prefers",
+      "weight": 0.9,
+      "feedback_count": 0,
+      "last_updated": "2026-06-01T22:27:21.165255"
+    },
+    {
+      "source": "concept:archive_culture",
+      "target": "concept:editorial",
+      "relation": "prefers",
+      "weight": 0.75,
+      "feedback_count": 0,
+      "last_updated": "2026-06-01T22:27:21.177531"
+    },
+    {
+      "source": "visual_element:quotation_marks",
+      "target": "pillar:virgil_abloh",
+      "relation": "prefers",
+      "weight": 0.9,
+      "feedback_count": 0,
+      "last_updated": "2026-06-01T22:28:17.478739"
+    },
+    {
+      "source": "visual_element:zip_tie",
+      "target": "pillar:virgil_abloh",
+      "relation": "prefers",
+      "weight": 0.85,
+      "feedback_count": 0,
+      "last_updated": "2026-06-01T22:28:17.493492"
+    },
+    {
+      "source": "visual_element:helvetica_bold",
+      "target": "pillar:virgil_abloh",
+      "relation": "prefers",
+      "weight": 0.88,
+      "feedback_count": 0,
+      "last_updated": "2026-06-01T22:28:17.508066"
+    },
+    {
+      "source": "source:toshio_saeki_—_selected_works_&_essays",
+      "target": "brand:toshio_saeki",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:35.125744"
+    },
+    {
+      "source": "source:toshio_saeki_—_selected_works_&_essays",
+      "target": "color:low-saturation",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:35.125777"
+    },
+    {
+      "source": "source:toshio_saeki_—_selected_works_&_essays",
+      "target": "mood:editorial",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:35.125785"
+    },
+    {
+      "source": "source:toshio_saeki_—_selected_works_&_essays",
+      "target": "mood:quiet",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:35.125791"
+    },
+    {
+      "source": "source:toshio_saeki_—_selected_works_&_essays",
+      "target": "mood:brutalist",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:35.125796"
+    },
+    {
+      "source": "source:toshio_saeki_—_selected_works_&_essays",
+      "target": "location:toronto",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:35.125804"
+    },
+    {
+      "source": "source:toshio_saeki_—_selected_works_&_essays",
+      "target": "mood:archive",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:42.443683"
+    },
+    {
+      "source": "source:vitsoe_—_dieter_rams_philosophy",
+      "target": "brand:vitsœ",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:37.918402"
+    },
+    {
+      "source": "source:vitsoe_—_dieter_rams_philosophy",
+      "target": "brand:dieter_rams",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:37.918431"
+    },
+    {
+      "source": "source:vitsoe_—_dieter_rams_philosophy",
+      "target": "color:red",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:37.918438"
+    },
+    {
+      "source": "source:vitsoe_—_dieter_rams_philosophy",
+      "target": "color:off-white",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:37.918446"
+    },
+    {
+      "source": "source:vitsoe_—_dieter_rams_philosophy",
+      "target": "object:leather",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:37.918451"
+    },
+    {
+      "source": "source:vitsoe_—_dieter_rams_philosophy",
+      "target": "mood:quiet",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:37.918457"
+    },
+    {
+      "source": "source:vitsoe_—_dieter_rams_philosophy",
+      "target": "mood:editorial",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:37.918466"
+    },
+    {
+      "source": "source:vitsoe_—_dieter_rams_philosophy",
+      "target": "mood:brutalist",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:37.918471"
+    },
+    {
+      "source": "source:vitsoe_—_dieter_rams_philosophy",
+      "target": "object:620_chair",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:37.918478"
+    },
+    {
+      "source": "source:vitsoe_—_dieter_rams_philosophy",
+      "target": "object:606_universal_shelving_system",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:37.918483"
+    },
+    {
+      "source": "source:vitsoe_—_dieter_rams_philosophy",
+      "target": "object:braun_tp_1_radio/phono",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:37.918489"
+    },
+    {
+      "source": "source:vitsoe_—_dieter_rams_philosophy",
+      "target": "brand:braun",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:45.285524"
+    },
+    {
+      "source": "source:vitsoe_—_dieter_rams_philosophy",
+      "target": "mood:archive",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:45.285565"
+    },
+    {
+      "source": "source:rams_—_gary_hustwit",
+      "target": "brand:gary_hustwit",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:39.831742"
+    },
+    {
+      "source": "source:rams_—_gary_hustwit",
+      "target": "color:low-saturation",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:39.831771"
+    },
+    {
+      "source": "source:rams_—_gary_hustwit",
+      "target": "mood:quiet",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:39.831779"
+    },
+    {
+      "source": "source:rams_—_gary_hustwit",
+      "target": "mood:editorial",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:39.831786"
+    },
+    {
+      "source": "source:rams_—_gary_hustwit",
+      "target": "mood:brutalist",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:39.831792"
+    },
+    {
+      "source": "source:rams_—_gary_hustwit",
+      "target": "location:city-walking",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:39.831799"
+    },
+    {
+      "source": "source:rams_—_gary_hustwit",
+      "target": "brand:dieter_rams",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:47.144687"
+    },
+    {
+      "source": "source:rams_—_gary_hustwit",
+      "target": "color:gray",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:47.144757"
+    },
+    {
+      "source": "source:rams_—_gary_hustwit",
+      "target": "color:beige",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:47.144779"
+    },
+    {
+      "source": "source:rams_—_gary_hustwit",
+      "target": "location:london",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:47.144805"
+    },
+    {
+      "source": "source:rams_—_gary_hustwit",
+      "target": "color:low_saturation",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T07:52:48.121945"
+    },
+    {
+      "source": "source:rams_—_gary_hustwit",
+      "target": "color:desaturated",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:51:00.494344"
+    },
+    {
+      "source": "source:rams_—_gary_hustwit",
+      "target": "object:still_photograph",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:51:00.494368"
+    },
+    {
+      "source": "source:rams_—_gary_hustwit",
+      "target": "object:screenshot",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:51:00.494375"
+    },
+    {
+      "source": "source:highsnobiety_virgil_abloh",
+      "target": "brand:off-white",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:41.860465"
+    },
+    {
+      "source": "source:highsnobiety_virgil_abloh",
+      "target": "brand:nike",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:41.860498"
+    },
+    {
+      "source": "source:highsnobiety_virgil_abloh",
+      "target": "brand:louis_vuitton",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:41.860511"
+    },
+    {
+      "source": "source:highsnobiety_virgil_abloh",
+      "target": "brand:virgil_abloh",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:41.860524"
+    },
+    {
+      "source": "source:highsnobiety_virgil_abloh",
+      "target": "mood:editorial",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:41.860533"
+    },
+    {
+      "source": "source:highsnobiety_virgil_abloh",
+      "target": "mood:brutalist",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:41.860541"
+    },
+    {
+      "source": "source:highsnobiety_virgil_abloh",
+      "target": "mood:archive",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:41.860549"
+    },
+    {
+      "source": "source:highsnobiety_virgil_abloh",
+      "target": "object:sneakers",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:41.860562"
+    },
+    {
+      "source": "source:highsnobiety_virgil_abloh",
+      "target": "object:sound_system",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:17:41.860571"
+    },
+    {
+      "source": "source:highsnobiety_virgil_abloh",
+      "target": "color:low-saturation",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:56.439215"
+    },
+    {
+      "source": "source:highsnobiety_virgil_abloh",
+      "target": "color:brutalist_gray",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:56.439242"
+    },
+    {
+      "source": "source:highsnobiety_virgil_abloh",
+      "target": "mood:quiet",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:56.439250"
+    },
+    {
+      "source": "source:highsnobiety_virgil_abloh",
+      "target": "mood:archival",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:56.439257"
+    },
+    {
+      "source": "source:highsnobiety_virgil_abloh",
+      "target": "object:sound_systems",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:56.439267"
+    },
+    {
+      "source": "source:highsnobiety_virgil_abloh",
+      "target": "location:galilee",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:56.439274"
+    },
+    {
+      "source": "source:highsnobiety_virgil_abloh",
+      "target": "location:city",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:56.439278"
+    },
+    {
+      "source": "source:highsnobiety_virgil_abloh",
+      "target": "location:city-walking",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T07:52:55.186336"
+    },
+    {
+      "source": "source:highsnobiety_virgil_abloh",
+      "target": "object:pyrex_vision",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-24T07:51:03.246202"
+    },
+    {
+      "source": "source:vogue_off-white_archive",
+      "target": "brand:off-white",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:50.523426"
+    },
+    {
+      "source": "source:vogue_off-white_archive",
+      "target": "color:low-saturation",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:50.523470"
+    },
+    {
+      "source": "source:vogue_off-white_archive",
+      "target": "object:lab_coat",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:50.523492"
+    },
+    {
+      "source": "source:vogue_off-white_archive",
+      "target": "object:overcoat",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:50.523506"
+    },
+    {
+      "source": "source:vogue_off-white_archive",
+      "target": "mood:quiet",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:50.523518"
+    },
+    {
+      "source": "source:vogue_off-white_archive",
+      "target": "mood:editorial",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:50.523531"
+    },
+    {
+      "source": "source:vogue_off-white_archive",
+      "target": "mood:archival",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:50.523549"
+    },
+    {
+      "source": "source:vogue_off-white_archive",
+      "target": "mood:brutalist",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:50.523559"
+    },
+    {
+      "source": "source:vogue_off-white_archive",
+      "target": "object:coat",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:50.523576"
+    },
+    {
+      "source": "source:vogue_off-white_archive",
+      "target": "object:blazer",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:50.523590"
+    },
+    {
+      "source": "source:vogue_off-white_archive",
+      "target": "object:jacket",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:50.523603"
+    },
+    {
+      "source": "source:vogue_off-white_archive",
+      "target": "object:accessories",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:50.523617"
+    },
+    {
+      "source": "source:vogue_off-white_archive",
+      "target": "object:glasses",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:50.523630"
+    },
+    {
+      "source": "source:vogue_off-white_archive",
+      "target": "object:footwear",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:50.523645"
+    },
+    {
+      "source": "source:vogue_off-white_archive",
+      "target": "location:city",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:50.523657"
+    },
+    {
+      "source": "source:vogue_off-white_archive",
+      "target": "brand:virgil_abloh",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T07:52:53.208297"
+    },
+    {
+      "source": "source:vogue_off-white_archive",
+      "target": "location:city-walking",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T07:52:53.208344"
+    },
+    {
+      "source": "source:louis_vuitton_runway",
+      "target": "brand:louis_vuitton",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:54.414669"
+    },
+    {
+      "source": "source:louis_vuitton_runway",
+      "target": "color:low-saturation",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:54.414708"
+    },
+    {
+      "source": "source:louis_vuitton_runway",
+      "target": "object:cashmere",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:54.414727"
+    },
+    {
+      "source": "source:louis_vuitton_runway",
+      "target": "object:leather",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:54.414738"
+    },
+    {
+      "source": "source:louis_vuitton_runway",
+      "target": "mood:quiet",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:54.414754"
+    },
+    {
+      "source": "source:louis_vuitton_runway",
+      "target": "mood:editorial",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:54.414768"
+    },
+    {
+      "source": "source:louis_vuitton_runway",
+      "target": "mood:city-walking",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:54.414783"
+    },
+    {
+      "source": "source:louis_vuitton_runway",
+      "target": "mood:archive",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:54.414793"
+    },
+    {
+      "source": "source:louis_vuitton_runway",
+      "target": "mood:brutalist",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:54.414804"
+    },
+    {
+      "source": "source:louis_vuitton_runway",
+      "target": "object:coat",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:54.414817"
+    },
+    {
+      "source": "source:louis_vuitton_runway",
+      "target": "object:handbag",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:54.414834"
+    },
+    {
+      "source": "source:louis_vuitton_runway",
+      "target": "object:jacket",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:54.414845"
+    },
+    {
+      "source": "source:louis_vuitton_runway",
+      "target": "object:blazer",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:54.414856"
+    },
+    {
+      "source": "source:louis_vuitton_runway",
+      "target": "object:boots",
+      "relation": "appears_with",
+      "weight": 0.5,
+      "feedback_count": 0,
+      "last_updated": "2026-06-22T00:26:54.414869"
     }
   ]
 }

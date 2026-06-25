@@ -233,15 +233,83 @@ class TasteGraph:
                         total_score += 1.0  # Matched keyword but no edges yet
                     matched += 1
 
-        # Source bonus
+        # Source bonus: established sources get weight-based bonus,
+        # new/exploratory sources get a small uplift to ensure visibility
         if source_id and source_id in self.graph:
             source_bonus = 0.0
+            in_edge_count = 0
             for _, _, data in self.graph.in_edges(source_id, data=True):
                 if data["relation"] == RelationType.PREFERS:
                     source_bonus += data["weight"]
+                    in_edge_count += 1
+            # Exploration uplift: sources with few connections get a baseline boost
+            if in_edge_count == 0:
+                source_bonus = 0.3  # Pure exploration — let this source be seen
+            elif in_edge_count < 3:
+                source_bonus = max(source_bonus, 0.15)  # Small boost for under-connected sources
             total_score += source_bonus
 
         return round(total_score / max(matched, 1), 2)
+
+    # ── Graph Enrichment ─────────────────────────────────────
+
+    def enrich_from_content(
+        self,
+        source_name: str,
+        entities: dict,
+    ) -> int:
+        """Auto-create nodes and edges from AI-extracted entities.
+
+        `entities` format: {brands, designers, colors, materials, moods, objects, locations}
+        Returns count of new nodes created.
+        """
+        source_node_id = None
+        # Find source node by name
+        for node_id, data in self.graph.nodes(data=True):
+            if data["type"].value == "source" and data["label"] == source_name:
+                source_node_id = node_id
+                break
+        if not source_node_id:
+            source_node_id = self.add_node(
+                source_name, NodeType.SOURCE,
+                auto_discovered=True,
+                source="ai_entity_extraction",
+            )
+
+        category_map = {
+            "brands": NodeType.BRAND,
+            "designers": NodeType.BRAND,  # Designers stored as BRAND nodes
+            "colors": NodeType.COLOR,
+            "materials": NodeType.OBJECT,  # Materials stored as OBJECT nodes
+            "moods": NodeType.MOOD,
+            "objects": NodeType.OBJECT,
+            "locations": NodeType.LOCATION,
+        }
+
+        new_count = 0
+        for category, node_type in category_map.items():
+            items = entities.get(category, [])
+            for item in items:
+                item = item.strip()
+                if not item:
+                    continue
+                node_id = f"{node_type.value}:{item.lower().replace(' ', '_')}"
+                if node_id not in self.graph:
+                    self.add_node(
+                        item, node_type,
+                        node_id=node_id,
+                        source="ai_entity_extraction",
+                    )
+                    new_count += 1
+                # Link source to entity via APPEARS_WITH
+                if not self.has_edge(source_node_id, node_id):
+                    self.add_edge(
+                        source_node_id, node_id,
+                        RelationType.APPEARS_WITH,
+                        weight=0.5,
+                    )
+
+        return new_count
 
     # ── Persistence ──────────────────────────────────────────
 

@@ -32,6 +32,11 @@ class ImageRepository:
         )
         await self.db.commit()
 
+    async def get_by_url(self, url: str) -> Optional[Image]:
+        cursor = await self.db.execute("SELECT * FROM images WHERE url = ?", (url,))
+        row = await cursor.fetchone()
+        return self._row_to_image(row) if row else None
+
     async def delete(self, id: str) -> None:
         await self.db.execute("DELETE FROM images WHERE id = ?", (id,))
         await self.db.commit()
@@ -57,6 +62,33 @@ class ImageRepository:
             (limit,),
         )
         return [self._row_to_image(r) for r in await cursor.fetchall()]
+
+    async def list_by_status_paginated(
+        self, status: ImageStatus, page: int = 1, limit: int = 50
+    ) -> tuple[list[Image], int]:
+        offset = (page - 1) * limit
+        cursor = await self.db.execute(
+            "SELECT COUNT(*) FROM images WHERE status = ?", (status.value,)
+        )
+        total_row = await cursor.fetchone()
+        total = total_row[0] if total_row else 0
+        cursor = await self.db.execute(
+            "SELECT * FROM images WHERE status = ? ORDER BY final_score DESC LIMIT ? OFFSET ?",
+            (status.value, limit, offset),
+        )
+        images = [self._row_to_image(r) for r in await cursor.fetchall()]
+        return images, total
+
+    async def mark_many_status(self, ids: list[str], status: ImageStatus) -> None:
+        """Batch update status for multiple images."""
+        if not ids:
+            return
+        placeholders = ",".join("?" * len(ids))
+        await self.db.execute(
+            f"UPDATE images SET status = ? WHERE id IN ({placeholders})",
+            (status.value, *ids),
+        )
+        await self.db.commit()
 
     async def count_pending(self) -> int:
         cursor = await self.db.execute(
