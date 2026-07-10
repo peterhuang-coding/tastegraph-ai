@@ -1,7 +1,36 @@
 {
-  "daily": {
-    "times": ["08:00", "20:00"],
-    "max_posts_per_run": 2,
-    "enabled": true
-  }
+  "tasks": [
+    {
+      "name": "publish",
+      "script": "scripts/publish_scheduler.py",
+      "schedule": "08:00,20:00",
+      "enabled": true,
+      "args": ["--run-now"]
+    },
+    {
+      "name": "auto_feedback",
+      "script": "scripts/auto_feedback.py",
+      "schedule": "09:00",
+      "enabled": true,
+      "args": ["--all"]
+    },
+    {
+      "name": "backup",
+      "script": "scripts/backup.py",
+      "schedule": "04:00",
+      "enabled": true
+    },
+    {
+      "name": "cleanup",
+      "script": "scripts/cleanup_stale_data.py",
+      "schedule": "sun 03:00",
+      "enabled": true
+    },
+    {
+      "name": "trend_report",
+      "script": "scripts/trend_report.py",
+      "schedule": "mon 10:00",
+      "enabled": true
+    }
+  ]
 }
