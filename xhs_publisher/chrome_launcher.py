@@ -168,12 +168,32 @@ def launch_chrome(
     while time.time() < deadline:
         if is_port_open(port):
             print(f"[chrome_launcher] Chrome is ready on port {port}.")
-            return proc
+            break
         time.sleep(0.5)
+    else:
+        print(
+            f"[chrome_launcher] WARNING: Chrome started but port {port} not responding "
+            f"after {STARTUP_TIMEOUT}s. It may still be initializing.",
+            file=sys.stderr,
+        )
+        return proc
+
+    # Port is open, now wait for CDP HTTP API to be ready
+    cdp_deadline = time.time() + 5
+    while time.time() < cdp_deadline:
+        try:
+            import requests
+            resp = requests.get(f"http://127.0.0.1:{port}/json/version", timeout=1)
+            if resp.ok:
+                print(f"[chrome_launcher] Chrome CDP API ready on port {port}.")
+                return proc
+        except Exception:
+            pass
+        time.sleep(0.3)
 
     print(
-        f"[chrome_launcher] WARNING: Chrome started but port {port} not responding "
-        f"after {STARTUP_TIMEOUT}s. It may still be initializing.",
+        f"[chrome_launcher] WARNING: Port {port} open but CDP HTTP API not responding "
+        f"after 5s. Proceeding anyway.",
         file=sys.stderr,
     )
     return proc

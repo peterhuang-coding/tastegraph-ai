@@ -488,9 +488,10 @@ class XiaohongshuPublisher:
     # ------------------------------------------------------------------
 
     def _get_targets(self) -> list[dict]:
-        """Get list of available browser targets (tabs). Retries once on failure."""
+        """Get list of available browser targets (tabs). Retries with backoff on failure."""
         url = f"http://{self.host}:{self.port}/json"
-        for attempt in range(2):
+        delays = [2.0, 3.0, 5.0]
+        for attempt, delay in enumerate(delays, start=1):
             try:
                 resp = requests.get(
                     url,
@@ -500,19 +501,20 @@ class XiaohongshuPublisher:
                 resp.raise_for_status()
                 return resp.json()
             except Exception as e:
-                if attempt == 0:
-                    if _is_local_host(self.host):
-                        print(f"[cdp_publish] CDP connection failed ({e}), restarting Chrome...")
-                        from chrome_launcher import ensure_chrome
-                        ensure_chrome(port=self.port)
-                    else:
-                        print(
-                            f"[cdp_publish] CDP connection failed ({e}), retrying remote endpoint "
-                            f"{self.host}:{self.port}..."
-                        )
-                    self._sleep(2, minimum_seconds=1.0)
+                if _is_local_host(self.host):
+                    print(f"[cdp_publish] CDP connection failed ({e}), retrying in {delay}s "
+                          f"(attempt {attempt}/{len(delays)})...")
+                    from chrome_launcher import ensure_chrome
+                    ensure_chrome(port=self.port)
                 else:
-                    raise CDPError(f"Cannot reach Chrome on {self.host}:{self.port}: {e}")
+                    print(
+                        f"[cdp_publish] CDP connection failed ({e}), retrying remote endpoint "
+                        f"{self.host}:{self.port} in {delay}s "
+                        f"(attempt {attempt}/{len(delays)})..."
+                    )
+                time.sleep(delay)
+
+        raise CDPError(f"Cannot reach Chrome on {self.host}:{self.port} after {len(delays)} retries.")
 
     def _find_or_create_tab(
         self,

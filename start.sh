@@ -60,7 +60,7 @@ case "$MODE" in
     echo ""
     shift
     # 先生成
-    python3 scripts/pipeline.py --publish-only --count "${1:-3}" "$@"
+    python3 scripts/pipeline.py --publish-only --count "${1:-3}"
     # 再自动发第一篇
     python3 scripts/auto_publish.py
     ;;
