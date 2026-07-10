@@ -102,6 +102,39 @@
 
   .footer { text-align: center; color: #bbb; font-size: 12px; margin-top: 24px; }
 </style>
+
+	/* ── Monetize tab ── */
+	.monetize-toggle {
+		display: block; max-width: 960px; margin: 20px auto 0;
+		padding: 12px 20px; background: #f8f8f8; border: 1px solid #e0e0e0;
+		border-radius: 10px; cursor: pointer; font-size: 14px; color: #333;
+		text-align: left; transition: background 0.2s;
+	}
+	.monetize-toggle:hover { background: #eee; }
+	.monetize-toggle .arrow { float: right; transition: transform 0.3s; }
+	.monetize-toggle.open .arrow { transform: rotate(180deg); }
+	.monetize-panel {
+		display: none; max-width: 960px; margin: 0 auto; padding: 24px;
+		background: white; border: 1px solid #e0e0e0; border-top: none;
+		border-radius: 0 0 10px 10px; font-size: 14px; line-height: 1.7; color: #333;
+	}
+	.monetize-panel.open { display: block; }
+	.monetize-panel h2 { font-size: 18px; margin: 20px 0 12px; color: #111; }
+	.monetize-panel h3 { font-size: 15px; margin: 16px 0 8px; color: #444; }
+	.monetize-panel table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+	.monetize-panel th, .monetize-panel td {
+		padding: 8px 12px; border: 1px solid #eee; text-align: left; font-size: 13px;
+	}
+	.monetize-panel th { background: #f8f8f8; font-weight: 600; }
+	.monetize-panel .phase0 { border-left: 3px solid #999; padding-left: 12px; margin: 8px 0; color: #666; }
+	.monetize-panel .phase1 { border-left: 3px solid #6b7db3; padding-left: 12px; margin: 8px 0; }
+	.monetize-panel .phase2 { border-left: 3px solid #8b9d83; padding-left: 12px; margin: 8px 0; }
+	.monetize-panel .phase3 { border-left: 3px solid #b36b7b; padding-left: 12px; margin: 8px 0; }
+	.monetize-panel .highlight { background: #fff9e6; padding: 12px 16px; border-radius: 8px; margin: 12px 0; }
+	.monetize-panel .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+	.monetize-panel .tag.rec { background: #e8f5e9; color: #2e7d32; }
+	.monetize-panel .tag.warn { background: #fff3e0; color: #e65100; }
+</style>
 </head>
 <body>
 
@@ -476,5 +509,111 @@ function toast(msg) {
     setTimeout(() => t.remove(), 2200);
 }
 </script>
+
+<!-- ── 💰 变现面板 ── -->
+<div class="monetize-toggle" onclick="this.classList.toggle('open'); document.getElementById('monetize-panel').classList.toggle('open')">
+	💰 tape 变现方案 <span class="arrow">▼</span>
+</div>
+<div class="monetize-panel" id="monetize-panel">
+
+<h2>📌 核心理念</h2>
+<div class="highlight">
+	<strong>tape 不卖流量，卖品味信用。</strong>信用没建立前不做任何变现。小红书是引流渠道，私域才是最终资产。
+</div>
+
+<h2>📊 变现路径总览</h2>
+<table>
+	<tr><th>阶段</th><th>时间</th><th>粉丝</th><th>变现方式</th><th>月收入</th></tr>
+	<tr style="color:#999"><td><span class="tag" style="background:#eee">Phase 0</span></td><td>当前-1月</td><td>0-1000</td><td>❌ 不做变现，只积累内容资产</td><td>¥0</td></tr>
+	<tr><td><span class="tag rec">Phase 1</span></td><td>1-3月</td><td>1000+</td><td>Digital Moodboard Pack + 品牌合作</td><td>¥1k-5k</td></tr>
+	<tr><td><span class="tag rec">Phase 2</span></td><td>3-6月</td><td>5000+</td><td>实物产品(tote/zine) + 付费内容 + 小红书店铺</td><td>¥5k-15k</td></tr>
+	<tr><td><span class="tag rec">Phase 3</span></td><td>6-12月</td><td>1万+</td><td>tape 产品线 + 联名 + 付费社群 + 线下快闪</td><td>¥15k-30k</td></tr>
+</table>
+
+<h2>🟤 Phase 0: 冷启动策略（当前，0-1个月）</h2>
+<div class="phase0">
+	<p><strong>目标：</strong>积累品味信用，不做变现</p>
+	<p><strong>内容策略：</strong></p>
+	<ul>
+		<li>前 10 条：自我介绍 → 城市日常 → 穿搭笔记 → 物件 → 旅行 → 文化笔记 → 日常档案 → 阅读 → 产品种子 → 总结</li>
+		<li>发帖节奏：前 2 周每周 3 篇（二/四/六 20:00），第 3-4 周每周 4-5 篇</li>
+		<li>标题风格：品味判断型（"不声张的裁剪语法"），不要"今日分享"</li>
+	</ul>
+	<p><strong>私域蓄水：</strong> 从第 1 篇笔记开始，就在简介和评论区引导私域</p>
+</div>
+
+<h2>🔵 Phase 1: 轻量变现（1-3个月，1000粉+）</h2>
+<div class="phase1">
+	<p><strong>1. 数字产品（首选）</strong></p>
+	<ul>
+		<li><strong>Digital Moodboard Pack</strong> (¥19-29) — 精选 20 张高清图 + 品味笔记 PDF，成本近乎零</li>
+		<li><strong>PDF 视觉笔记</strong> (¥39-59) — 主题式视觉档案（如"冷一点的春天"、"城市咖啡"），每期一个主题</li>
+		<li>销售渠道：小红书店铺 / 微信 / Gumroad / 爱发电</li>
+		<li><span class="tag rec">推荐</span> 第一个变现产品，操作简单、成本低、调性一致</li>
+	</ul>
+	<p><strong>2. 品牌合作（谨慎）</strong></p>
+	<ul>
+		<li>只接调性 100% 契合的品牌（MUJI、Lemaire 等极简/都市品牌）</li>
+		<li>报价按品味溢价算：¥500-2000/条（非粉丝数报价）</li>
+		<li>⛔ 不接：快消、网红品牌、医美、游戏</li>
+	</ul>
+	<p><strong>3. 蒲公英平台</strong> — 1000 粉可开通，报价参考：图文 ¥300-800/条</p>
+</div>
+
+<h2>🟢 Phase 2: 产品化（3-6个月，5000粉+）</h2>
+<div class="phase2">
+	<p><strong>1. 实物产品（小批量试水）</strong></p>
+	<ul>
+		<li><strong>tape tote bag</strong> — 极简帆布袋，¥89-129，限量 100 个</li>
+		<li><strong>tape zine</strong> — 纸质视觉刊物，¥59-89，每期 32 页</li>
+		<li><strong>Postcard set</strong> — 6 张明信片套装，¥29-39</li>
+	</ul>
+	<p><strong>2. 付费内容</strong></p>
+	<ul>
+		<li><strong>City Guide</strong> — 城市品味指南（如"东京下北泽散步"），¥29-49，PDF</li>
+		<li><strong>Newsletter</strong> — 每周一期品味推荐，¥19/月 或 ¥199/年</li>
+	</ul>
+	<p><strong>3. 小红书店铺</strong> — 5000 粉可开，闭环交易</p>
+</div>
+
+<h2>🟣 Phase 3: 品牌化（6-12个月，1万粉+）</h2>
+<div class="phase3">
+	<ul>
+		<li><strong>tape 产品线</strong> — 笔记本、咖啡器具、桌面物件</li>
+		<li><strong>联名合作</strong> — 与调性一致的设计师/品牌联名</li>
+		<li><strong>付费社群</strong> — 品味分享社群，¥99/月 或 ¥999/年</li>
+		<li><strong>线下快闪</strong> — 在上海/北京做 pop-up 快闪店</li>
+	</ul>
+</div>
+
+<h2>📈 收入预测（中性情景）</h2>
+<table>
+	<tr><th>阶段</th><th>月收入</th><th>累计</th><th>主要来源</th></tr>
+	<tr><td>Month 1-3</td><td>¥1,000-5,000</td><td>¥3k-15k</td><td>数字产品 + 品牌合作</td></tr>
+	<tr><td>Month 4-6</td><td>¥5,000-15,000</td><td>¥18k-60k</td><td>实物产品 + 付费内容 + 店铺</td></tr>
+	<tr><td>Month 7-12</td><td>¥15,000-30,000</td><td>¥108k-240k</td><td>产品线 + 社群 + 联名</td></tr>
+	<tr style="background:#f8f8f8"><td><strong>全年合计</strong></td><td></td><td><strong>¥129k-315k</strong></td><td></td></tr>
+</table>
+
+<h2>⚠️ 风险</h2>
+<ul>
+	<li><strong>粉丝增长不及预期</strong> — 如果 3 个月不到 1000 粉，推迟变现，继续积累内容</li>
+	<li><strong>品牌合作不匹配</strong> — 宁可空窗也不接不对味的合作</li>
+	<li><strong>平台政策</strong> — 小红书对引流到私域有限制，需要用店铺 + 简介组合</li>
+	<li><strong>产能瓶颈</strong> — 建议用技术管道保持日更</li>
+</ul>
+
+<h2>💡 马上可以做的事</h2>
+<div class="highlight">
+	<ol>
+		<li><strong>第一个变现产品：Digital Moodboard Pack</strong> — 精选 20 张图，打包 PDF，¥19</li>
+		<li><strong>简介加私域引导</strong> — "📩 私信获取本期 moodboard 原图"</li>
+		<li><strong>每周发 1 篇"高收藏率"帖</strong> — 品牌特辑、城市指南、对比帖</li>
+		<li><strong>1000 粉后开通蒲公英平台</strong></li>
+	</ol>
+</div>
+
+</div>
+
 </body>
 </html>

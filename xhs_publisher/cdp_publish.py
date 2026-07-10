@@ -140,7 +140,8 @@ SELECTORS = {
     "content_editor_alt": 'div.ProseMirror[contenteditable="true"]',
     "content_editor_alt2": "div.ql-editor",
     "content_placeholder_text": "输入正文描述",
-    # Publish button
+    # Publish button (selector is a fallback; _get_publish_button_rect now iterates all
+    # buttons looking for text containing '发布' but not '定时')
     "publish_button": ".publish-page-publish-btn button.bg-red",
     "publish_button_text": "发布",
     "schedule_publish_button_text": "定时发布",
@@ -3401,10 +3402,9 @@ class XiaohongshuPublisher:
         return selector if isinstance(selector, str) and selector.strip() else None
 
     def _get_publish_button_rect(self) -> dict[str, Any] | None:
-        """Locate the current publish button using current and legacy selectors."""
+        """Locate the publish button by iterating all buttons for '发布' text but not '定时'."""
         return self._evaluate(f"""
             (() => {{
-                const buttonSelector = {json.dumps(SELECTORS["publish_button"])};
                 const visible = (node) => (
                     node instanceof HTMLElement &&
                     node.offsetParent !== null &&
@@ -3415,23 +3415,17 @@ class XiaohongshuPublisher:
                     const rect = node.getBoundingClientRect();
                     return {{ x: rect.x, y: rect.y, width: rect.width, height: rect.height }};
                 }};
+                const normalize = (text) => (text || "").replace(/\\s+/g, " ").trim();
 
-                const button = document.querySelector(buttonSelector);
-                if (visible(button)) {{
-                    return toRect(button);
-                }}
-
-                const keywords = [
-                    {json.dumps(SELECTORS["publish_button_text"])},
-                    {json.dumps(SELECTORS["schedule_publish_button_text"])},
-                ];
+                // Iterate all buttons, find one with text containing '发布' but not '定时'
                 const buttons = document.querySelectorAll("button, [role='button'], .d-button");
                 for (const node of buttons) {{
                     if (!visible(node)) {{
                         continue;
                     }}
-                    const text = (node.innerText || node.textContent || "").trim();
-                    if (keywords.includes(text)) {{
+                    const text = normalize(node.innerText || node.textContent || "");
+                    if (text.includes({json.dumps(SELECTORS["publish_button_text"])}) &&
+                        !text.includes({json.dumps(SELECTORS["schedule_publish_button_text"])})) {{
                         return toRect(node);
                     }}
                 }}
@@ -3577,44 +3571,115 @@ class XiaohongshuPublisher:
         """Click the '上传视频' tab to switch to video publish mode."""
         self._click_tab(SELECTORS["video_tab"], SELECTORS["video_tab_text"])
 
+    def _guess_mime_type(self, file_name: str) -> str:
+        """Guess MIME type from file extension for JS File constructor."""
+        ext = os.path.splitext(file_name)[1].lower() if file_name else ""
+        mime_map = {
+            ".jpg": "image/jpeg",
+            ".jpeg": "image/jpeg",
+            ".png": "image/png",
+            ".gif": "image/gif",
+            ".webp": "image/webp",
+            ".bmp": "image/bmp",
+            ".svg": "image/svg+xml",
+            ".heic": "image/heic",
+            ".heif": "image/heif",
+        }
+        return mime_map.get(ext, "image/jpeg")
+
     def _upload_images(self, image_paths: list[str]):
-        """Upload images via the file input element."""
+        """Upload images via DataTransfer + JS File API (Runtime.evaluate).
+
+        The creator.xiaohongshu.com page uses React/Vue file inputs that do not
+        respond to DOM.setFileInputFiles reliably. This method reads each image
+        file as base64 on the Python side, then evaluates JS in the page context
+        to construct a DataTransfer FileList and dispatch change/input events.
+
+        Verified working against the current (2026-03) creator center.
+        """
         if not image_paths:
             print("[cdp_publish] No images to upload, skipping.")
             return
 
-        preserve_flags = [self._should_preserve_upload_path(path) for path in image_paths]
-        prepared_paths = [self._prepare_upload_file_path(path) for path in image_paths]
+        print(f"[cdp_publish] Uploading {len(image_paths)} image(s) via DataTransfer JS API...")
 
-        print(f"[cdp_publish] Uploading {len(image_paths)} image(s)...")
-        if self.preserve_upload_paths:
-            print("[cdp_publish] Upload path normalization disabled; preserving original paths.")
-        elif any(preserve_flags):
-            print("[cdp_publish] Auto-detected Windows/UNC upload paths; preserving original paths.")
+        for index, file_path in enumerate(image_paths, start=1):
+            # Read file and convert to base64
+            abs_path = os.path.abspath(file_path)
+            if not os.path.exists(abs_path):
+                raise CDPError(f"Image file not found: {abs_path}")
 
-        for index, file_path in enumerate(prepared_paths, start=1):
-            node_id = 0
-            selectors = (
-                (SELECTORS["upload_input"], SELECTORS["upload_input_alt"])
-                if index == 1
-                else (SELECTORS["upload_input_alt"], SELECTORS["upload_input"])
-            )
-            for selector in selectors:
-                node_id = self._query_node_id(selector)
-                if node_id:
-                    break
+            with open(abs_path, "rb") as fh:
+                raw_bytes = fh.read()
 
-            if not node_id:
+            b64_data = base64.b64encode(raw_bytes).decode("ascii")
+            file_name = os.path.basename(abs_path)
+            mime_type = self._guess_mime_type(file_name)
+
+            # Upload via DataTransfer JS API
+            result = self._evaluate(f"""
+                (async () => {{
+                    const b64 = {json.dumps(b64_data)};
+                    const fileName = {json.dumps(file_name)};
+                    const mimeType = {json.dumps(mime_type)};
+
+                    // 1. Convert base64 to Uint8Array
+                    const binaryStr = atob(b64);
+                    const bytes = new Uint8Array(binaryStr.length);
+                    for (let i = 0; i < binaryStr.length; i++) {{
+                        bytes[i] = binaryStr.charCodeAt(i);
+                    }}
+
+                    // 2. Create File object
+                    const file = new File([bytes], fileName, {{ type: mimeType }});
+
+                    // 3. Create DataTransfer and add file
+                    const dt = new DataTransfer();
+                    dt.items.add(file);
+
+                    // 4. Find the file input element
+                    const selectors = [
+                        {json.dumps(SELECTORS["upload_input"])},
+                        {json.dumps(SELECTORS["upload_input_alt"])},
+                        'input[type="file"]',
+                    ];
+                    let inputEl = null;
+                    for (const sel of selectors) {{
+                        const el = document.querySelector(sel);
+                        if (el instanceof HTMLInputElement) {{
+                            inputEl = el;
+                            break;
+                        }}
+                    }}
+                    if (!inputEl) {{
+                        return {{ ok: false, error: 'file_input_not_found' }};
+                    }}
+
+                    // 5. Use Object.defineProperty to set files (React/Vue intercept)
+                    Object.defineProperty(inputEl, 'files', {{
+                        value: dt.files,
+                        writable: false,
+                        configurable: true,
+                    }});
+
+                    // 6. Dispatch events that React/Vue listeners respond to
+                    inputEl.dispatchEvent(new Event('change', {{ bubbles: true, cancelable: true }}));
+                    inputEl.dispatchEvent(new Event('input', {{ bubbles: true, cancelable: true }}));
+
+                    return {{ ok: true, fileName, fileSize: bytes.length }};
+                }})()
+            """)
+
+            if not isinstance(result, dict) or not result.get("ok"):
+                error_msg = "unknown"
+                if isinstance(result, dict):
+                    error_msg = str(result.get("error", error_msg))
                 raise CDPError(
-                    "Could not find file input element.\n"
-                    "The page structure may have changed. Check references/publish-workflow.md."
+                    f"Failed to upload image {index}/{len(image_paths)} "
+                    f"({file_name}): {error_msg}"
                 )
 
-            self._send("DOM.setFileInputFiles", {
-                "nodeId": node_id,
-                "files": [file_path],
-            })
-            print(f"[cdp_publish] Image {index}/{len(prepared_paths)} submitted: {file_path}")
+            print(f"[cdp_publish] Image {index}/{len(image_paths)} uploaded: {result.get('fileName', file_name)}")
             self._wait_for_uploaded_images(index)
             self._sleep(0.9, minimum_seconds=0.25)
 
