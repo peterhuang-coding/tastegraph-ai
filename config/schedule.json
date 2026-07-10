@@ -1,0 +1,7 @@
+{
+  "daily": {
+    "times": ["08:00", "20:00"],
+    "max_posts_per_run": 2,
+    "enabled": true
+  }
+}

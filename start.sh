@@ -9,6 +9,7 @@
 #   feedback    Show weekly performance report
 #   auto-pub    Generate + auto-publish to Xiaohongshu (login first)
 #   login       Login to Xiaohongshu via QR code (first time only)
+#   scheduler   Start the scheduled publish daemon
 #
 
 set -e
@@ -69,6 +70,12 @@ case "$MODE" in
     echo ""
     python3 scripts/auto_publish.py --login
     ;;
+  scheduler)
+    echo "⏰ 调度模式：启动定时发布调度器"
+    echo ""
+    shift
+    python3 scripts/publish_scheduler.py "$@"
+    ;;
   *)
     echo "❌ 未知模式: $MODE"
     echo ""
@@ -81,10 +88,13 @@ case "$MODE" in
     echo "  feedback      查看发布效果周报"
     echo "  auto-pub      生成 + 自动发布到小红书（需先 login）"
     echo "  login         扫码登录小红书"
+    echo "  scheduler     启动定时发布调度器"
     echo ""
     echo "示例:"
     echo "  bash start.sh                   # 全流程"
     echo "  bash start.sh login             # 首次登录"
+    echo "  bash start.sh scheduler         # 启动定时调度"
+    echo "  bash start.sh scheduler --run-now # 立即执行一次"
     echo "  bash start.sh auto-pub          # 生成 + 自动发布"
     echo "  bash start.sh publish --count 9 # 生成 9 篇"
     echo "  bash start.sh serve             # 只启动审稿"

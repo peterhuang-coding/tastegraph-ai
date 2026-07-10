@@ -160,7 +160,7 @@ VIDEO_PROCESS_POLL = 3  # seconds between video processing status checks
 ACTION_INTERVAL = 1  # seconds between actions
 MAX_TIMING_JITTER_RATIO = 0.7
 CDP_COMMAND_TIMEOUT = 15.0
-DEFAULT_LOGIN_CACHE_TTL_HOURS = 12.0
+DEFAULT_LOGIN_CACHE_TTL_HOURS = 1.0
 LOGIN_CACHE_FILE = os.path.abspath(
     os.path.join(SCRIPT_DIR, "..", "tmp", "login_status_cache.json")
 )

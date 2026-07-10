@@ -22,6 +22,7 @@ TasteGraph AI — 自动发布到小红书
 
 import argparse
 import os
+import random
 import subprocess
 import sys
 import time
@@ -30,6 +31,9 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 XHS_DIR = BASE_DIR / "xhs_publisher"
 POSTS_DIR = BASE_DIR / "posts"
+
+MAX_RETRIES = 2
+RETRY_DELAY = 60  # seconds
 
 
 def check_chrome() -> bool:
@@ -46,8 +50,33 @@ def check_chrome() -> bool:
     return bool(result.stdout.strip())
 
 
-def publish_post(post_dir: Path, headless: bool = False) -> bool:
-    """Publish a single post using XiaohongshuSkills."""
+def check_login_status() -> bool:
+    """Check Xiaohongshu login status before publishing."""
+    cmd = [
+        sys.executable, str(XHS_DIR / "cdp_publish.py"),
+        "check-login",
+    ]
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+        if result.returncode == 0:
+            print("  ✅ 登录态正常")
+            return True
+        else:
+            print("  ❌ 未登录或登录已过期")
+            return False
+    except subprocess.TimeoutExpired:
+        print("  ⚠️ 登录检查超时")
+        return False
+
+
+def random_interval(min_interval: int = 180, max_interval: int = 300) -> int:
+    """Return a random interval in seconds between min and max."""
+    return random.randint(min_interval, max_interval)
+
+
+def publish_post(post_dir: Path, headless: bool = False,
+                 timing_jitter: float = 0.35) -> bool:
+    """Publish a single post using XiaohongshuSkills, with retry logic."""
     title_file = post_dir / "title.txt"
     body_file = post_dir / "body.txt"
     hashtags_file = post_dir / "hashtags.txt"
@@ -64,34 +93,45 @@ def publish_post(post_dir: Path, headless: bool = False) -> bool:
 
     print(f"  发布: {title}")
 
-    cmd = [
-        sys.executable, str(XHS_DIR / "publish_pipeline.py"),
-        "--title", title,
-        "--content", content,
-    ]
+    for attempt in range(1, MAX_RETRIES + 2):  # first attempt + retries
+        cmd = [
+            sys.executable, str(XHS_DIR / "publish_pipeline.py"),
+            "--title", title,
+            "--content", content,
+            "--timing-jitter", str(timing_jitter),
+        ]
 
-    # Add local image files
-    for img in image_files:
-        cmd.extend(["--images", str(img)])
+        # Add local image files
+        for img in image_files:
+            cmd.extend(["--images", str(img)])
 
-    if headless:
-        cmd.append("--headless")
+        if headless:
+            cmd.append("--headless")
 
-    try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
-        if result.returncode == 0:
-            print(f"  ✅ {post_dir.name}: 发布成功")
-            return True
-        elif result.returncode == 1:
-            print(f"  ❌ {post_dir.name}: 未登录（请先运行 --login）")
-            return False
-        else:
-            print(f"  ❌ {post_dir.name}: 发布失败")
-            print(f"     {result.stderr[:200]}")
-            return False
-    except subprocess.TimeoutExpired:
-        print(f"  ⚠️ {post_dir.name}: 超时")
-        return False
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+            if result.returncode == 0:
+                print(f"  ✅ {post_dir.name}: 发布成功")
+                return True
+            elif result.returncode == 1:
+                print(f"  ❌ {post_dir.name}: 未登录（请先运行 --login）")
+                return False
+            else:
+                if attempt <= MAX_RETRIES:
+                    print(f"  ⚠️ {post_dir.name}: 发布失败，{RETRY_DELAY}秒后重试 (第{attempt}/{MAX_RETRIES}次)")
+                    print(f"     {result.stderr[:200]}")
+                    time.sleep(RETRY_DELAY)
+                else:
+                    print(f"  ❌ {post_dir.name}: 发布失败（已重试{MAX_RETRIES}次）")
+                    print(f"     {result.stderr[:200]}")
+                    return False
+        except subprocess.TimeoutExpired:
+            if attempt <= MAX_RETRIES:
+                print(f"  ⚠️ {post_dir.name}: 超时，{RETRY_DELAY}秒后重试 (第{attempt}/{MAX_RETRIES}次)")
+                time.sleep(RETRY_DELAY)
+            else:
+                print(f"  ⚠️ {post_dir.name}: 超时（已重试{MAX_RETRIES}次）")
+                return False
 
 
 def main():
@@ -101,6 +141,12 @@ def main():
     parser.add_argument("--headless", action="store_true", help="无头模式（不显示浏览器窗口）")
     parser.add_argument("--login", action="store_true", help="首次登录（扫码）")
     parser.add_argument("--check-login", action="store_true", help="检查登录状态")
+    parser.add_argument("--timing-jitter", type=float, default=0.35,
+                        help="操作延迟随机抖动比例（默认: 0.35）")
+    parser.add_argument("--min-interval", type=int, default=180,
+                        help="最小发布间隔（秒，默认: 180）")
+    parser.add_argument("--max-interval", type=int, default=300,
+                        help="最大发布间隔（秒，默认: 300）")
     args = parser.parse_args()
 
     if not check_chrome():
@@ -120,13 +166,24 @@ def main():
         subprocess.run(cmd)
         return
 
+    # 登录态检查（发布前）
+    if not args.login and not args.check_login:
+        print("🔍 检查登录状态...")
+        if not check_login_status():
+            print("❌ 未登录或登录已过期，请先运行: python3 scripts/auto_publish.py --login")
+            sys.exit(1)
+        print("✅ 登录状态正常")
+
     # 找发布包
     if args.post_dir:
         post_dir = Path(args.post_dir)
         if not post_dir.exists():
             print(f"❌ 未找到: {post_dir}")
             sys.exit(1)
-        publish_post(post_dir, headless=args.headless)
+        publish_post(post_dir, headless=args.headless,
+                     timing_jitter=args.timing_jitter)
+        # 单篇模式也加入随机等待
+        time.sleep(random_interval(args.min_interval, args.max_interval))
     elif args.all:
         # 找最新的日期目录
         date_dirs = sorted(POSTS_DIR.glob("20*"), reverse=True)
@@ -139,8 +196,11 @@ def main():
                 continue
             print(f"\n📅 {date_dir.name} ({len(post_dirs)} 篇)")
             for post_dir in post_dirs:
-                publish_post(post_dir, headless=args.headless)
-                time.sleep(3)  # 发布间隔，避免风控
+                publish_post(post_dir, headless=args.headless,
+                             timing_jitter=args.timing_jitter)
+                interval = random_interval(args.min_interval, args.max_interval)
+                print(f"  ⏳ 等待 {interval} 秒后发布下一篇...")
+                time.sleep(interval)  # 随机发布间隔，避免风控
     else:
         # 找最新的未发布帖子
         date_dirs = sorted(POSTS_DIR.glob("20*"), reverse=True)
@@ -153,7 +213,8 @@ def main():
             print(f"❌ {latest.name} 下没有帖子")
             sys.exit(1)
         # 只发第一篇
-        publish_post(post_dirs[0], headless=args.headless)
+        publish_post(post_dirs[0], headless=args.headless,
+                     timing_jitter=args.timing_jitter)
 
 
 if __name__ == "__main__":
