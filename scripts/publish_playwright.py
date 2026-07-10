@@ -217,7 +217,7 @@ def main():
 
             # ── Navigate to creator publish page ───────────────
             print(f"[playwright] Navigating to {XHS_CREATOR_URL}...")
-            target_page.goto(XHS_CREATOR_URL, wait_until="networkidle", timeout=30000)
+            target_page.goto(XHS_CREATOR_URL, wait_until="domcontentloaded", timeout=30000)
             time.sleep(_jitter_seconds(PAGE_LOAD_WAIT, timing_jitter, 2.0))
 
             # Check if we're on the login page
@@ -269,15 +269,15 @@ def main():
             for idx, img_path in enumerate(image_paths):
                 print(f"[playwright] Uploading image {idx+1}/{len(image_paths)}: {img_path}")
                 try:
-                    file_input.setInputFiles(img_path)
-                    print(f"[playwright]   setInputFiles succeeded for image {idx+1}")
+                    file_input.set_input_files(img_path)
+                    print(f"[playwright]   set_input_files succeeded for image {idx+1}")
                 except Exception as e:
-                    print(f"[playwright]   setInputFiles failed for image {idx+1}: {e}", file=sys.stderr)
+                    print(f"[playwright]   set_input_files failed for image {idx+1}: {e}", file=sys.stderr)
                     # Try with absolute path
                     abs_path = os.path.abspath(img_path)
                     if abs_path != img_path:
                         try:
-                            file_input.setInputFiles(abs_path)
+                            file_input.set_input_files(abs_path)
                             print(f"[playwright]   Retry with abs path succeeded: {abs_path}")
                         except Exception as e2:
                             print(f"[playwright]   Retry also failed: {e2}", file=sys.stderr)
