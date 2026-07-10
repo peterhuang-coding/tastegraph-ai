@@ -57,6 +57,9 @@ def step_crawl(duration_hours: float = 1, max_items: int = 50) -> int:
     print("=" * 60)
 
     from scripts.crawl_loop_6h import main as crawl_main
+    # 保存并恢复 sys.argv，避免污染其他模块
+    import sys
+    _saved_argv = sys.argv
     sys.argv = [
         "crawl_loop_6h.py",
         "--duration-hours", str(duration_hours),
@@ -67,6 +70,8 @@ def step_crawl(duration_hours: float = 1, max_items: int = 50) -> int:
         return crawl_main()
     except SystemExit as e:
         return e.code if e.code is not None else 0
+    finally:
+        sys.argv = _saved_argv
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -392,12 +397,14 @@ def step_serve(port: int = 8765) -> None:
 
     # 启动 QUEUE 服务（前台）
     from scripts.queue_server import main as queue_main
+    _saved_argv = sys.argv
     sys.argv = ["queue_server.py"]
     try:
         queue_main()
     except KeyboardInterrupt:
         print("\n  服务已停止。")
     finally:
+        sys.argv = _saved_argv
         if server_pid:
             os.kill(server_pid, signal.SIGTERM)
 

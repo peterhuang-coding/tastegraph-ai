@@ -72,31 +72,11 @@ from image_downloader import ImageDownloader
 from run_lock import SingleInstanceError, single_instance
 
 
-MAX_TIMING_JITTER_RATIO = 0.7
-
-
-def _normalize_timing_jitter(value: float) -> float:
-    """Clamp timing jitter to a safe range."""
-    return max(0.0, min(MAX_TIMING_JITTER_RATIO, value))
-
-
-def _is_local_host(host: str) -> bool:
-    """Return True when host points to the local machine."""
-    return host.strip().lower() in {"127.0.0.1", "localhost", "::1"}
-
-
-def _resolve_account_name(account_name: str | None) -> str:
-    """Resolve explicit or default account name for login cache scoping."""
-    if account_name and account_name.strip():
-        return account_name.strip()
-    try:
-        from account_manager import get_default_account
-        resolved = get_default_account()
-        if isinstance(resolved, str) and resolved.strip():
-            return resolved.strip()
-    except Exception:
-        pass
-    return "default"
+from utils import (
+    normalize_timing_jitter,
+    is_local_host,
+    resolve_account_name,
+)
 
 
 def _jitter_ms(base_ms: int, jitter_ratio: float, minimum_ms: int = 0) -> int:
@@ -438,10 +418,10 @@ def main():
     port = args.port
     headless = args.headless
     account = args.account
-    cache_account_name = _resolve_account_name(account)
+    cache_account_name = resolve_account_name(account)
     reuse_existing_tab = args.reuse_existing_tab
-    timing_jitter = _normalize_timing_jitter(args.timing_jitter)
-    local_mode = _is_local_host(host)
+    timing_jitter = normalize_timing_jitter(args.timing_jitter)
+    local_mode = is_local_host(host)
     post_time = args.post_time
 
     if timing_jitter != args.timing_jitter:

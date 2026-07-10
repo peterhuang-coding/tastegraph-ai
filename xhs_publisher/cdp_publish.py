@@ -159,36 +159,16 @@ UPLOAD_WAIT = 6  # seconds to wait after image upload for editor to appear
 VIDEO_PROCESS_TIMEOUT = 120  # seconds to wait for video processing
 VIDEO_PROCESS_POLL = 3  # seconds between video processing status checks
 ACTION_INTERVAL = 1  # seconds between actions
-MAX_TIMING_JITTER_RATIO = 0.7
-CDP_COMMAND_TIMEOUT = 15.0
+from utils import (
+    MAX_TIMING_JITTER_RATIO,
+    normalize_timing_jitter,
+    is_local_host,
+    resolve_account_name,
+)
 DEFAULT_LOGIN_CACHE_TTL_HOURS = 1.0
 LOGIN_CACHE_FILE = os.path.abspath(
     os.path.join(SCRIPT_DIR, "..", "tmp", "login_status_cache.json")
 )
-
-
-def _normalize_timing_jitter(value: float) -> float:
-    """Clamp timing jitter to a safe range."""
-    return max(0.0, min(MAX_TIMING_JITTER_RATIO, value))
-
-
-def _is_local_host(host: str) -> bool:
-    """Return True when host points to the local machine."""
-    return host.strip().lower() in {"127.0.0.1", "localhost", "::1"}
-
-
-def _resolve_account_name(account_name: str | None) -> str:
-    """Resolve explicit or default account name for cache scoping."""
-    if account_name and account_name.strip():
-        return account_name.strip()
-    try:
-        from account_manager import get_default_account
-        resolved = get_default_account()
-        if isinstance(resolved, str) and resolved.strip():
-            return resolved.strip()
-    except Exception:
-        pass
-    return "default"
 
 
 def _build_search_filters_from_args(args) -> SearchFilters | None:
@@ -333,7 +313,7 @@ class XiaohongshuPublisher:
         self.port = port
         self.ws = None
         self._msg_id = 0
-        self.timing_jitter = _normalize_timing_jitter(timing_jitter)
+        self.timing_jitter = normalize_timing_jitter(timing_jitter)
         self.account_name = (account_name or "default").strip() or "default"
         self.preserve_upload_paths = bool(preserve_upload_paths)
         self.command_timeout_seconds = CDP_COMMAND_TIMEOUT
@@ -497,12 +477,12 @@ class XiaohongshuPublisher:
                 resp = requests.get(
                     url,
                     timeout=5,
-                    proxies={"http": None, "https": None} if _is_local_host(self.host) else None,
+                    proxies={"http": None, "https": None} if is_local_host(self.host) else None,
                 )
                 resp.raise_for_status()
                 return resp.json()
             except Exception as e:
-                if _is_local_host(self.host):
+                if is_local_host(self.host):
                     print(f"[cdp_publish] CDP connection failed ({e}), retrying in {delay}s "
                           f"(attempt {attempt}/{len(delays)})...")
                     from chrome_launcher import ensure_chrome
@@ -552,7 +532,7 @@ class XiaohongshuPublisher:
         resp = requests.put(
             f"http://{self.host}:{self.port}/json/new?{XHS_CREATOR_URL}",
             timeout=5,
-            proxies={"http": None, "https": None} if _is_local_host(self.host) else None,
+            proxies={"http": None, "https": None} if is_local_host(self.host) else None,
         )
         if resp.ok:
             ws_url = resp.json().get("webSocketDebuggerUrl", "")
@@ -4501,10 +4481,10 @@ def main():
     port = args.port
     headless = args.headless
     account = args.account
-    cache_account_name = _resolve_account_name(account)
+    cache_account_name = resolve_account_name(account)
     reuse_existing_tab = args.reuse_existing_tab
-    timing_jitter = _normalize_timing_jitter(args.timing_jitter)
-    local_mode = _is_local_host(host)
+    timing_jitter = normalize_timing_jitter(args.timing_jitter)
+    local_mode = is_local_host(host)
 
     if timing_jitter != args.timing_jitter:
         print(

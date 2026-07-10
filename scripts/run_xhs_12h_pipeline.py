@@ -897,7 +897,6 @@ def run_pipeline(
             elif record.get("status") == "fetch_error":
                 stats["fetch_error"] += 1
             stats["success"] += 1
-            stats["success"] += 1
         except Exception as e:
             record = {
                 "source_type": item.get("source_type", "unknown"),
