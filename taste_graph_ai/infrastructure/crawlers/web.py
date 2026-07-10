@@ -362,10 +362,11 @@ class WebCrawler(Crawler):
             src = self._upgrade_url(src)
 
             alt = img.get("alt", "")
+            keywords = self._clean_alt_text(alt)
             images.append({
                 "url": src,
                 "thumbnail": "",
-                "keywords": [alt] if alt else [],
+                "keywords": keywords,
             })
 
         # 4. srcset for higher-res versions
@@ -457,6 +458,34 @@ class WebCrawler(Crawler):
 
     def _add_failure(self, url: str, reason: str, detail: str = "") -> None:
         self.failures.append({"url": url, "reason": reason, "detail": detail})
+
+    @staticmethod
+    def _clean_alt_text(alt: str) -> list[str]:
+        """Filter garbage alt text (auto-generated accessibility descriptions).
+        Returns cleaned list of useful keywords, or empty list if all garbage."""
+        if not alt:
+            return []
+        alt_lower = alt.lower().strip()
+
+        # Skip auto-generated patterns
+        garbage_patterns = [
+            "image may contain", "person standing", "person sitting",
+            "indoor", "outdoor", "no description available", "untitled",
+            "picture of", "photo of", "photograph of", "image of",
+            "img", "image", "picture", "photo",
+        ]
+        if any(p in alt_lower for p in garbage_patterns):
+            return []
+
+        # Skip if too long (likely a sentence, not keywords)
+        if len(alt) > 60:
+            return []
+
+        # Split on common separators
+        import re
+        parts = re.split(r'[,;，；、\s]+', alt.strip())
+        cleaned = [p.strip() for p in parts if 2 <= len(p.strip()) <= 30]
+        return cleaned[:5]
 
     def _check_dimensions(self, filepath: Path) -> bool:
         """Returns True if the image meets minimum dimension requirements."""

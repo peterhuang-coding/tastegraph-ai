@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>编辑工作台 — 2026-07-09</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, "PingFang SC", sans-serif; background: #f0f0f0; margin: 0; padding: 20px; }
+  .header { max-width: 960px; margin: 0 auto 12px; display: flex; justify-content: space-between; align-items: flex-start; }
+  .header h1 { font-size: 22px; margin: 0 0 4px; }
+  .header .date { color: #999; font-size: 13px; }
+  .header .pillars { font-size: 12px; color: #666; margin-top: 4px; }
+
+  .toolbar { max-width: 960px; margin: 0 auto 16px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .toolbar button { padding: 8px 16px; border: 1px solid #ccc; border-radius: 6px; background: white; cursor: pointer; font-size: 13px; }
+  .toolbar button:hover { background: #eee; }
+  .toolbar button.primary { background: #222; color: white; border-color: #222; }
+  .toolbar button.save-all { background: #007aff; color: white; border-color: #007aff; }
+
+  .queue { max-width: 960px; margin: 0 auto; }
+  .card {
+    display: flex; gap: 16px; align-items: flex-start;
+    background: white; border-radius: 10px; padding: 16px; margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    transition: transform 0.15s, box-shadow 0.15s;
+    border-left: 3px solid transparent;
+  }
+  .card[data-pillar="lookbook"] { border-left-color: #6b7db3; }
+  .card[data-pillar="daily_archive"] { border-left-color: #8b9d83; }
+  .card[data-pillar="moving_taste"] { border-left-color: #b38b6b; }
+  .card[data-pillar="reading_taste"] { border-left-color: #9b7bb3; }
+  .card[data-pillar="product_seeds"] { border-left-color: #b36b7b; }
+  .card:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+  .card.published { opacity: 0.45; }
+  .card-num { font-size: 13px; color: #bbb; font-weight: 700; min-width: 42px; padding-top: 4px; text-align: center; }
+  .pillar-tag { font-size: 10px; color: #999; font-weight: 400; display: block; margin-top: 2px; }
+  .card-img {
+    width: 120px; height: 120px; object-fit: cover; border-radius: 6px;
+    cursor: pointer; flex-shrink: 0;
+    border: 2px solid transparent; transition: border-color 0.2s;
+  }
+  .card-img:hover { border-color: #ff2442; }
+  .card-body { flex: 1; min-width: 0; }
+  .card-title {
+    font-size: 16px; font-weight: 700; margin-bottom: 6px; color: #111;
+    padding: 2px 4px; border-radius: 3px; outline: none;
+    border: 1px solid transparent; transition: border-color 0.2s;
+  }
+  .card-title:focus { border-color: #007aff; background: #f8f9ff; }
+  .card-text {
+    font-size: 13px; color: #555; margin-bottom: 6px; line-height: 1.5;
+    white-space: pre-line; padding: 2px 4px; border-radius: 3px; outline: none;
+    border: 1px solid transparent; transition: border-color 0.2s;
+    min-height: 24px;
+  }
+  .card-text:focus { border-color: #007aff; background: #f8f9ff; }
+  .card-tags {
+    font-size: 11px; color: #999; word-break: break-all;
+    padding: 2px 4px; border-radius: 3px; outline: none;
+    border: 1px solid transparent; transition: border-color 0.2s;
+  }
+  .card-tags:focus { border-color: #007aff; background: #f8f9ff; }
+  .card-meta { font-size: 10px; color: #ccc; margin-top: 4px; }
+  .card-actions { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
+  .card-actions button {
+    padding: 5px 10px; border: 1px solid #ddd; border-radius: 4px;
+    background: white; cursor: pointer; font-size: 11px; white-space: nowrap;
+    text-align: left;
+  }
+  .card-actions button:hover { background: #f5f5f5; border-color: #bbb; }
+  .card-status { font-size: 20px; min-width: 36px; text-align: center; padding-top: 4px; cursor: pointer; }
+
+  /* Feedback modal */
+  .modal-overlay {
+    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.4); z-index: 1000;
+    justify-content: center; align-items: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: white; border-radius: 12px; padding: 24px; max-width: 400px; width: 90%;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+  }
+  .modal h2 { font-size: 18px; margin: 0 0 16px; }
+  .modal label { display: block; font-size: 13px; color: #666; margin-bottom: 4px; }
+  .modal input { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; margin-bottom: 12px; }
+  .modal .row { display: flex; gap: 8px; }
+  .modal .row input { flex: 1; }
+  .modal button { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; }
+  .modal .btn-save { background: #ff2442; color: white; }
+  .modal .btn-cancel { background: #eee; }
+
+  .select-cb { margin-top: 6px; width: 16px; height: 16px; cursor: pointer; flex-shrink: 0; }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: #222; color: #fff; padding: 10px 24px; border-radius: 8px;
+    font-size: 14px; z-index: 1999; animation: fadeOut 2s forwards;
+    pointer-events: none;
+  }
+  @keyframes fadeOut { 0%,60% { opacity:1; } 100% { opacity:0; } }
+
+  .footer { text-align: center; color: #bbb; font-size: 12px; margin-top: 24px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>✏️ 编辑工作台</h1>
+    <div class="date">2026-07-09 · 3 篇待发</div>
+    <div class="pillars">📖 阅读: 2 · 🎬 影像: 1</div>
+  </div>
+  <div style="font-size:13px;color:#999;text-align:right">
+    点击文字直接编辑 · 双击图片打开 Preview<br>
+    <a href="/sources" style="color:#666">📡 信息源</a> ·
+    <a href="#" onclick="showWeeklyReport()" style="color:#666">📊 周报</a>
+  </div>
+</div>
+
+<div class="toolbar">
+  <button onclick="selectAll()">☑ 全选</button>
+  <button onclick="deselectAll()">☐ 取消全选</button>
+  <button class="primary" onclick="openSelected()">📁 打开选中图片</button>
+  <button class="save-all" onclick="saveAllEdits()">💾 全部保存</button>
+  <button onclick="markAllDone()">✅ 全部标为已发</button>
+  <select id="pillar-filter" onchange="filterByPillar(this.value)" style="padding:8px 12px;border:1px solid #ccc;border-radius:6px;font-size:13px;margin-left:auto">
+    <option value="all">🏷 全部 pillar</option>
+    <option value="lookbook">👔 Lookbook</option>
+    <option value="daily_archive">📔 日常档案</option>
+    <option value="moving_taste">🎬 影像</option>
+    <option value="reading_taste">📖 阅读</option>
+    <option value="product_seeds">🔧 产品</option>
+  </select>
+  <span style="font-size:13px;color:#999" id="counter">3 篇待发</span>
+</div>
+
+<div class="queue">
+
+    <div class="card" id="post-001" data-pillar="reading_taste">
+      <input type="checkbox" class="select-cb" data-post="post-001" checked>
+      <div class="card-num">#1<br><span class="pillar-tag">📖 阅读</span></div>
+      <img src="post-001/image.jpg" class="card-img"
+           data-abs="/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-07-09/post-001/image.jpg"
+           ondblclick="openInPreview('/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-07-09/post-001/image.jpg')"
+           title="双击在 Preview 中打开 → 拖到小红书">
+      <div class="card-body">
+        <div class="card-title" contenteditable="true" data-file="/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-07-09/post-001/title.txt" data-post="post-001">不解释本身就是态度</div>
+        <div class="card-text" contenteditable="true" data-file="/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-07-09/post-001/body.txt" data-post="post-001">MARTIN MARGIELA. 1998. 未完成棉麻. Paris. 衣服的沉默比任何声明都响亮。</div>
+        <div class="card-tags" contenteditable="true" data-file="/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-07-09/post-001/hashtags.txt" data-post="post-001">#moodboard #审美积累 #穿搭参考 #文化笔记</div>
+        <div class="card-meta">Score: 0.58 · Pillar: reading_taste</div>
+      </div>
+      <div class="card-actions">
+        <button onclick="openInPreview('/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-07-09/post-001/image.jpg', this)" title="在 Preview 中打开 → 拖进小红书">🖼 打开</button>
+        <button onclick="copyAll('post-001')" title="复制标题+正文+标签">📋 文案</button>
+        <button onclick="saveEdits('post-001')" title="保存编辑到文件">💾 保存</button>
+        <button onclick="fetch('/open-folder?path=' + encodeURIComponent('/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-07-09/post-001/image.jpg'))">📁</button>
+        <button onclick="recordFeedback('post-001')" title="发布后录入互动数据" style="color:#ff2442">📊 反馈</button>
+      </div>
+      <div class="card-status" id="status-post-001" onclick="togglePublished('post-001')">⏳</div>
+    </div>
+    <div class="card" id="post-002" data-pillar="moving_taste">
+      <input type="checkbox" class="select-cb" data-post="post-002" checked>
+      <div class="card-num">#2<br><span class="pillar-tag">🎬 影像</span></div>
+      <img src="post-002/image.jpg" class="card-img"
+           data-abs="/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-07-09/post-002/image.jpg"
+           ondblclick="openInPreview('/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-07-09/post-002/image.jpg')"
+           title="双击在 Preview 中打开 → 拖到小红书">
+      <div class="card-body">
+        <div class="card-title" contenteditable="true" data-file="/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-07-09/post-002/title.txt" data-post="post-002">剪裁即叙事</div>
+        <div class="card-text" contenteditable="true" data-file="/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-07-09/post-002/body.txt" data-post="post-002">OFF-WHITE. AW 2019. 聚酯纤维. Milan. 镜头里只有衣服自己的节奏。</div>
+        <div class="card-tags" contenteditable="true" data-file="/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-07-09/post-002/hashtags.txt" data-post="post-002">#moodboard #审美积累 #穿搭参考 #OffWhite™10x10 #影像审美</div>
+        <div class="card-meta">Score: 0.53 · Pillar: moving_taste</div>
+      </div>
+      <div class="card-actions">
+        <button onclick="openInPreview('/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-07-09/post-002/image.jpg', this)" title="在 Preview 中打开 → 拖进小红书">🖼 打开</button>
+        <button onclick="copyAll('post-002')" title="复制标题+正文+标签">📋 文案</button>
+        <button onclick="saveEdits('post-002')" title="保存编辑到文件">💾 保存</button>
+        <button onclick="fetch('/open-folder?path=' + encodeURIComponent('/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-07-09/post-002/image.jpg'))">📁</button>
+        <button onclick="recordFeedback('post-002')" title="发布后录入互动数据" style="color:#ff2442">📊 反馈</button>
+      </div>
+      <div class="card-status" id="status-post-002" onclick="togglePublished('post-002')">⏳</div>
+    </div>
+    <div class="card" id="post-003" data-pillar="reading_taste">
+      <input type="checkbox" class="select-cb" data-post="post-003" checked>
+      <div class="card-num">#3<br><span class="pillar-tag">📖 阅读</span></div>
+      <img src="post-003/image.jpg" class="card-img"
+           data-abs="/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-07-09/post-003/image.jpg"
+           ondblclick="openInPreview('/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-07-09/post-003/image.jpg')"
+           title="双击在 Preview 中打开 → 拖到小红书">
+      <div class="card-body">
+        <div class="card-title" contenteditable="true" data-file="/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-07-09/post-003/title.txt" data-post="post-003">印刷物与时间的关系</div>
+        <div class="card-text" contenteditable="true" data-file="/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-07-09/post-003/body.txt" data-post="post-003">032c. Berlin. 纸本档案. 黑灰无涂层。杂志作为收藏品而非载体。</div>
+        <div class="card-tags" contenteditable="true" data-file="/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-07-09/post-003/hashtags.txt" data-post="post-003">#moodboard #审美积累 #穿搭参考 #编辑视角 #文化笔记</div>
+        <div class="card-meta">Score: 0.52 · Pillar: reading_taste</div>
+      </div>
+      <div class="card-actions">
+        <button onclick="openInPreview('/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-07-09/post-003/image.jpg', this)" title="在 Preview 中打开 → 拖进小红书">🖼 打开</button>
+        <button onclick="copyAll('post-003')" title="复制标题+正文+标签">📋 文案</button>
+        <button onclick="saveEdits('post-003')" title="保存编辑到文件">💾 保存</button>
+        <button onclick="fetch('/open-folder?path=' + encodeURIComponent('/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-07-09/post-003/image.jpg'))">📁</button>
+        <button onclick="recordFeedback('post-003')" title="发布后录入互动数据" style="color:#ff2442">📊 反馈</button>
+      </div>
+      <div class="card-status" id="status-post-003" onclick="togglePublished('post-003')">⏳</div>
+    </div>
+</div>
+
+<!-- Feedback Modal -->
+<div class="modal-overlay" id="feedback-modal">
+  <div class="modal">
+    <h2>📊 录入互动数据</h2>
+    <div style="font-size:12px;color:#999;margin-bottom:12px">从小红书创作者后台查看笔记数据</div>
+    <label>Pack ID</label>
+    <input type="text" id="fb-pack-id" readonly>
+    <div class="row">
+      <div><label>❤️ 点赞</label><input type="number" id="fb-likes" value="0"></div>
+      <div><label>⭐ 收藏</label><input type="number" id="fb-saves" value="0"></div>
+    </div>
+    <div class="row">
+      <div><label>💬 评论</label><input type="number" id="fb-comments" value="0"></div>
+      <div><label>🔄 分享</label><input type="number" id="fb-shares" value="0"></div>
+    </div>
+    <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn-cancel" onclick="closeFeedback()">取消</button>
+      <button class="btn-save" onclick="submitFeedback()">提交到图谱</button>
+    </div>
+  </div>
+</div>
+
+<!-- Weekly Report Modal -->
+<div class="modal-overlay" id="report-modal">
+  <div class="modal" style="max-width:500px">
+    <h2>📊 发布效果周报</h2>
+    <div id="report-content" style="font-size:13px;line-height:1.8;max-height:400px;overflow-y:auto">加载中...</div>
+    <div style="margin-top:16px;text-align:right">
+      <button class="btn-cancel" onclick="closeReport()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  双击图片 → Preview → 拖进小红书 · 点击文字直接编辑 · 💾 保存到文件 · 📊 发布后录入反馈
+</div>
+
+<script>
+// ── Open image in Preview ──
+async function openInPreview(path, btn) {
+    if (btn) { btn.innerText = '...'; btn.disabled = true; }
+    try {
+        const resp = await fetch('/open-file?path=' + encodeURIComponent(path));
+        const data = await resp.json();
+        if (data.ok) toast('✅ Preview 已打开 → 拖图片到小红书');
+        else toast('❌ 失败');
+    } catch(e) { toast('❌ 请先启动服务: python scripts/queue_server.py'); }
+    if (btn) { setTimeout(() => { btn.innerText = '🖼 打开'; btn.disabled = false; }, 1000); }
+}
+
+// ── Copy ──
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => toast('已复制 ✓'));
+}
+function copyAll(postId) {
+    const title = document.querySelector('#' + postId + ' .card-title').innerText;
+    const body = document.querySelector('#' + postId + ' .card-text').innerText;
+    const tags = document.querySelector('#' + postId + ' .card-tags').innerText;
+    copyToClipboard(title + '\n\n' + body + '\n\n' + tags);
+}
+
+// ── Inline editing: save to file ──
+async function saveEdits(postId) {
+    const card = document.getElementById(postId);
+    const title = card.querySelector('.card-title');
+    const body = card.querySelector('.card-text');
+    const tags = card.querySelector('.card-tags');
+
+    const titleFile = title.dataset.file;
+    const bodyFile = body.dataset.file;
+    const tagsFile = tags.dataset.file;
+
+    let saved = 0;
+    try {
+        await fetch('/save-file?path=' + encodeURIComponent(titleFile) + '&content=' + encodeURIComponent(title.innerText));
+        saved++;
+        await fetch('/save-file?path=' + encodeURIComponent(bodyFile) + '&content=' + encodeURIComponent(body.innerText));
+        saved++;
+        await fetch('/save-file?path=' + encodeURIComponent(tagsFile) + '&content=' + encodeURIComponent(tags.innerText));
+        saved++;
+    } catch(e) { /* silent */ }
+
+    // LocalStorage fallback: store edits so they survive refresh
+    localStorage.setItem(postId + '-title', title.innerText);
+    localStorage.setItem(postId + '-body', body.innerText);
+    localStorage.setItem(postId + '-tags', tags.innerText);
+
+    toast('💾 已保存 (' + saved + ' 个文件)');
+}
+
+async function saveAllEdits() {
+    const cards = document.querySelectorAll('.card');
+    let count = 0;
+    for (const card of cards) {
+        await saveEdits(card.id);
+        count++;
+    }
+    toast('💾 全部已保存 (' + count + ' 篇)');
+}
+
+// ── Feedback ──
+function recordFeedback(postId) {
+    document.getElementById('fb-pack-id').value = postId;
+    document.getElementById('feedback-modal').classList.add('show');
+}
+function closeFeedback() {
+    document.getElementById('feedback-modal').classList.remove('show');
+}
+async function submitFeedback() {
+    const packId = document.getElementById('fb-pack-id').value;
+    const likes = parseInt(document.getElementById('fb-likes').value) || 0;
+    const saves = parseInt(document.getElementById('fb-saves').value) || 0;
+    const comments = parseInt(document.getElementById('fb-comments').value) || 0;
+    const shares = parseInt(document.getElementById('fb-shares').value) || 0;
+
+    try {
+        const resp = await fetch('/api/v1/feedback/publish-metrics', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({pack_id: packId, likes, saves, comments, shares, post_url: ''})
+        });
+        const data = await resp.json();
+        toast('📊 已录入 · 互动分: ' + data.engagement_score + '/10 · 图谱调权: ' + (data.delta > 0 ? '+' : '') + data.delta);
+        closeFeedback();
+
+        // Auto-mark as published
+        const card = document.getElementById(packId);
+        if (card) {
+            card.classList.add('published');
+            document.getElementById('status-' + packId).innerText = '✅';
+            updateCounter();
+        }
+    } catch(e) {
+        toast('❌ 录入失败，请确认 API 服务已启动');
+    }
+}
+
+// ── Weekly Report ──
+async function showWeeklyReport() {
+    document.getElementById('report-modal').classList.add('show');
+    document.getElementById('report-content').innerHTML = '加载中...';
+    try {
+        const resp = await fetch('/api/v1/feedback/weekly-report');
+        const data = await resp.json();
+        let html = '';
+        if (data.message) {
+            html = '<p>' + data.message + '</p>';
+        } else {
+            html += '<p><strong>' + data.period + '</strong><br>平均互动分: ' + data.avg_engagement + '/10</p>';
+            html += '<p>🔥 高强度: ' + data.high_performers_count + ' 篇 | ❄️ 低互动: ' + data.low_performers_count + ' 篇</p>';
+            if (data.top_themes && data.top_themes.length > 0) {
+                html += '<p><strong>🏆 Top 主题:</strong></p><ul>';
+                data.top_themes.forEach(t => {
+                    html += '<li>' + t.avg_score + ' — ' + t.theme + ' (' + t.count + '篇, ' + t.total_likes + '赞)</li>';
+                });
+                html += '</ul>';
+            }
+            if (data.suggestions && data.suggestions.length > 0) {
+                html += '<p><strong>💡 建议:</strong></p><ul>';
+                data.suggestions.forEach(s => html += '<li>' + s + '</li>');
+                html += '</ul>';
+            }
+        }
+        document.getElementById('report-content').innerHTML = html;
+    } catch(e) {
+        document.getElementById('report-content').innerHTML = '<p style="color:red">API 未连接。请先启动: python taste_graph_ai/server.py</p>';
+    }
+}
+function closeReport() {
+    document.getElementById('report-modal').classList.remove('show');
+}
+
+// ── Pillar filter ──
+function filterByPillar(pillar) {
+    document.querySelectorAll('.card').forEach(card => {
+        if (pillar === 'all' || card.dataset.pillar === pillar) {
+            card.style.display = 'flex';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+// ── Published toggle ──
+function togglePublished(postId) {
+    const card = document.getElementById(postId);
+    const status = document.getElementById('status-' + postId);
+    if (card.classList.contains('published')) {
+        card.classList.remove('published');
+        status.innerText = '⏳';
+    } else {
+        card.classList.add('published');
+        status.innerText = '✅';
+    }
+    updateCounter();
+}
+
+// ── Select / Counter ──
+function getChecked() {
+    return [...document.querySelectorAll('.select-cb:checked')].map(cb => cb.dataset.post);
+}
+function selectAll() { document.querySelectorAll('.select-cb').forEach(cb => cb.checked = true); updateCounter(); }
+function deselectAll() { document.querySelectorAll('.select-cb').forEach(cb => cb.checked = false); updateCounter(); }
+function openSelected() {
+    const checked = getChecked();
+    if (checked.length === 0) { toast('请先勾选要打开的卡片'); return; }
+    checked.forEach(postId => {
+        const img = document.querySelector('#' + postId + ' .card-img');
+        if (img && img.dataset.abs) {
+            const dir = img.dataset.abs.split('/').slice(0, -1).join('/');
+            window.open('file://' + dir, '_blank');
+        }
+    });
+}
+function markAllDone() {
+    document.querySelectorAll('.card').forEach(c => c.classList.add('published'));
+    document.querySelectorAll('.card-status').forEach(s => s.innerText = '✅');
+    updateCounter();
+    toast('已标记 ✓');
+}
+function updateCounter() {
+    const total = document.querySelectorAll('.card').length;
+    const published = document.querySelectorAll('.card.published').length;
+    const visible = document.querySelectorAll('.card[style*="display: flex"], .card:not([style*="display"])').length;
+    document.getElementById('counter').innerText = (total - published) + ' 待发 · ' + published + ' 已发' + (visible !== total ? ' · ' + visible + ' 显示' : '');
+}
+
+// ── Restore saved edits from localStorage ──
+document.querySelectorAll('.card').forEach(card => {
+    const pid = card.id;
+    ['title', 'body', 'tags'].forEach(field => {
+        const saved = localStorage.getItem(pid + '-' + field);
+        if (saved) {
+            const el = card.querySelector(field === 'title' ? '.card-title' : field === 'body' ? '.card-text' : '.card-tags');
+            if (el && el.innerText !== saved) el.innerText = saved;
+        }
+    });
+});
+
+// ── Auto-save on blur ──
+document.querySelectorAll('[contenteditable="true"]').forEach(el => {
+    el.addEventListener('blur', function() {
+        const postId = this.dataset.post;
+        if (postId) saveEdits(postId);
+    });
+});
+
+// ── Toast ──
+function toast(msg) {
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.innerText = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 2200);
+}
+</script>
+</body>
+</html>

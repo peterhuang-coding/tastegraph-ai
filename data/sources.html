@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>信息源看板 — TasteGraph</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, "PingFang SC", sans-serif; background: #f5f5f5; margin: 0; padding: 20px; color: #222; }
+  .wrap { max-width: 1100px; margin: 0 auto; }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  .sub { color: #999; font-size: 13px; margin-bottom: 20px; }
+  .stats { display: flex; gap: 16px; margin-bottom: 24px; }
+  .stat-box { background: white; padding: 16px 24px; border-radius: 8px; flex: 1; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .stat-box .num { font-size: 28px; font-weight: 700; }
+  .stat-box .label { font-size: 13px; color: #999; margin-top: 4px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
+  .card { background: white; border-radius: 10px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: transform 0.1s; }
+  .card:hover { transform: translateY(-1px); box-shadow: 0 3px 12px rgba(0,0,0,0.1); }
+  .card.zero-yield { border-left: 3px solid #ff4444; opacity: 0.7; }
+  .card-top { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .card-top .name { font-weight: 700; font-size: 14px; flex: 1; }
+  .card-top .status { font-size: 14px; }
+  .card-top .url { font-size: 14px; text-decoration: none; }
+  .tag { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+  .tag-lb { background: #e3f2fd; color: #1976d2; }
+  .tag-art { background: #fce4ec; color: #c62828; }
+  .tag-vid { background: #e8f5e9; color: #2e7d32; }
+  .tag-photo { background: #fff3e0; color: #e65100; }
+  .tag-mix { background: #f3e5f5; color: #7b1fa2; }
+  .card-stats { display: flex; gap: 16px; font-size: 13px; color: #666; margin-bottom: 8px; }
+  .card-reason { font-size: 12px; color: #aaa; font-style: italic; }
+  .footer { text-align: center; color: #ccc; font-size: 12px; margin-top: 24px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>📡 信息源看板</h1>
+<div class="sub">27 个源 · 最后更新 2026-06-29 19:51</div>
+
+<div class="stats">
+  <div class="stat-box">
+    <div class="num">1642</div>
+    <div class="label">总图片</div>
+  </div>
+  <div class="stat-box">
+    <div class="num">19</div>
+    <div class="label">活跃源</div>
+  </div>
+  <div class="stat-box">
+    <div class="num">8</div>
+    <div class="label">零产出</div>
+  </div>
+  <div class="stat-box">
+    <div class="num">3080</div>
+    <div class="label">抓取失败</div>
+  </div>
+</div>
+
+<div class="grid">
+
+    <div class="card ">
+      <div class="card-top">
+        <span class="status">🟢</span>
+        <span class="name">Highsnobiety Virgil Abloh</span>
+        <span class="tag tag-art">article</span>
+        <a href="https://www.highsnobiety.com/tag/virgil-abloh/" target="_blank" class="url" title="https://www.highsnobiety.com/tag/virgil-abloh/">🔗</a>
+      </div>
+      <div class="card-stats">
+        <span class="stat"><strong>218</strong> 图片</span>
+        <span class="stat"><strong>6</strong> 失败</span>
+        <span class="stat">最近: 2026-06-29</span>
+      </div>
+      <div class="card-reason">持续报道 Virgil Abloh 遗产项目</div>
+    </div>
+    <div class="card ">
+      <div class="card-top">
+        <span class="status">🟢</span>
+        <span class="name">Highsnobiety Style</span>
+        <span class="tag tag-lb">lookbook</span>
+        <a href="https://www.highsnobiety.com/tag/style/" target="_blank" class="url" title="https://www.highsnobiety.com/tag/style/">🔗</a>
+      </div>
+      <div class="card-stats">
+        <span class="stat"><strong>215</strong> 图片</span>
+        <span class="stat"><strong>8</strong> 失败</span>
+        <span class="stat">最近: 2026-06-29</span>
+      </div>
+      <div class="card-reason">The source offers editorial-style fashion content with a gritty, archive feel that aligns well, but its occasional influ</div>
+    </div>
+    <div class="card ">
+      <div class="card-top">
+        <span class="status">🟢</span>
+        <span class="name">Hypebeast Fashion</span>
+        <span class="tag tag-lb">lookbook</span>
+        <a href="https://hypebeast.com/fashion" target="_blank" class="url" title="https://hypebeast.com/fashion">🔗</a>
+      </div>
+      <div class="card-stats">
+        <span class="stat"><strong>148</strong> 图片</span>
+        <span class="stat"><strong>162</strong> 失败</span>
+        <span class="stat">最近: 2026-06-29</span>
+      </div>
+      <div class="card-reason">Hypebeast Fashion leans heavily into streetwear drops and influencer-driven hype, which contradicts the account's quiet,</div>
+    </div>
+    <div class="card ">
+      <div class="card-top">
+        <span class="status">🟢</span>
+        <span class="name">Vogue Business</span>
+        <span class="tag tag-art">article</span>
+        <a href="https://www.voguebusiness.com/" target="_blank" class="url" title="https://www.voguebusiness.com/">🔗</a>
+      </div>
+      <div class="card-stats">
+        <span class="stat"><strong>133</strong> 图片</span>
+        <span class="stat"><strong>317</strong> 失败</span>
+        <span class="stat">最近: 2026-06-29</span>
+      </div>
+      <div class="card-reason">Vogue Business uses clean, structured editorial imagery but its high-gloss commercial fashion and branding focus clash w</div>
+    </div>
+    <div class="card ">
+      <div class="card-top">
+        <span class="status">🟢</span>
+        <span class="name">032c Magazine</span>
+        <span class="tag tag-art">article</span>
+        <a href="https://www.032c.com/" target="_blank" class="url" title="https://www.032c.com/">🔗</a>
+      </div>
+      <div class="card-stats">
+        <span class="stat"><strong>131</strong> 图片</span>
+        <span class="stat"><strong>300</strong> 失败</span>
+        <span class="stat">最近: 2026-06-29</span>
+      </div>
+      <div class="card-reason">032c's muted, intellectual, and architectural visual language aligns with the quiet, editorial, and brutalist aesthetic,</div>
+    </div>
+    <div class="card ">
+      <div class="card-top">
+        <span class="status">🟢</span>
+        <span class="name">Vogue Runway - 032c</span>
+        <span class="tag tag-lb">lookbook</span>
+        <a href="https://www.vogue.com/fashion-shows/designer/032c" target="_blank" class="url" title="https://www.vogue.com/fashion-shows/designer/032c">🔗</a>
+      </div>
+      <div class="card-stats">
+        <span class="stat"><strong>127</strong> 图片</span>
+        <span class="stat"><strong>140</strong> 失败</span>
+        <span class="stat">最近: 2026-06-29</span>
+      </div>
+      <div class="card-reason">Sharper, Berlin-coded, conceptual street/tailoring energy.</div>
+    </div>
+    <div class="card ">
+      <div class="card-top">
+        <span class="status">🟢</span>
+        <span class="name">Vogue Off-White Archive</span>
+        <span class="tag tag-lb">lookbook</span>
+        <a href="https://www.vogue.com/fashion-shows/designer/off-white" target="_blank" class="url" title="https://www.vogue.com/fashion-shows/designer/off-white">🔗</a>
+      </div>
+      <div class="card-stats">
+        <span class="stat"><strong>112</strong> 图片</span>
+        <span class="stat"><strong>74</strong> 失败</span>
+        <span class="stat">最近: 2026-06-29</span>
+      </div>
+      <div class="card-reason">Virgil Abloh 主理品牌，工业美学 + 街头解构</div>
+    </div>
+    <div class="card ">
+      <div class="card-top">
+        <span class="status">🟢</span>
+        <span class="name">The Guardian Art & Design</span>
+        <span class="tag tag-art">article</span>
+        <a href="https://www.theguardian.com/artanddesign" target="_blank" class="url" title="https://www.theguardian.com/artanddesign">🔗</a>
+      </div>
+      <div class="card-stats">
+        <span class="stat"><strong>108</strong> 图片</span>
+        <span class="stat"><strong>596</strong> 失败</span>
+        <span class="stat">最近: 2026-06-29</span>
+      </div>
+      <div class="card-reason">The Guardian Art & Design offers editorial, low-saturation imagery and architecture/design depth that aligns with a quie</div>
+    </div>
+    <div class="card ">
+      <div class="card-top">
+        <span class="status">🟢</span>
+        <span class="name">Dazed Fashion</span>
+        <span class="tag tag-art">article</span>
+        <a href="https://www.dazeddigital.com/fashion" target="_blank" class="url" title="https://www.dazeddigital.com/fashion">🔗</a>
+      </div>
+      <div class="card-stats">
+        <span class="stat"><strong>92</strong> 图片</span>
+        <span class="stat"><strong>26</strong> 失败</span>
+        <span class="stat">最近: 2026-06-29</span>
+      </div>
+      <div class="card-reason">Dazed Fashion leans too vibrant, editorial-influencer, and trend-driven, conflicting with the quiet, low-saturation, and</div>
+    </div>
+    <div class="card ">
+      <div class="card-top">
+        <span class="status">🟢</span>
+        <span class="name">Louis Vuitton Runway</span>
+        <span class="tag tag-lb">lookbook</span>
+        <a href="https://www.vogue.com/fashion-shows/designer/louis-vuitton" target="_blank" class="url" title="https://www.vogue.com/fashion-shows/designer/louis-vuitton">🔗</a>
+      </div>
+      <div class="card-stats">
+        <span class="stat"><strong>79</strong> 图片</span>
+        <span class="stat"><strong>78</strong> 失败</span>
+        <span class="stat">最近: 2026-06-22</span>
+      </div>
+      <div class="card-reason">Abloh 曾任 LV 男装艺术总监，跨界时装标杆</div>
+    </div>
+    <div class="card ">
+      <div class="card-top">
+        <span class="status">🟢</span>
+        <span class="name">Vitsoe — Dieter Rams Philosophy</span>
+        <span class="tag tag-art">article</span>
+        <a href="https://www.vitsoe.com/gb/about/good-design" target="_blank" class="url" title="https://www.vitsoe.com/gb/about/good-design">🔗</a>
+      </div>
+      <div class="card-stats">
+        <span class="stat"><strong>74</strong> 图片</span>
+        <span class="stat"><strong>20</strong> 失败</span>
+        <span class="stat">最近: 2026-06-23</span>
+      </div>
+      <div class="card-reason">Dieter Rams' Ten Principles of Good Design. Foundation-level taste text: 'less, but better', 'good design is as little d</div>
+    </div>
+    <div class="card ">
+      <div class="card-top">
+        <span class="status">🟢</span>
+        <span class="name">Rams — Gary Hustwit</span>
+        <span class="tag tag-vid">video</span>
+        <a href="https://www.hustwit.com/rams" target="_blank" class="url" title="https://www.hustwit.com/rams">🔗</a>
+      </div>
+      <div class="card-stats">
+        <span class="stat"><strong>73</strong> 图片</span>
+        <span class="stat"><strong>10</strong> 失败</span>
+        <span class="stat">最近: 2026-06-24</span>
+      </div>
+      <div class="card-reason">Documentary on Dieter Rams. Design philosophy, object culture, 'less, but better'. Feeds the quiet, functional, timeless</div>
+    </div>
+    <div class="card ">
+      <div class="card-top">
+        <span class="status">🟢</span>
+        <span class="name">i-D Fashion</span>
+        <span class="tag tag-art">article</span>
+        <a href="https://i-d.co/category/fashion/" target="_blank" class="url" title="https://i-d.co/category/fashion/">🔗</a>
+      </div>
+      <div class="card-stats">
+        <span class="stat"><strong>30</strong> 图片</span>
+        <span class="stat"><strong>145</strong> 失败</span>
+        <span class="stat">最近: 2026-06-22</span>
+      </div>
+      <div class="card-reason">i-D Fashion tends toward vibrant, trendy, and influencer-driven youth culture visuals, conflicting with the low-saturati</div>
+    </div>
+    <div class="card ">
+      <div class="card-top">
+        <span class="status">🟢</span>
+        <span class="name">SHOWstudio Fashion Film</span>
+        <span class="tag tag-vid">video</span>
+        <a href="https://www.showstudio.com/projects/fashion_film_submissions" target="_blank" class="url" title="https://www.showstudio.com/projects/fashion_film_submissions">🔗</a>
+      </div>
+      <div class="card-stats">
+        <span class="stat"><strong>30</strong> 图片</span>
+        <span class="stat"><strong>399</strong> 失败</span>
+        <span class="stat">最近: 2026-06-01</span>
+      </div>
+      <div class="card-reason">Many fashion films feature low-saturation, gritty, archive-quality cinematography with brutalist or urban backdrops, tho</div>
+    </div>
+    <div class="card ">
+      <div class="card-top">
+        <span class="status">🟢</span>
+        <span class="name">NOWNESS Fashion</span>
+        <span class="tag tag-vid">video</span>
+        <a href="https://www.nowness.com/topic/fashion" target="_blank" class="url" title="https://www.nowness.com/topic/fashion">🔗</a>
+      </div>
+      <div class="card-stats">
+        <span class="stat"><strong>30</strong> 图片</span>
+        <span class="stat"><strong>60</strong> 失败</span>
+        <span class="stat">最近: 2026-06-22</span>
+      </div>
+      <div class="card-reason">NOWNESS Fashion's artful, cinematic, and understated video language aligns well with a quiet, editorial, film-grain aest</div>
+    </div>
+    <div class="card ">
+      <div class="card-top">
+        <span class="status">🟢</span>
+        <span class="name">Dazed Video</span>
+        <span class="tag tag-vid">video</span>
+        <a href="https://www.dazeddigital.com/video" target="_blank" class="url" title="https://www.dazeddigital.com/video">🔗</a>
+      </div>
+      <div class="card-stats">
+        <span class="stat"><strong>23</strong> 图片</span>
+        <span class="stat"><strong>29</strong> 失败</span>
+        <span class="stat">最近: 2026-06-29</span>
+      </div>
+      <div class="card-reason">Dazed Video offers editorial, archive-feeling content with film grain and art references, but often includes vibrant, in</div>
+    </div>
+    <div class="card ">
+      <div class="card-top">
+        <span class="status">🟢</span>
+        <span class="name">Vimeo Staff Picks</span>
+        <span class="tag tag-vid">video</span>
+        <a href="https://vimeo.com/channels/staffpicks" target="_blank" class="url" title="https://vimeo.com/channels/staffpicks">🔗</a>
+      </div>
+      <div class="card-stats">
+        <span class="stat"><strong>14</strong> 图片</span>
+        <span class="stat"><strong>133</strong> 失败</span>
+        <span class="stat">最近: 2026-06-29</span>
+      </div>
+      <div class="card-reason">Staff Picks often feature quiet, editorial, and cinematic films with film-grain and brutalist city aesthetics, avoiding </div>
+    </div>
+    <div class="card ">
+      <div class="card-top">
+        <span class="status">🟢</span>
+        <span class="name">Toshio Saeki — Selected Works & Essays</span>
+        <span class="tag tag-art">article</span>
+        <a href="https://anothersomething.org/saeki-selected-works" target="_blank" class="url" title="https://anothersomething.org/saeki-selected-works">🔗</a>
+      </div>
+      <div class="card-stats">
+        <span class="stat"><strong>3</strong> 图片</span>
+        <span class="stat"><strong>0</strong> 失败</span>
+        <span class="stat">最近: 2026-06-22</span>
+      </div>
+      <div class="card-reason">Deep archive of Saeki's illustrated works 1972–2016 with critical context. Erotic-grotesque tradition meets modern surre</div>
+    </div>
+    <div class="card ">
+      <div class="card-top">
+        <span class="status">🟢</span>
+        <span class="name">Vogue Runway - Menswear</span>
+        <span class="tag tag-lb">lookbook</span>
+        <a href="https://www.vogue.com/fashion-shows/menswear" target="_blank" class="url" title="https://www.vogue.com/fashion-shows/menswear">🔗</a>
+      </div>
+      <div class="card-stats">
+        <span class="stat"><strong>2</strong> 图片</span>
+        <span class="stat"><strong>67</strong> 失败</span>
+        <span class="stat">最近: 2026-06-22</span>
+      </div>
+      <div class="card-reason">Vogue Runway often features high-contrast, curated imagery with logos and influencer-driven styling, conflicting with th</div>
+    </div>
+    <div class="card zero-yield">
+      <div class="card-top">
+        <span class="status">🟢</span>
+        <span class="name">Vogue Runway - Lemaire</span>
+        <span class="tag tag-lb">lookbook</span>
+        <a href="https://www.vogue.com/fashion-shows/designer/lemaire" target="_blank" class="url" title="https://www.vogue.com/fashion-shows/designer/lemaire">🔗</a>
+      </div>
+      <div class="card-stats">
+        <span class="stat"><strong>0</strong> 图片</span>
+        <span class="stat"><strong>106</strong> 失败</span>
+        <span class="stat">最近: —</span>
+      </div>
+      <div class="card-reason">Quiet uniform, relaxed tailoring, understated styling. Runway archive with full lookbook images.</div>
+    </div>
+    <div class="card zero-yield">
+      <div class="card-top">
+        <span class="status">🟢</span>
+        <span class="name">Toshio Saeki — WikiArt Archive</span>
+        <span class="tag tag-lb">lookbook</span>
+        <a href="https://www.wikiart.org/en/toshio-saeki" target="_blank" class="url" title="https://www.wikiart.org/en/toshio-saeki">🔗</a>
+      </div>
+      <div class="card-stats">
+        <span class="stat"><strong>0</strong> 图片</span>
+        <span class="stat"><strong>36</strong> 失败</span>
+        <span class="stat">最近: —</span>
+      </div>
+      <div class="card-reason">17 artworks on WikiArt. Japanese ero-guro illustrator (1945–2019). Surreal, dark, traditionally-rooted but modern.</div>
+    </div>
+    <div class="card zero-yield">
+      <div class="card-top">
+        <span class="status">🟢</span>
+        <span class="name">Toshio Saeki Estate</span>
+        <span class="tag tag-lb">lookbook</span>
+        <a href="https://www.toshiosaeki.estate" target="_blank" class="url" title="https://www.toshiosaeki.estate">🔗</a>
+      </div>
+      <div class="card-stats">
+        <span class="stat"><strong>0</strong> 图片</span>
+        <span class="stat"><strong>74</strong> 失败</span>
+        <span class="stat">最近: —</span>
+      </div>
+      <div class="card-reason">Japanese ero-guro illustrator (1945–2019). Surreal, dark, traditionally-rooted but modern. Weird, elegant, unapologetic </div>
+    </div>
+    <div class="card zero-yield">
+      <div class="card-top">
+        <span class="status">🟢</span>
+        <span class="name">SSENSE Off-White</span>
+        <span class="tag tag-photo">photo</span>
+        <a href="https://www.ssense.com/en-us/everything-else/designers/off-white" target="_blank" class="url" title="https://www.ssense.com/en-us/everything-else/designers/off-white">🔗</a>
+      </div>
+      <div class="card-stats">
+        <span class="stat"><strong>0</strong> 图片</span>
+        <span class="stat"><strong>70</strong> 失败</span>
+        <span class="stat">最近: —</span>
+      </div>
+      <div class="card-reason">买手店编辑精选 Off-White 造型片</div>
+    </div>
+    <div class="card zero-yield">
+      <div class="card-top">
+        <span class="status">🟢</span>
+        <span class="name">SSENSE Editorial</span>
+        <span class="tag tag-art">article</span>
+        <a href="https://www.ssense.com/en-us/editorial" target="_blank" class="url" title="https://www.ssense.com/en-us/editorial">🔗</a>
+      </div>
+      <div class="card-stats">
+        <span class="stat"><strong>0</strong> 图片</span>
+        <span class="stat"><strong>70</strong> 失败</span>
+        <span class="stat">最近: —</span>
+      </div>
+      <div class="card-reason">SSENSE Editorial features high-fashion, minimalist, and often low-saturation imagery with a moody, editorial feel that a</div>
+    </div>
+    <div class="card zero-yield">
+      <div class="card-top">
+        <span class="status">🟢</span>
+        <span class="name">SHOWstudio Video</span>
+        <span class="tag tag-vid">video</span>
+        <a href="https://www.showstudio.com/videos" target="_blank" class="url" title="https://www.showstudio.com/videos">🔗</a>
+      </div>
+      <div class="card-stats">
+        <span class="stat"><strong>0</strong> 图片</span>
+        <span class="stat"><strong>50</strong> 失败</span>
+        <span class="stat">最近: —</span>
+      </div>
+      <div class="card-reason">Offers experimental, process-driven fashion content with a muted, artistic feel that aligns well with the account's quie</div>
+    </div>
+    <div class="card zero-yield">
+      <div class="card-top">
+        <span class="status">🟢</span>
+        <span class="name">Das Programm — Dieter Rams Archive</span>
+        <span class="tag tag-lb">lookbook</span>
+        <a href="https://www.dasprogramm.org" target="_blank" class="url" title="https://www.dasprogramm.org">🔗</a>
+      </div>
+      <div class="card-stats">
+        <span class="stat"><strong>0</strong> 图片</span>
+        <span class="stat"><strong>0</strong> 失败</span>
+        <span class="stat">最近: —</span>
+      </div>
+      <div class="card-reason">Comprehensive Dieter Rams archive: Braun electronics 1955–1995 and Vitsoe furniture. 'Less, but better' industrial desig</div>
+    </div>
+    <div class="card zero-yield">
+      <div class="card-top">
+        <span class="status">🟢</span>
+        <span class="name">BranD Magazine</span>
+        <span class="tag tag-lb">lookbook</span>
+        <a href="http://www.brandmagazine.com.hk" target="_blank" class="url" title="http://www.brandmagazine.com.hk">🔗</a>
+      </div>
+      <div class="card-stats">
+        <span class="stat"><strong>0</strong> 图片</span>
+        <span class="stat"><strong>104</strong> 失败</span>
+        <span class="stat">最近: —</span>
+      </div>
+      <div class="card-reason">Hong Kong bilingual design magazine. Strong editorial curation on branding, typography, objects, visual culture. Uses HT</div>
+    </div>
+</div>
+
+<div class="footer">TasteGraph AI · 源管理 · link_sources.json</div>
+</div>
+</body>
+</html>

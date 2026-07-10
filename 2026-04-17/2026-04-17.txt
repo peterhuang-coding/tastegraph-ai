@@ -1,0 +1,113 @@
+Date: 2026-04-17 (Asia/Shanghai)
+
+Daily theme:
+Earth Week 2026（OUR POWER, OUR PLANET）— Quiet Utility City Rituals
+Why it fits today:
+- 今天是 2026-04-17（周五），Earth Week 的主要行动从 2026-04-18（周六）开始，Earth Day 是 2026-04-22（周三）。
+- 这个节点天然适合“低调但有行动感”的情绪：通勤/步行/骑行、随身杯、咖啡吧台、城市阴影、材料质感（混凝土/金属/纸张）。
+- 视觉上很贴 Hidden NY / JJJJound：低饱和、干净构图、日常而克制。
+
+Trend / timely references (live web):
+- Earth Day 2026 global theme press release (Our Power, Our Planet): https://www.earthday.org/press-release/earthday-org-announces-the-global-theme-for-earth-day-april-22-2026-our-power-our-planet/
+- Earth Day 2026 info (Earth Week actions start Apr 18; Earth Day Apr 22): https://www.earthday.org/our-power-our-planet/
+- Earth Day week activations example (SF Climate Week Apr 18–26): https://www.sfchronicle.com/entertainment/article/earth-day-bay-area-2026-22098004.php
+
+Source strategy:
+- 优先找“他人已整理的公开参考板/集合”：使用 Unsplash 的用户 Collections（相当于公开 moodboard）+ 其下的真实摄影作品页面。
+- 仅选择真实外部摄影（Unsplash License），避免图标/缩略图/网页 LOGO/占位图/生成图。
+- 为每张图提供：作品页链接 + 直接下载链接（当网络可用时）。
+
+DOWNLOAD RESULT (hard requirement check):
+FAILED — 0/15 images downloaded.
+Reason:
+- 当前自动化运行环境的终端出站 DNS/网络不可用（例如：curl: (6) Could not resolve host）。因此无法把外部图片实际下载到本地文件夹。
+- 本次没有使用任何本地视频/截图/生成占位图来“补齐数量”。
+Attempt note:
+- 已对下方 15 个 Unsplash 直链逐一执行 `curl -L --fail` 下载尝试，结果 `download_ok=0 download_fail=15`（均为 DNS/网络失败）。
+Posting guidance:
+- 由于未能成功下载 15 张真实外部图片到文件夹内，本次结果不建议直接发小红书。
+- 你可以在浏览器里用下方“Direct image (download)”链接手动下载 15 张原图后再发布。
+
+15 PICKS (page + direct image + 1-line reason):
+1) Shadows of people walking on a wall (Berlin)
+- Source page: https://unsplash.com/photos/shadows-of-people-walking-on-a-wall-Z74nwIR-syw
+- Direct image (download): https://unsplash.com/photos/Z74nwIR-syw/download?force=true
+- Reason: 极简墙面+行人影子，城市行动感但很克制。
+
+2) Two people walk under a concrete structure (Pilsen)
+- Source page: https://unsplash.com/photos/two-people-walk-under-a-concrete-structure-WczkRR0czoA
+- Direct image (download): https://unsplash.com/photos/WczkRR0czoA/download?force=true
+- Reason: 混凝土结构与阴影分割，安静但有“走动”的节奏。
+
+3) Two people walk with umbrellas on a rainy city street (Osaka)
+- Source page: https://unsplash.com/photos/two-people-walk-with-umbrellas-on-a-rainy-city-street-WtvfDmEqoNM
+- Direct image (download): https://unsplash.com/photos/WtvfDmEqoNM/download?force=true
+- Reason: 雨夜反光+伞的剪影，低饱和日系街拍氛围。
+
+4) Night view of a crosswalk and a retractable barrier
+- Source page: https://unsplash.com/photos/night-view-of-a-crosswalk-and-a-retractable-barrier-ulTqI6ZVjnk
+- Direct image (download): https://unsplash.com/photos/ulTqI6ZVjnk/download?force=true
+- Reason: 空街斑马线+工业设施，冷静、秩序感强。
+
+5) People crossing a street at a crosswalk (Düsseldorf)
+- Source page: https://unsplash.com/photos/people-crossing-a-street-at-a-crosswalk-90LG4iw3TIk
+- Direct image (download): https://unsplash.com/photos/90LG4iw3TIk/download?force=true
+- Reason: 俯拍日常通行，像“城市系统”在运转。
+
+6) A bicycle is parked on the side of a street
+- Source page: https://unsplash.com/photos/a-bicycle-is-parked-on-the-side-of-a-street-hjfdzgg2v3c
+- Direct image (download): https://unsplash.com/photos/hjfdzgg2v3c/download?force=true
+- Reason: 骑行作为低碳日常符号，灰调非常干净。
+
+7) Bikes are parked on a city street (Parked Bikes)
+- Source page: https://unsplash.com/photos/bikes-are-parked-on-a-city-street-fs5V-4ge-2M
+- Direct image (download): https://unsplash.com/photos/fs5V-4ge-2M/download?force=true
+- Reason: 金属/线缆/车把细节，偏机能的“安静质感”。
+
+8) bicycle parked on street (Pondicherry)
+- Source page: https://unsplash.com/photos/bicycle-parked-on-street-sJyx87IHBV8
+- Direct image (download): https://unsplash.com/photos/sJyx87IHBV8/download?force=true
+- Reason: 黑白/旧墙/自行车，复古低调不抢戏。
+
+9) Concrete brutalist building interior with hanging plants
+- Source page: https://unsplash.com/photos/concrete-brutalist-building-interior-with-hanging-plants-bhoCN0EltN4
+- Direct image (download): https://unsplash.com/photos/bhoCN0EltN4/download?force=true
+- Reason: 粗粝混凝土+垂落绿植，把“环保”做成结构里的呼吸。
+
+10) Close-up of a professional espresso machine
+- Source page: https://unsplash.com/photos/close-up-of-a-professional-espresso-machine-I7ZSAWj8XH8
+- Direct image (download): https://unsplash.com/photos/I7ZSAWj8XH8/download?force=true
+- Reason: 金属旋钮/把手的近景，咖啡仪式感=日常秩序。
+
+11) A espresso machine sitting on top of a counter
+- Source page: https://unsplash.com/photos/a-espresso-machine-sitting-on-top-of-a-counter-k2yYDDfjlzU
+- Direct image (download): https://unsplash.com/photos/k2yYDDfjlzU/download?force=true
+- Reason: 灰调设备与台面构图简洁，像小店开门前的静。
+
+12) Espresso cup on a wooden board (Stuttgart)
+- Source page: https://unsplash.com/photos/espresso-cup-on-a-wooden-board-CTVdn6M2h7Q
+- Direct image (download): https://unsplash.com/photos/CTVdn6M2h7Q/download?force=true
+- Reason: 木板+白杯的对比很“JJJJound”，克制又温暖。
+
+13) A croissant and a cup of coffee on a table
+- Source page: https://unsplash.com/photos/a-croissant-and-a-cup-of-coffee-on-a-table-RxMActpuDzE
+- Direct image (download): https://unsplash.com/photos/RxMActpuDzE/download?force=true
+- Reason: 低饱和早餐场景，适合做“Earth Week 周末清晨”叙事。
+
+14) stainless steel cup on white table (Delhi)
+- Source page: https://unsplash.com/photos/stainless-steel-cup-on-white-table-qGS9V6dmkY0
+- Direct image (download): https://unsplash.com/photos/qGS9V6dmkY0/download?force=true
+- Reason: 可重复使用的金属杯作为主题锚点，影子很高级。
+
+15) Modern bookstore interior with multi-level bookshelves and stairs (Osaka)
+- Source page: https://unsplash.com/photos/modern-bookstore-interior-with-multi-level-bookshelves-and-stairs-15PCN04GfiU
+- Direct image (download): https://unsplash.com/photos/15PCN04GfiU/download?force=true
+- Reason: 文化空间/公共室内的秩序感，补齐“城市日常”的另一面。
+
+Shared visual pattern (1 paragraph):
+灰与米色为主的低饱和基底；混凝土/金属/木材等“真实材料”；大量阴影与几何分割；人物存在感被压低（更多是剪影/局部/动线）；以骑行与咖啡作为可持续的日常符号，把“Earth Week”做成可发布的城市情绪。
+
+Xiaohongshu title options (2–3):
+1) Earth Week 氛围感：低饱和城市日常（骑行×咖啡×阴影）
+2) OUR POWER, OUR PLANET：把环保做成 JJJJound 式日常
+3) 周末城市散步清单：安静的街拍 + 极简咖啡时刻

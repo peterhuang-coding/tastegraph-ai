@@ -1,0 +1,129 @@
+DAILY TASTE LINK PACK — 2026-04-25 (Asia/Shanghai)
+
+Live lookup status: SUCCESS (links collected via live web search tool on 2026-04-25; no images/videos downloaded; not every page was manually opened in-browser).
+Point of view: quiet-cool / archive / editorial / fashion-culture / low-saturation (Hidden NY / JJJJound adjacent, not boring).
+
+DAILY THEME
+“Café Light + Concrete Uniform” — black-and-white bar photography energy, concrete/stucco texture, and tailoring that feels lived-in (not polished).
+Why it fits today: It’s Saturday. Weekend posts work best when they feel like field notes (observations + materials + attitude), not shopping lists. Today’s set is built to help you write captions like an editor: texture words, posture words, and pacing words.
+
+XIAOHONGSHU CONTENT ANGLES (pick 1)
+1) 《像“酒吧黑白照片”一样的穿搭》：从 Jil Sander / Hermès 里抽 3 个“姿态词”（hands-in-pockets, slouch, lean），每张图只写 1 句“动作 + 材质”。
+2) 《黑不是一个颜色，是 3 种黑》：用 nanamica 的 BLACK OCEAN / Jil Sander 的黑白 / concrete 的灰，把黑拆成：ink / soot / tar / charcoal（配 6 张图）。
+3) 《fashion film 的“慢”不是拖，是停顿》：从 SHOWstudio / NOWNESS 抄 3 个剪辑规则（停顿、近景材质、环境声），拍衣服像拍物件纪录。
+
+FEEDBACK PROMPT (how to train tomorrow’s pack)
+- 你把每条链接标记：LIKE / REJECT，并给 3–8 个关键词。
+- 推荐格式（直接回复我就行）：
+  LIKE: 2, 5, 11 (keywords: concrete, bar-light, lived-in tailoring)
+  REJECT: 3, 9 (keywords: too glossy, too trend, too product)
+- 如果你想把反馈写进 taste_memory.json（可选）：
+  python3 "/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/scripts/link_feedback.py" --link "PASTE_LINK" --type lookbook --like "quiet, concrete, shadow" --note "why it worked"
+
+============================================================
+1) LOOKBOOK / IMAGE REFERENCES (6–10)
+============================================================
+[1] https://www.vogue.com/fashion-shows/fall-2026-ready-to-wear/jil-sander
+Why: “冷感”不是极简空白，而是微妙的错位与身体边界；并且这篇 review 给了你可引用的参考背景。
+Study: 领口/肩线/后背的小偏差；黑白灰里靠结构与缝线让画面有张力。
+
+[2] https://www.vogue.com/fashion-shows/spring-2026-menswear/hermes
+Why: 城市里“凉爽的人”穿什么：极少装饰，但每一件都像能穿很多年。
+Study: 皮革在夏天如何“被空气化”（透、轻、开口）；以及裤脚/鞋体积的平衡。
+
+[3] https://www.vogue.com/fashion-shows/spring-2026-menswear/wales-bonner
+Why: 让“优雅”变得日常：有书卷气但不端着，适合给你的账号加一点文化密度。
+Study: 正装元素如何被降噪（衬衫、针织、外套比例）；配饰点到为止。
+
+[4] https://www.vogue.com/fashion-shows/spring-2026-menswear/im-men
+Why: 不走 Hidden NY 那条路，但非常适合训练“布料在运动中的形状”。
+Study: 走动时的褶、垂坠与张力；如何用剪裁让衣服像雕塑但仍然可穿。
+
+[5] https://us.nanamica.com/blogs/journal/nanamica-2026-spring-summer
+Why: 海边灵感但不旅游感；技术面料也能很 calm。
+Study: “自然旧化”的洗感与微光泽；套装的松紧尺度（不紧绷、不塌陷）。
+
+[6] https://us.nanamica.com/blogs/journal/nanamica-2025-fall-winter
+Why: BLACK OCEAN 的黑很耐看：功能外套也能像编辑页。
+Study: 黑的层次来自纹理/光泽差；内搭灰白如何让黑更“有空气”。
+
+[7] https://vowels.net/pages/spring-summer-2026-lookbook
+Why: Nigel Shafran 的“日常观察”摄影语言很适合你要的低饱和生活感。
+Study: 不摆拍的姿态；wide → detail → object 的页面节奏。
+
+[8] https://www.are.na/brian-curran/jjjjound-full-archive
+Why: JJJJound adjacent 的档案式参考库（更像编辑台，不像随机图站）。
+Study: 低饱和画面里，靠构图与材质建立“冷感密度”（shadow / concrete / worn leather）。
+
+[9] https://www.are.na/lily-clempson-tfz8voo8tzo/editorial-fashion
+Why: editorial 语法训练场：怎么把穿搭拍成“页”而不是“图集”。
+Study: 页面逻辑：wide（关系）→ mid（动作）→ close（材质）。
+
+============================================================
+2) VIDEOS / MOVING IMAGE REFERENCES (4–8)
+============================================================
+[1] https://www.showstudio.com/projects/fashion_film_submissions
+Why: 最适合偷“时尚影像的纪律”：衣服必须在运动里成立。
+Study: 开头 3 秒如何定气质；慢节奏如何靠声音/呼吸支撑而不拖。
+
+[2] https://www.showstudio.com/projects/fashion_film_submissions/fashion-film-showcase-summer-2025
+Why: 同一主题下不同作者的处理差异很明显，适合做“对照学习”。
+Study: 同样是慢，哪些靠停顿成立，哪些只是拖；镜头距离怎么决定材质感。
+
+[3] https://www.showstudio.com/projects/beatsxEE25/fashion_film?tag=Karlie+Kloss
+Why: 时尚 + 音乐 + 色彩的“结构化疯狂”，但仍然有清晰章节与节奏。
+Study: 色彩不是滤镜，是“段落”；你拍 XHS 视频也可以用 3 段式节奏（intro / texture / exit）。
+
+[4] https://www.nowness.com/topic/fashion
+Why: 高级但可复制：自然光、留白、声画配合。
+Study: 环境声当剪辑锚点；动作少，但画面密度够。
+
+[5] https://www.dazeddigital.com/video
+Why: 更野一点的青年文化视频语言（态度更冲）。
+Study: 镜头的“拒绝感”：不服务商品、服务人物与气氛。
+
+[6] https://vimeo.com/851687833
+Why: 把 campaign 拍成“电影式相遇”，节奏克制但不乏情绪。
+Study: 运动不是为了炫技，是为了让布料/身体关系更真实。
+
+[7] https://vimeo.com/channels/staffpicks
+Why: 你需要的不是更多时尚视频，而是更好的摄影/声音/节奏参考。
+Study: 光比与颗粒；如何用 2–3 个镜头把一个情绪讲清楚。
+
+============================================================
+3) ARTICLES / DEEP READING (5–8)
+============================================================
+[1] https://www.gq.com/story/jjjjound-gq-profile
+Why: “好品味”不是神秘天赋，是长期参数（饱和度、材质、节奏）的训练。
+Use for XHS: 你可以把账号规则写成“参数表”：色温/饱和度/材质词/姿态词。
+
+[2] https://fashionista.com/2025/12/showstudio-nick-knight-25-years-fashion-film-ai-future
+Why: 这篇是影像方法论入口：fashion film 不是 B-roll，而是创作媒介。
+Use for XHS: 写视频 caption 时，强调“过程与语言”，少讲“上新”。
+
+[3] https://www.ssense.com/en-ch/editorial/fashion/croatian-brutalism-with-balenciaga-martine-rose-and-gosha-rubchinskiy
+Why: concrete 场景 + 服装是怎么互相加成的（质感与年代感都很强）。
+Use for XHS: 学它的“地点词 + 材质词 + 情绪词”组合方式，写出更像编辑的句子。
+
+[4] https://www.vogue.com/article/fall-2026-in-designers-own-words
+Why: 训练你的“引用能力”：用设计师自己的词，帮你把笔记写得更有权威感。
+Use for XHS: 标题可以做成“引用体”：一条引用 + 你的一条观察 + 一个材质细节。
+
+[5] https://www.theguardian.com/lifeandstyle/2024/dec/15/finding-beauty-in-brutalism-a-flat-in-milan-provides-a-haven-for-creativity
+Why: 把 brutalism 从“风格梗”拉回到生活与创作：空间如何影响审美与工作节奏。
+Use for XHS: 你的账号可以更像“生活方式编辑”：空间/光线/材质 → 穿搭。
+
+[6] https://www.showstudio.com/news/coperni-gets-meta-with-ray-ban
+Why: 时尚与可穿戴技术的叙事模板：怎么写“新技术”但不变成硬广。
+Use for XHS: 写“工具”时，写它改变了什么（拍摄自由度/记录方式），而不是规格。
+
+[7] https://us.nanamica.com/blogs/journal/nanamica-launches-a-new-store-on-wukang-rd-shanghai
+Why: 上海语境里，一个品牌如何把“店”写成“气质声明”。
+Use for XHS: 把你的笔记写成“地点档案”：路名/光线/材质/穿着姿态。
+
+[8] https://www.vogue.it/article/naturally-showstudio-fashion-film-rayban-meta
+Why: 用一篇更“杂志语气”的文章，学怎么写影像与技术（不干、不冷）。
+Use for XHS: 写视频灵感时，用更具体的感官词：光、颗粒、呼吸、距离。
+
+—
+Note: source URLs only; no copyrighted image extraction.

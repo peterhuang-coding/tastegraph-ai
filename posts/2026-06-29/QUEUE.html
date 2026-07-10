@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>发布队列 — 2026-06-29</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, "PingFang SC", sans-serif; background: #f0f0f0; margin: 0; padding: 20px; }
+  .header { max-width: 900px; margin: 0 auto 16px; display: flex; justify-content: space-between; align-items: center; }
+  .header h1 { font-size: 22px; margin: 0; }
+  .header .date { color: #999; font-size: 13px; }
+  .toolbar { max-width: 900px; margin: 0 auto 16px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .toolbar button { padding: 8px 16px; border: 1px solid #ccc; border-radius: 6px; background: white; cursor: pointer; font-size: 13px; }
+  .toolbar button:hover { background: #eee; }
+  .toolbar button.primary { background: #222; color: white; border-color: #222; }
+
+  .queue { max-width: 900px; margin: 0 auto; }
+  .card {
+    display: flex; gap: 16px; align-items: flex-start;
+    background: white; border-radius: 10px; padding: 16px; margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .card:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+  .card.published { opacity: 0.45; }
+  .card-num { font-size: 13px; color: #bbb; font-weight: 700; min-width: 28px; padding-top: 4px; }
+  .card-img {
+    width: 120px; height: 120px; object-fit: cover; border-radius: 6px;
+    cursor: grab; flex-shrink: 0;
+    border: 2px solid transparent; transition: border-color 0.2s;
+  }
+  .card-img:hover { border-color: #ff2442; }
+  .card-img:active { cursor: grabbing; }
+  .card-body { flex: 1; min-width: 0; }
+  .card-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; color: #111; }
+  .card-text { font-size: 13px; color: #555; margin-bottom: 6px; line-height: 1.5; white-space: pre-line; }
+  .card-tags { font-size: 11px; color: #999; word-break: break-all; }
+  .card-actions { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
+  .card-actions button {
+    padding: 5px 10px; border: 1px solid #ddd; border-radius: 4px;
+    background: white; cursor: pointer; font-size: 11px; white-space: nowrap;
+    text-align: left;
+  }
+  .card-actions button:hover { background: #f5f5f5; border-color: #bbb; }
+  .card-status { font-size: 20px; min-width: 36px; text-align: center; padding-top: 4px; cursor: pointer; }
+  .select-cb { margin-top: 6px; width: 16px; height: 16px; cursor: pointer; flex-shrink: 0; }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: #222; color: #fff; padding: 10px 24px; border-radius: 8px;
+    font-size: 14px; z-index: 999; animation: fadeOut 1.8s forwards;
+  }
+  @keyframes fadeOut { 0%,60% { opacity:1; } 100% { opacity:0; } }
+
+  .footer { text-align: center; color: #bbb; font-size: 12px; margin-top: 24px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>📋 发布队列</h1>
+    <div class="date">2026-06-29 · 5 篇</div>
+  </div>
+  <div style="font-size:13px;color:#999">
+    点图片 → Preview → 拖进小红书 | <a href="/sources" style="color:#666">📡 信息源</a>
+  </div>
+</div>
+
+<div class="toolbar">
+  <button onclick="selectAll()">☑ 全选</button>
+  <button onclick="deselectAll()">☐ 取消全选</button>
+  <button class="primary" onclick="openSelected()">📁 打开选中图片</button>
+  <button onclick="markAllDone()">✅ 全部标为已发</button>
+  <span style="font-size:13px;color:#999;margin-left:auto" id="counter">5 篇待发</span>
+</div>
+
+<div class="queue">
+
+    <div class="card" id="post-001">
+      <input type="checkbox" class="select-cb" data-post="post-001" checked>
+      <div class="card-num">#1</div>
+      <img src="post-001/image.jpg" class="card-img"
+           data-abs="/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-06-29/post-001/image.jpg"
+           onclick="openInPreview('/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-06-29/post-001/image.jpg')"
+           title="点击在 Preview 中打开 → 拖到小红书">
+      <div class="card-body">
+        <div class="card-title">Off-White Archive · tailoredcoat</div>
+        <div class="card-text">Vogue Off-White Archive. 2024. tailored coat, editorial fashion, runway silhouette, shirt collar.</div>
+        <div class="card-tags">#moodboard #审美积累 #穿搭参考 #tailoredcoat #editorialfashion #秀场笔记</div>
+      </div>
+      <div class="card-actions">
+        <button onclick="openInPreview('/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-06-29/post-001/image.jpg', this)" class="btn-copy-img" title="在 Preview 中打开 → 拖进小红书">🖼 打开</button>
+        <button onclick="copyAll('post-001')" title="复制标题+正文+标签">📋 文案</button>
+        <button onclick="fetch('/open-folder?path=' + encodeURIComponent('/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-06-29/post-001/image.jpg'))">📁</button>
+      </div>
+      <div class="card-status" id="status-post-001">⏳</div>
+    </div>
+    <div class="card" id="post-002">
+      <input type="checkbox" class="select-cb" data-post="post-002" checked>
+      <div class="card-num">#2</div>
+      <img src="post-002/image.jpg" class="card-img"
+           data-abs="/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-06-29/post-002/image.jpg"
+           onclick="openInPreview('/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-06-29/post-002/image.jpg')"
+           title="点击在 Preview 中打开 → 拖到小红书">
+      <div class="card-body">
+        <div class="card-title">Off-White Archive · tailoredcoat</div>
+        <div class="card-text">Vogue Off-White Archive. 2024. tailored coat, editorial fashion, street style, denim archive.</div>
+        <div class="card-tags">#moodboard #审美积累 #穿搭参考 #tailoredcoat #editorialfashion #秀场笔记</div>
+      </div>
+      <div class="card-actions">
+        <button onclick="openInPreview('/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-06-29/post-002/image.jpg', this)" class="btn-copy-img" title="在 Preview 中打开 → 拖进小红书">🖼 打开</button>
+        <button onclick="copyAll('post-002')" title="复制标题+正文+标签">📋 文案</button>
+        <button onclick="fetch('/open-folder?path=' + encodeURIComponent('/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-06-29/post-002/image.jpg'))">📁</button>
+      </div>
+      <div class="card-status" id="status-post-002">⏳</div>
+    </div>
+    <div class="card" id="post-003">
+      <input type="checkbox" class="select-cb" data-post="post-003" checked>
+      <div class="card-num">#3</div>
+      <img src="post-003/image.jpg" class="card-img"
+           data-abs="/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-06-29/post-003/image.jpg"
+           onclick="openInPreview('/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-06-29/post-003/image.jpg')"
+           title="点击在 Preview 中打开 → 拖到小红书">
+      <div class="card-body">
+        <div class="card-title">Louis Vuitton Runway · editorialfashion</div>
+        <div class="card-text">Louis Vuitton Runway. 2024. editorial fashion, shirt collar, tailored coat, Japanese design.</div>
+        <div class="card-tags">#moodboard #审美积累 #穿搭参考 #editorialfashion #shirtcollar #秀场笔记</div>
+      </div>
+      <div class="card-actions">
+        <button onclick="openInPreview('/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-06-29/post-003/image.jpg', this)" class="btn-copy-img" title="在 Preview 中打开 → 拖进小红书">🖼 打开</button>
+        <button onclick="copyAll('post-003')" title="复制标题+正文+标签">📋 文案</button>
+        <button onclick="fetch('/open-folder?path=' + encodeURIComponent('/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-06-29/post-003/image.jpg'))">📁</button>
+      </div>
+      <div class="card-status" id="status-post-003">⏳</div>
+    </div>
+    <div class="card" id="post-004">
+      <input type="checkbox" class="select-cb" data-post="post-004" checked>
+      <div class="card-num">#4</div>
+      <img src="post-004/image.jpg" class="card-img"
+           data-abs="/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-06-29/post-004/image.jpg"
+           onclick="openInPreview('/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-06-29/post-004/image.jpg')"
+           title="点击在 Preview 中打开 → 拖到小红书">
+      <div class="card-body">
+        <div class="card-title">Off-White Archive · editorialfashion</div>
+        <div class="card-text">Vogue Off-White Archive. 2024. editorial fashion, runway silhouette, tailored coat, leather detail.</div>
+        <div class="card-tags">#moodboard #审美积累 #穿搭参考 #editorialfashion #runwaysilhouette #秀场笔记</div>
+      </div>
+      <div class="card-actions">
+        <button onclick="openInPreview('/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-06-29/post-004/image.jpg', this)" class="btn-copy-img" title="在 Preview 中打开 → 拖进小红书">🖼 打开</button>
+        <button onclick="copyAll('post-004')" title="复制标题+正文+标签">📋 文案</button>
+        <button onclick="fetch('/open-folder?path=' + encodeURIComponent('/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-06-29/post-004/image.jpg'))">📁</button>
+      </div>
+      <div class="card-status" id="status-post-004">⏳</div>
+    </div>
+    <div class="card" id="post-005">
+      <input type="checkbox" class="select-cb" data-post="post-005" checked>
+      <div class="card-num">#5</div>
+      <img src="post-005/image.jpg" class="card-img"
+           data-abs="/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-06-29/post-005/image.jpg"
+           onclick="openInPreview('/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-06-29/post-005/image.jpg')"
+           title="点击在 Preview 中打开 → 拖到小红书">
+      <div class="card-body">
+        <div class="card-title">Off-White Archive · denimarchive</div>
+        <div class="card-text">Vogue Off-White Archive. 2024. denim archive, editorial fashion, runway silhouette, leather detail.</div>
+        <div class="card-tags">#moodboard #审美积累 #穿搭参考 #denimarchive #editorialfashion #秀场笔记</div>
+      </div>
+      <div class="card-actions">
+        <button onclick="openInPreview('/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-06-29/post-005/image.jpg', this)" class="btn-copy-img" title="在 Preview 中打开 → 拖进小红书">🖼 打开</button>
+        <button onclick="copyAll('post-005')" title="复制标题+正文+标签">📋 文案</button>
+        <button onclick="fetch('/open-folder?path=' + encodeURIComponent('/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/posts/2026-06-29/post-005/image.jpg'))">📁</button>
+      </div>
+      <div class="card-status" id="status-post-005">⏳</div>
+    </div>
+</div>
+
+<div class="footer">点图片 → 从 Preview 拖到小红书 · 📋 一键复制文案 · TasteGraph AI</div>
+
+<script>
+// ── Open image in Preview (drag from Preview → XHS) ──
+async function openInPreview(path, btn) {
+    if (btn) { btn.innerText = '...'; btn.disabled = true; }
+    try {
+        const resp = await fetch('/open-file?path=' + encodeURIComponent(path));
+        const data = await resp.json();
+        if (data.ok) {
+            toast('✅ Preview 已打开 → 拖图片到小红书');
+        } else {
+            toast('❌ 失败');
+        }
+    } catch(e) {
+        toast('❌ 请先启动服务: python scripts/queue_server.py');
+    }
+    if (btn) { btn.innerText = '🖼 打开图片'; btn.disabled = false; }
+}
+
+// ── Copy text helpers ──
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => toast('已复制 ✓'));
+}
+
+function copyAll(postId) {
+    const title = document.querySelector('#' + postId + ' .card-title').innerText;
+    const body = document.querySelector('#' + postId + ' .card-text').innerText;
+    const tags = document.querySelector('#' + postId + ' .card-tags').innerText;
+    copyToClipboard(title + '\n\n' + body + '\n\n' + tags);
+}
+
+function copyTitle(t) { copyToClipboard(t); }
+function copyBody(b) { copyToClipboard(b); }
+function copyTags(t) { copyToClipboard(t); }
+
+// ── Select / Counter ──
+function getChecked() {
+    return [...document.querySelectorAll('.select-cb:checked')].map(cb => cb.dataset.post);
+}
+
+function selectAll() { document.querySelectorAll('.select-cb').forEach(cb => cb.checked = true); updateCounter(); }
+function deselectAll() { document.querySelectorAll('.select-cb').forEach(cb => cb.checked = false); updateCounter(); }
+
+function openSelected() {
+    const checked = getChecked();
+    if (checked.length === 0) { toast('请先勾选要打开的卡片'); return; }
+    checked.forEach(postId => {
+        const img = document.querySelector('#' + postId + ' .card-img');
+        if (img && img.dataset.abs) {
+            // Open each image's parent folder — macOS will select the file
+            const dir = img.dataset.abs.split('/').slice(0, -1).join('/');
+            window.open('file://' + dir, '_blank');
+        }
+    });
+}
+
+function markAllDone() {
+    document.querySelectorAll('.card').forEach(c => c.classList.add('published'));
+    document.querySelectorAll('.card-status').forEach(s => s.innerText = '✅');
+    updateCounter();
+    toast('已标记 ✓');
+}
+
+// ── Per-card done toggle ──
+document.querySelectorAll('.card-status').forEach(el => {
+    el.addEventListener('click', function() {
+        const card = this.closest('.card');
+        if (card.classList.contains('published')) {
+            card.classList.remove('published');
+            this.innerText = '⏳';
+        } else {
+            card.classList.add('published');
+            this.innerText = '✅';
+        }
+        updateCounter();
+    });
+});
+
+function updateCounter() {
+    const total = document.querySelectorAll('.card').length;
+    const published = document.querySelectorAll('.card.published').length;
+    document.getElementById('counter').innerText = (total - published) + ' 篇待发 · ' + published + ' 已发';
+}
+
+// ── Toast ──
+function toast(msg) {
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.innerText = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 2000);
+}
+</script>
+</body>
+</html>

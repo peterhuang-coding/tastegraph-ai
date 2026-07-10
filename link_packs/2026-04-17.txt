@@ -1,0 +1,115 @@
+Date: 2026-04-17
+Mode: taste link pack only
+Taste direction: quiet-cool / archive / editorial / fashion-culture / not stock
+
+How to use:
+先不要急着下载图片。你先从这些链接里挑：哪些有感觉、哪些太普通、哪些适合做小红书 moodboard、哪些适合变成选题或脚本。你的反馈会继续写进 taste_memory.json。
+
+LOOKBOOK / IMAGE REFERENCES
+
+01. Vogue Runway - Spring 2026 Menswear index
+https://www.vogue.com/fashion-shows/spring-2026-menswear
+Why:
+作为当天 lookbook 入口很好，能从 Lemaire、Our Legacy、Wales Bonner、Rick Owens、Hermes 等品牌里继续往下筛，不必依赖素材站。
+
+02. Lemaire Fall 2026 Menswear
+https://www.vogue.com/fashion-shows/fall-2026-menswear/christophe-lemaire
+Why:
+非常适合你要的 quiet uniform、低调比例、灰幕光影和成熟衣橱感。
+
+03. Lemaire Spring 2026 Menswear
+https://www.vogue.com/fashion-shows/spring-2026-menswear/christophe-lemaire
+Why:
+更轻一点，适合春夏旅行穿搭参考，重点看宽裤、衬衫、外套层次。
+
+04. Courreges Spring 2026 Menswear
+https://www.vogue.com/fashion-shows/spring-2026-menswear/courreges
+Why:
+有街头自拍/镜面/未来感，不是完全 JJJJound，但可以给“酷”加一点锋利度。
+
+05. Saint Laurent Spring 2026 Menswear
+https://www.vogue.com/fashion-shows/spring-2026-menswear/saint-laurent
+Why:
+更狂、更性感、更夜晚。适合做“不要太乖”的调味参考。
+
+06. 032c Spring 2026 Menswear on Vogue
+https://www.vogue.com/fashion-shows/spring-2026-menswear/032c
+Why:
+Berlin-coded、冷、带一点拒绝姿态，很适合你的“有态度但不网红”方向。
+
+07. 032c - I WOULD PREFER NOT TO
+https://www.032c.com/magazine/i-would-prefer-not-to-032c-readytowear-spring-summer-2026
+Why:
+lookbook + 文案概念都能用。“passive resistance / I would prefer not to” 这个主题适合做深一点的小红书文案。
+
+VIDEOS / MOVING IMAGE REFERENCES
+
+01. SHOWstudio - Fashion Film Submissions
+https://www.showstudio.com/projects/fashion_film_submissions
+Why:
+比普通品牌 campaign 更野，适合找“狂但有品味”的 moving image 参考。
+
+02. SHOWstudio - Fashion Film Showcase: Summer 2025
+https://www.showstudio.com/projects/fashion_film_submissions/fashion-film-showcase-summer-2025
+Why:
+直接是精选 fashion film，可以从里面找节奏、构图、剪辑和声音参考。
+
+03. SHOWstudio - The Future of Fashion is: Fashion Film
+https://www.showstudio.com/projects/fashions-digital-future/the-future-of-fashion-is-fashion-film
+Why:
+适合理解 fashion film 为什么成立，不只是拿视频当 B-roll。
+
+04. Dazed - A New Generation of Video on Vimeo
+https://vimeo.com/channels/dazed
+Why:
+Dazed 的视频频道，适合找更青年文化、更怪一点的视觉语言。
+
+05. Dazed - The dA-Zed guide to fashion film
+https://www.dazeddigital.com/fashion/article/17977/1/the-da-zed-guide-to-fashion-film
+Why:
+老文章但很有索引价值，可以顺着里面的导演/片名继续挖。
+
+06. Dazed - The most spellbinding fashion films of 2016
+https://www.dazeddigital.com/fashion/article/34117/1/the-most-spellbinding-fashion-films-of-2016
+Why:
+适合找更“疯”的 fashion film 参考，比如舞蹈、怪感、cult celebrity、荒诞广告片结构。
+
+ARTICLES / DEEP READING
+
+01. SSENSE - Culture Predictions for 2026
+https://www.ssense.com/en-us/editorial/culture/trend-forecast-2026/
+Why:
+这篇很适合你账号的底层判断：反 influencer、physical-first、less polished、useless is luxury。能帮助你避开普通旅行博主感。
+
+02. 032c homepage / article index
+https://www.032c.com/
+Why:
+适合定期扫：电影、音乐、互联网、set design、fashion culture 都有，比纯穿搭媒体更有深度。
+
+03. Vogue - Fall 2026, in Designers' Own Words
+https://www.vogue.com/article/fall-2026-in-designers-own-words
+Why:
+可以看设计师自己怎么描述当下情绪，用来训练你的文案语感。
+
+04. Vogue - What Do Fashion People Do All Day?
+https://www.vogue.com/article/what-do-fashion-people-do-all-day-answers-from-the-spring-2026-runways
+Why:
+适合把穿搭和“日常场景”连接起来，不是只讲衣服，而是讲人如何生活。
+
+05. The Guardian - V&A East Museum architecture review
+https://www.theguardian.com/artanddesign/2026/apr/15/va-east-architecture-review-from-ceramics-to-codpieces-this-is-a-honey-coloured-treasure-trove-of-human-ingenuity
+Why:
+建筑、展览、材质、城市文化都能喂给你的 lifestyle 方向，不局限在时装。
+
+06. Vogue - Metropolitan Museum of Art Costume Art exhibition
+https://www.vogue.com/article/metropolitan-museum-of-art-costume-art-exhibition
+Why:
+适合建立“服装作为文化/艺术”的深一点表达，后续可转成小红书读展/看展/穿搭关系类内容。
+
+Feedback command examples:
+
+喜欢某条：
+python3 "/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/scripts/link_feedback.py" --link "PASTE_LINK" --type lookbook --like "quiet uniform, archive, menswear" --note "这个方向对"
+
+不喜欢某条：
+python3 "/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/scripts/link_feedback.py" --link "PASTE_LINK" --type article --avoid "generic, influencer, shopping guide" --note "太普通，不要这种"

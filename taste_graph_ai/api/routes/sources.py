@@ -7,7 +7,7 @@ from taste_graph_ai.api import schemas
 from taste_graph_ai.domain.enums import SourceStatus
 from taste_graph_ai.infrastructure.repos.sources import SourceRepository
 from taste_graph_ai.infrastructure.db.event_log import EventLog
-from taste_graph_ai.api.deps import get_source_repo, get_event_log
+from taste_graph_ai.api.deps import get_source_repo, get_event_log, get_db
 
 router = APIRouter(prefix="/api/v1/sources", tags=["sources"])
 
@@ -21,6 +21,45 @@ async def list_pending(
 ):
     st = SourceStatus(status)
     return await repo.list_by_status(st, limit=limit, offset=page * limit)
+
+
+@router.get("", response_model=list[schemas.SourceDetailResponse])
+async def list_all_sources(
+    repo: SourceRepository = Depends(get_source_repo),
+    db = Depends(get_db),
+):
+    """List ALL sources with image counts and failure counts."""
+    sources = await repo.list_all(limit=200)
+
+    # Batch-count images and failures per source via raw SQL
+    img_counts = {}
+    fail_counts = {}
+    if sources:
+        cursor = await db.execute(
+            "SELECT source_id, COUNT(*) FROM images WHERE source_id IS NOT NULL GROUP BY source_id"
+        )
+        for row in await cursor.fetchall():
+            img_counts[row[0]] = row[1]
+        cursor = await db.execute(
+            "SELECT source_id, COUNT(*) FROM scrape_failures WHERE source_id != '' GROUP BY source_id"
+        )
+        for row in await cursor.fetchall():
+            fail_counts[row[0]] = row[1]
+
+    results = []
+    for s in sources:
+        results.append(schemas.SourceDetailResponse(
+            id=s.id, url=s.url, name=s.name,
+            source_type=s.source_type.value,
+            discovered_from=s.discovered_from,
+            ai_score=s.ai_score, ai_reason=s.ai_reason, ai_risk=s.ai_risk,
+            status=s.status.value,
+            reviewer_note=s.reviewer_note,
+            created_at=s.created_at, reviewed_at=s.reviewed_at,
+            image_count=img_counts.get(s.id, 0),
+            fail_count=fail_counts.get(s.id, 0),
+        ))
+    return results
 
 
 @router.get("/stats", response_model=schemas.SourceStatsResponse)

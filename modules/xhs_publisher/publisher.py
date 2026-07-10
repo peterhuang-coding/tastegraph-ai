@@ -67,16 +67,30 @@ class XiaohongshuPublisher:
             headless=XHS_HEADLESS,
             args=launch_args,
         )
-        self.context = await self.browser.new_context(
-            viewport={"width": 1280, "height": 900},
-            locale="zh-CN",
-        )
-        if self.cookies_path.exists():
+        # Use storage state (cookies + localStorage) for persistent sessions
+        storage_path = self.cookies_path.with_suffix(".state.json")
+        if storage_path.exists():
+            self.context = await self.browser.new_context(
+                viewport={"width": 1280, "height": 900},
+                locale="zh-CN",
+                storage_state=str(storage_path),
+            )
+        elif self.cookies_path.exists():
+            # Fallback: try loading cookies-only file
+            self.context = await self.browser.new_context(
+                viewport={"width": 1280, "height": 900},
+                locale="zh-CN",
+            )
             try:
                 cookies = json.loads(self.cookies_path.read_text())
                 await self.context.add_cookies(cookies)
             except Exception:
                 print("[XHS] Cookie 加载失败，将重新登录")
+        else:
+            self.context = await self.browser.new_context(
+                viewport={"width": 1280, "height": 900},
+                locale="zh-CN",
+            )
 
         self.page = await self.context.new_page()
         return self
@@ -107,38 +121,47 @@ class XiaohongshuPublisher:
 
         cookies = await self.context.cookies()
         self.cookies_path.write_text(json.dumps(cookies, ensure_ascii=False, indent=2))
-        print(f"[XHS] 登录成功，Cookie 已保存到 {self.cookies_path}")
+        # Also save full storage state (cookies + localStorage + indexedDB)
+        state_path = self.cookies_path.with_suffix(".state.json")
+        await self.context.storage_state(path=str(state_path))
+        print(f"[XHS] 登录成功，状态已保存到 {self.cookies_path} + {state_path}")
 
     # ═══════════ 发布 ═══════════
 
     async def publish(self, image_path: str, title: str, caption: str) -> str:
-        """上传一张 moodboard 图片并发布，返回帖子 URL
+        """上传一张图片并发布，返回帖子 URL。
 
-        流程：自动上传图片 + 填写标题正文 + 自动点击「发布」按钮，
-        检测发布成功后返回帖子链接。
+        反检测措施：随机延迟、类人输入速度、鼠标晃动、每次运行时序不同。
         """
+        import random as _random
+
+        # Seed variation per run so timing patterns differ
+        _random.seed()
+
         await self._ensure_logged_in()
         page = self.page
 
         # ═══════════ Step 1: 进入发布页面 ═══════════
-        print(f"[XHS] 正在打开发布页面: {XHS_PUBLISH_URL}")
+        print(f"[XHS] 正在打开发布页面...")
         await page.goto(XHS_PUBLISH_URL, wait_until="networkidle")
-        await asyncio.sleep(3)
+        await asyncio.sleep(_random.uniform(3.5, 7.0))
 
         if "publish/publish" not in page.url.lower():
             print("[XHS] 未直接进入发布页，尝试导航...")
+            await self._random_mouse_move()
             for sel in SELECTORS["new_post_btn"].split(", "):
                 try:
                     btn = page.locator(sel).first
                     if await btn.is_visible(timeout=2000):
-                        await btn.click()
+                        await self._human_click(btn)
                         await page.wait_for_load_state("networkidle")
-                        await asyncio.sleep(2)
+                        await asyncio.sleep(_random.uniform(2.5, 4.5))
                         break
                 except Exception:
                     continue
 
         # ═══════════ Step 2: 上传图片 ═══════════
+        await asyncio.sleep(_random.uniform(1.5, 3.0))
         upload_ok = False
         for sel in SELECTORS["upload_input"].split(", "):
             try:
@@ -148,13 +171,15 @@ class XiaohongshuPublisher:
                     upload_ok = True
                     print(f"[XHS] ✅ 图片已上传")
                     break
-            except Exception as e:
+            except Exception:
                 continue
 
         if not upload_ok:
             raise PublishError("找不到上传入口，小红书 UI 可能已变更。请更新 SELECTORS")
 
-        await asyncio.sleep(5)
+        # Wait for upload processing
+        await asyncio.sleep(_random.uniform(3.0, 5.0))
+        await self._random_mouse_move()
 
         # ═══════════ Step 3: 填写标题 ═══════════
         title_filled = False
@@ -162,18 +187,20 @@ class XiaohongshuPublisher:
             try:
                 el = page.locator(sel).first
                 if await el.count() > 0:
+                    await self._human_click(el)
+                    await asyncio.sleep(_random.uniform(0.3, 0.7))
                     await el.click()
-                    await asyncio.sleep(0.3)
-                    await el.fill("")
                     await el.fill(title)
                     title_filled = True
-                    print(f"[XHS] ✅ 标题已填写: {title}")
+                    print(f"[XHS] ✅ 标题已填写")
                     break
             except Exception:
                 continue
 
         if not title_filled:
-            print("[XHS] ⚠️  未能自动填写标题，请手动填写")
+            print("[XHS] ⚠️  未能自动填写标题")
+
+        await asyncio.sleep(_random.uniform(0.8, 2.0))
 
         # ═══════════ Step 4: 填写正文 ═══════════
         body_filled = False
@@ -181,9 +208,19 @@ class XiaohongshuPublisher:
             try:
                 el = page.locator(sel).first
                 if await el.count() > 0:
-                    await el.click()
-                    await asyncio.sleep(0.3)
-                    await el.type(caption, delay=10)
+                    await self._human_click(el)
+                    await asyncio.sleep(_random.uniform(0.3, 0.8))
+                    # Type with moderate speed — fast enough, variable enough
+                    for i, ch in enumerate(caption):
+                        if ch == "\n":
+                            await el.press("Enter")
+                            await asyncio.sleep(_random.uniform(0.2, 0.5))
+                        else:
+                            await el.press(ch)
+                            d = _random.uniform(0.04, 0.15)
+                            if i > 0 and i % _random.randint(15, 30) == 0:
+                                d += _random.uniform(0.2, 0.6)
+                            await asyncio.sleep(d)
                     body_filled = True
                     print(f"[XHS] ✅ 正文已填写")
                     break
@@ -191,13 +228,41 @@ class XiaohongshuPublisher:
                 continue
 
         if not body_filled:
-            print("[XHS] ⚠️  未能自动填写正文，请手动填写")
+            print("[XHS] ⚠️  未能自动填写正文")
 
-        await asyncio.sleep(1)
+        # Brief review pause
+        await asyncio.sleep(_random.uniform(2.0, 4.0))
 
-        # ═══════════ Step 5: 自动点击发布 ═══════════
-        print("[XHS] 正在自动点击发布按钮...")
+        # ═══════════ Step 5: 点击发布 ═══════════
+        print("[XHS] 正在发布...")
         await self._click_publish_button()
+
+        post_url = await self._wait_for_publish_result()
+        return post_url
+
+    async def _human_click(self, locator) -> None:
+        """Click with random offset, like a real person."""
+        import random as _random
+        try:
+            box = await locator.bounding_box()
+            if box:
+                x = box["x"] + _random.uniform(box["width"] * 0.15, box["width"] * 0.85)
+                y = box["y"] + _random.uniform(box["height"] * 0.15, box["height"] * 0.85)
+                await self.page.mouse.click(x, y, delay=_random.randint(50, 200))
+            else:
+                await locator.click(delay=_random.randint(100, 300))
+        except Exception:
+            await locator.click()
+
+    async def _random_mouse_move(self) -> None:
+        """Move mouse to a random position, simulating human browsing."""
+        import random as _random
+        try:
+            x = _random.randint(200, 1000)
+            y = _random.randint(200, 700)
+            await self.page.mouse.move(x, y, steps=_random.randint(3, 8))
+        except Exception:
+            pass
 
         post_url = await self._wait_for_publish_result()
         return post_url

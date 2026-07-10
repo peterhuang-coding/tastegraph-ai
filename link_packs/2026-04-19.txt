@@ -1,0 +1,165 @@
+Date: 2026-04-19
+Mode: taste-first link pack (seed sources only)
+Taste direction: quiet-cool / archive / editorial / fashion-culture / low-saturation / Hidden NY-JJJJound adjacent
+Live lookup: FAILED (this environment has outbound DNS/network blocked) — links not freshly verified today.
+Constraint: Source URLs only (no image/video downloading, no screenshots, no copyrighted extraction).
+
+DAILY THEME (why it fits today)
+“Sunday Carry-on Archive: Lobby Silence + Washed Denim + Concrete Shadow”
+周日适合把审美收束成“可带走的参考册”：明天（2026-04-20）开始进入设计周节奏，今天用 lookbook/runway 训练比例与材质，用 moving image 学“安静但有锋利度”的节奏，再用深阅读把账号语气固定在“编辑笔记/私藏档案”，而不是穿搭教程或购物导购。
+
+2–3 Xiaohongshu content angles (from today’s pack)
+1) 《Carry-on uniform：一周只用 7 件单品的“低饱和城市套装”》：用“廓形/材质/留白/姿态”四维拆解，给 3 条可复制规则。
+2) 《lobby 不是背景，是质感放大器》：同一套衣服在“酒店大堂/街口阴天/混凝土墙面”三种光线下怎么拍，给镜头距离与色温建议。
+3) 《拒绝大 logo：用“材料词”写 caption》：把文案从单品名换成“材质/光/动作/态度”四件套（例：wool / shadow / slow walk / no performance）。
+
+FEEDBACK PROMPT (how to mark liked/rejected)
+- 你只需要对每条链接打：LIKE / SKIP，并写 3–8 个关键词（例如："quiet uniform, washed denim, concrete, shadow" 或 "too influencer, too trend"）。
+- 想直接把反馈写进 taste_memory.json：
+  喜欢某条（示例）：
+  python3 "/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/scripts/link_feedback.py" --link "PASTE_LINK" --type lookbook --like "quiet uniform, shadow, neutral" --note "比例/材质/光线很对"
+
+  不喜欢某条（示例）：
+  python3 "/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/scripts/link_feedback.py" --link "PASTE_LINK" --type article --avoid "generic, influencer, shopping guide" --note "太普通，别再推这种"
+
+============================================================
+LOOKBOOK / IMAGE REFERENCES (seed sources)
+Goal today: 练“可带走的城市 uniform”比例；低饱和 + 材质质感 + 阴天自然光；避免摆拍、糖水感、logo 炫耀。
+
+01) Vogue Runway — Menswear index
+https://www.vogue.com/fashion-shows/menswear
+Why it’s worth looking at:
+最稳定的 menswear runway 入口，用“编辑筛选”方式找轮廓与材质，而不是追热点。
+Visual pattern to study:
+- 大衣/外套长度与裤长比例（站姿 vs 走动）
+- 阴天光下的材质反差：wool / cotton / leather 的反光边缘
+
+02) Vogue Runway — Lemaire (brand page)
+https://www.vogue.com/brands/lemaire
+Why it’s worth looking at:
+quiet uniform 的模板级参考：克制但不寡淡，靠剪裁与面料说话。
+Visual pattern to study:
+- 同色系层次：灰/米/黑如何用“厚薄/纹理”区分，而不是靠彩色
+- 留白与体积：宽裤的垂坠 + 外套的空间感
+
+03) Vogue Runway — 032c (brand page)
+https://www.vogue.com/brands/032c
+Why it’s worth looking at:
+给“JJJJound adjacent”加一点 Berlin-coded 的硬度：更锋利、更拒绝、更不讨好。
+Visual pattern to study:
+- 低饱和里的一处“硬点”（材质冲突、轮廓切口、配件位置）
+- 姿态：不展示、不解释，但有压迫感
+
+04) 032c Magazine (site index)
+https://www.032c.com/
+Why it’s worth looking at:
+它像“编辑部档案柜”，视觉与观点同步出现，适合训练你账号的语气：冷静、有判断。
+Visual pattern to study:
+- 图与标题的并置：如何用少量文字把图变成“论点”
+- 版面密度：不靠高饱和，也能有能量
+
+05) Hypebeast — Fashion (use strict filtering)
+https://hypebeast.com/fashion
+Why it’s worth looking at:
+量大，但你要把它当“矿区”而不是“榜单”：只挖 lookbook/campaign 里有材质与态度的部分。
+Visual pattern to study:
+- 从噪音里挑“uniform”：直筒裤、衬衫、外套、鞋的顺序与平衡
+- 删除卖货语境：只留光线、姿态、色温、空间
+
+06) Highsnobiety — Style tag (use strict filtering)
+https://www.highsnobiety.com/tag/style/
+Why it’s worth looking at:
+可以当作风格报道索引，但必须避开 influencer 自拍与购物清单。
+Visual pattern to study:
+- 镜头距离：中景/远景如何让“衣服在空间里成立”
+- 日常制服细节：鞋型、裤脚堆叠、包与物件的克制
+
+============================================================
+VIDEOS / MOVING IMAGE REFERENCES (seed sources)
+Goal today: 学“慢但不睡”的节奏；停顿、硬切、环境声；低饱和但有层次。
+
+01) SHOWstudio — Fashion Film Submissions
+https://www.showstudio.com/projects/fashion_film_submissions
+Why it matters:
+更实验、更多态度，适合找“有品味的怪”，给你的视频补锋利与不确定性。
+What to study:
+- 停顿与凝视：如何用“无解释的时刻”制造高级感
+- 造型在运动里：衣料体积与摆动的真实感
+
+02) SHOWstudio — Videos (index)
+https://www.showstudio.com/videos
+Why it matters:
+把它当作 moving image 档案入口：造型实验、表演、制作语法都在里面。
+What to study:
+- 低饱和层次：阴影里保留纹理，不压成一片灰
+- 叙事方式：不给剧情，只给动作与态度
+
+03) NOWNESS — Fashion topic
+https://www.nowness.com/topic/fashion
+Why it matters:
+偏艺术化与生活方式表达，适合做“lobby / city walk / still life”的慢叙事。
+What to study:
+- 环境声与呼吸感：让画面更像“在场”而不是广告
+- 服装与空间：材质对材质（wool vs stone / denim vs metal）
+
+04) Dazed — Video (index)
+https://www.dazeddigital.com/video
+Why it matters:
+青年文化与音乐能给你“冷酷一点”的语气，避免账号只剩干净与无害。
+What to study:
+- 硬切节奏：突然切换如何保持冷感而不花
+- 身体语言：懒散、拒绝、漫不经心
+
+05) Vimeo — Staff Picks
+https://vimeo.com/channels/staffpicks
+Why it matters:
+跳出时装圈补“电影结构”，让你拍穿搭时也能有起承转合。
+What to study:
+- 三段式：定调—展开—回钩（用一个物件或动作做回钩）
+- 色彩控制：低饱和里保留一个高亮点（反光、皮革边、窗外白光）
+
+============================================================
+ARTICLES / DEEP READING (seed sources)
+Goal today: 把账号定位从“图好看”抬到“有编辑判断 + 有文化上下文”，让 caption 更像私藏档案。
+
+01) SSENSE — Editorial index
+https://www.ssense.com/en-us/editorial
+Why it matters for positioning/captions:
+SSENSE 常用“文化观察 + 风格判断”的写法，适合学一种不讨好但精确的语气。
+Caption pattern to steal:
+- 观察句（1）+ 具体材质/动作（1）+ 一句立场（1）
+
+02) 032c Magazine — index
+https://www.032c.com/
+Why it matters for positioning/captions:
+把时装放进更大的文化语境：你可以用更少的穿搭术语，更多的态度词。
+Caption pattern to steal:
+- 少形容词，多“判断/引用式句子”（像摘录档案）
+
+03) Dazed — Fashion index
+https://www.dazeddigital.com/fashion
+Why it matters for positioning/captions:
+补青年文化与锋利语感；但要避开纯趋势/流量标题，做逆向翻译。
+Caption pattern to steal:
+- 把“趋势词”改写成“姿态词/情绪词”（冷、拒绝、克制、迟钝）
+
+04) i-D — Fashion category
+https://i-d.co/category/fashion/
+Why it matters for positioning/captions:
+更偏人物与文化的时装视角，适合把穿搭写成“生活片段”，而非单品清单。
+Caption pattern to steal:
+- 用“场景/人物动作”开头，再落到衣服
+
+05) The Guardian — Art & Design index
+https://www.theguardian.com/artanddesign
+Why it matters for positioning/captions:
+建筑/设计写作能喂你的“城市材质词库”，让审美不只依赖时装链接。
+Caption pattern to steal:
+- 先写材料与光（concrete / shadow / texture），再写人（walk / pause / look away）
+
+06) Vogue Business — index
+https://www.voguebusiness.com/
+Why it matters for positioning/captions:
+给内容加行业与语境，让你能用“编辑式标题”开场，而不是种草。
+Caption pattern to steal:
+- 先抛 1 句判断（行业/文化），再用 1 句视觉证据落地

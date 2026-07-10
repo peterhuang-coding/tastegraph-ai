@@ -58,7 +58,7 @@ async def sync_seed_sources(source_repo, event_log) -> int:
                     })
                 continue
 
-            # New source — create as approved
+            # New source — create as pending for manual review
             source = Source(
                 id=uuid.uuid4().hex[:12],
                 url=url,
@@ -66,13 +66,13 @@ async def sync_seed_sources(source_repo, event_log) -> int:
                 source_type=source_type,
                 discovered_from="link_sources.json",
                 preview_thumbnails=[],
-                ai_score=1.0,
-                ai_reason=src.get("why", "Seed source"),
+                ai_score=0.8,  # high score but not auto-approved
+                ai_reason=src.get("why", "Seed source from link_sources.json — needs review"),
                 ai_risk="",
-                status=SourceStatus.APPROVED,
-                reviewer_note="Auto-approved from link_sources.json",
+                status=SourceStatus.PENDING,
+                reviewer_note="",
                 created_at=datetime.now(timezone.utc).isoformat(),
-                reviewed_at=datetime.now(timezone.utc).isoformat(),
+                reviewed_at=None,
             )
             await source_repo.save(source)
             new_count += 1

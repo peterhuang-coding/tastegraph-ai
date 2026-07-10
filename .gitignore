@@ -23,3 +23,6 @@ data/logs/
 
 # Scripts pycache
 scripts/__pycache__/
+
+# Pipeline runs (generated output)
+runs/

@@ -21,6 +21,10 @@ class SourceResponse(BaseModel):
     created_at: str
     reviewed_at: Optional[str] = None
 
+class SourceDetailResponse(SourceResponse):
+    image_count: int = 0
+    fail_count: int = 0
+
 class SourceActionRequest(BaseModel):
     note: str = ""
 

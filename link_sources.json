@@ -51,6 +51,21 @@
       "name": "Toshio Saeki Estate",
       "url": "https://www.toshiosaeki.estate",
       "why": "Official estate site. Mostly text/about — primary image source is WikiArt above."
+    },
+    {
+      "name": "Savee — Curated Design",
+      "url": "https://savee.it",
+      "why": "1M+ creatives, ad-free, human-curated design inspiration. No algorithm. Strong editorial/archival aesthetic. Good for quiet, refined visual references."
+    },
+    {
+      "name": "Same Energy — Visual Search",
+      "url": "https://same.energy",
+      "why": "Visual search engine that finds images by 'energy' rather than keywords. Useful for discovering visually-similar references across unexpected domains."
+    },
+    {
+      "name": "Visuelle — Branding & Editorial",
+      "url": "https://visuelle.co.uk",
+      "why": "Curated branding, packaging, and editorial projects. Clean, refined, commercial-but-not-generic visual language."
     }
   ],
   "videos": [
@@ -130,6 +145,16 @@
       "name": "Toshio Saeki — Selected Works & Essays",
       "url": "https://anothersomething.org/saeki-selected-works",
       "why": "Deep archive of Saeki's illustrated works 1972–2016 with critical context. Erotic-grotesque tradition meets modern surrealism — useful for understanding visual provocation with restraint."
+    },
+    {
+      "name": "STEEP — Cultural Intelligence",
+      "url": "https://www.steep.earth",
+      "why": "Culture and trend intelligence platform. Curated signals across design, fashion, tech, food. Feeds editorial angle without lifestyle-blog fluff."
+    },
+    {
+      "name": "SiteInspire — Editorial Web Design",
+      "url": "https://www.siteinspire.com",
+      "why": "Curated editorial and minimal web design. Useful for layout, typography, white space, and grid composition references. Clean, not trendy."
     }
   ]
 }

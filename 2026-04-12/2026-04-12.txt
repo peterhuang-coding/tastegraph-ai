@@ -1,0 +1,16 @@
+Date: 2026-04-12
+Theme: curated Are.na moodboard / quiet cool references
+
+Run status:
+Failed before downloading because the current environment could not reach the curated moodboard source.
+
+Important:
+No placeholder images were generated.
+No local video frames were used.
+This folder should not be posted until the script successfully downloads 15 real images.
+
+Error:
+<urlopen error [Errno 8] nodename nor servname provided, or not known>
+
+Suggested fix:
+Run the same command from a network environment that can resolve api.are.na and image hosts.

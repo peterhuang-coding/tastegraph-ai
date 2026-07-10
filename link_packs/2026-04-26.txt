@@ -1,0 +1,96 @@
+DAILY TASTE LINK PACK — 2026-04-26 (Asia/Shanghai)
+
+Live lookup status: FAILED (this run has no network/DNS; links below are UNVERIFIED today and limited to stable seed sources from link_sources.json; no images/videos downloaded; no screenshots).
+Point of view: quiet-cool / archive / editorial / fashion-culture / low-saturation (Hidden NY / JJJJound adjacent, not boring).
+
+DAILY THEME
+“Sunday Overcast Uniform: Stone / Ink / Denim” — 低饱和的城市漫游：灰（混凝土/石材）+ 黑（墨/煤）+ 牛仔蓝（旧化），搭配像“常穿那套”。
+Why it fits today: Sunday 更适合做“编辑式随手记”而不是上新清单：把一周的衣橱、城市、光线归档成 3 个颜色与 3 个材质词，你的账号会更像一本私藏参考册。
+
+XIAOHONGSHU CONTENT ANGLES (pick 1)
+1) 《周日阴天的 3 色制服》：从 runway/brand 图里抽 3 个色块（stone / ink / denim），每张配 1 个材质词（wool, washed cotton, leather）+ 1 个动作词（lean, tuck, stride）。
+2) 《低饱和不是“灰滤镜”，是“材质差”》：做一条 30–45s 视频：同一套衣服用不同光（窗边/走廊/路边阴影）拍 3 段，剪辑用“停顿 + 近景材质 + 环境声”。
+3) 《如何把 lookbook 写成 caption》：选 6 张图，每张只写一句“比例观察”（裤脚、肩线、外套长度、鞋体积），不要讲品牌，不要讲价格。
+
+FEEDBACK PROMPT (how to train tomorrow’s pack)
+- 你把每条链接标记：LIKE / REJECT，并给 3–8 个关键词（越具体越好：light, texture, pacing, posture, concrete, washed denim…）。
+- 推荐格式（直接回复我就行）：
+  LIKE: 2, 4, 9 (keywords: overcast light, lived-in denim, quiet tailoring)
+  REJECT: 5, 6 (keywords: too trend, too product, too influencer)
+
+============================================================
+1) LOOKBOOK / IMAGE REFERENCES (6–10)
+============================================================
+[1] https://www.vogue.com/fashion-shows/menswear
+Why: 稳定的 runway 图像入口（你不用追热点，只要追“比例与姿态”）。
+Study: 统一看 10 个秀：外套长度 vs 裤脚堆叠 vs 鞋体积；找出“看起来很 calm”的共同参数。
+
+[2] https://www.vogue.com/brands/lemaire
+Why: “quiet uniform”的代表：松弛但不松垮，低饱和但不寡。
+Study: 同色系的层次（灰/棕/黑）靠材质光泽与厚薄变化成立；以及口袋/开口如何决定“手的姿态”。
+
+[3] https://www.vogue.com/brands/032c
+Why: 更尖一点、带一点城市噪音的 editorial energy（但仍能保持克制）。
+Study: 颜色不多，但对比更硬：黑与白的边界、金属/皮革的小反光如何让画面更“冷”。
+
+[4] https://www.032c.com/
+Why: 视觉与排版像杂志页：适合训练“把穿搭做成编辑页”的逻辑。
+Study: 页面节奏（wide → mid → detail）；人物与物件同框时如何保持留白与密度平衡。
+
+[5] https://hypebeast.com/fashion
+Why: 需要严格筛选，但偶尔能挖到“品牌形象故事/胶片质感 lookbook”。
+Study: 只点 lookbook / campaign / editorial 相关内容；避开 drop 新闻与价格导向，把注意力放在光线与姿态。
+
+[6] https://www.highsnobiety.com/tag/style/
+Why: 同样要筛选，但能提供街头与编辑之间的桥梁：更像“城市观察”，不必变成潮流榜单。
+Study: 观察“日常制服”如何通过 1 个小变量变得有态度：帽型、皮带、鞋体积、外套开合方式。
+
+============================================================
+2) VIDEOS / MOVING IMAGE REFERENCES (4–8)
+============================================================
+[1] https://www.showstudio.com/projects/fashion_film_submissions
+Why: 时尚影像的纪律与实验并存：衣服必须在运动里成立。
+Study: 开头 3 秒定气质；用停顿/呼吸/环境声维持慢节奏而不拖。
+
+[2] https://www.showstudio.com/videos
+Why: 你需要的不是“更多穿搭视频”，而是“更好的影像语言”样本。
+Study: 镜头距离决定材质感：wide 给关系、mid 给动作、close 给触感；把这个结构搬到 XHS。
+
+[3] https://www.nowness.com/topic/fashion
+Why: 低饱和与留白的高级范式：可复制但不廉价。
+Study: 光线更接近自然与阴天；剪辑靠“段落”而非炫技（intro / texture / exit）。
+
+[4] https://www.dazeddigital.com/video
+Why: 更野、更有拒绝感的青年文化影像（给你的账号加一点“锋利”）。
+Study: 让画面服务气氛与人物，不服务商品；学习它的镜头不讨好、但更真实。
+
+[5] https://vimeo.com/channels/staffpicks
+Why: 电影感与声音设计的训练场：给你提供 fashion 以外的节奏与结构参考。
+Study: 2–3 个镜头如何讲清一个情绪；颗粒/噪点/光比如何塑造“冷静但有温度”。
+
+============================================================
+3) ARTICLES / DEEP READING (5–8)
+============================================================
+[1] https://www.ssense.com/en-us/editorial
+Why: 观点密度高，适合做“账号定位语言”：你像编辑，而不是买手。
+Use for XHS: 学它的标题与段落节奏：一句判断 + 一句背景 + 一个具体细节（材质/场景/动作）。
+
+[2] https://www.voguebusiness.com/
+Why: 行业语境能让你的穿搭笔记更“有分量”，不只是好看。
+Use for XHS: 写 caption 时加 1 句“行业/文化背景”——但仍然落回到材质、光线与日常。
+
+[3] https://www.theguardian.com/artanddesign
+Why: 建筑/设计的语言能反哺穿搭：空间、材料、光线就是你审美的底盘。
+Use for XHS: 把“地点词”写得像设计文章：concrete, glass, wood, shadow；让穿搭像空间延伸。
+
+[4] https://www.dazeddigital.com/fashion
+Why: 态度与文化密度更高：适合让你的账号不只“克制”，也有立场。
+Use for XHS: 学它的语气：更像评论/观察，而不是推荐；标题可以更像一句判断。
+
+[5] https://i-d.co/category/fashion/
+Why: 轻但不浅：适合做“城市穿搭 + 人物观察”的写法。
+Use for XHS: 把每条笔记写成“人物速写”：TA 的走路方式、手的动作、衣服的旧化程度。
+
+NOTE
+- 本次无法进行实时网页检索/验证（网络/DNS 不可用）。以上链接均为本地 seed sources（link_sources.json），请你打开后再按“质感/低饱和/编辑页感”筛选具体内容。
+- Source URLs only. No copyrighted image extraction.

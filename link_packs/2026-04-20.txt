@@ -1,0 +1,212 @@
+Date: 2026-04-20
+Mode: taste-first link pack (live curation + seed sources)
+Taste direction: quiet-cool / archive / editorial / fashion-culture / low-saturation / Hidden NY-JJJJound adjacent (but not boring)
+Live lookup: OK (web search available) — links collected today; no image/video downloading; no screenshots; no copyrighted extraction.
+Constraint: Source URLs only.
+
+DAILY THEME (why it fits today)
+“Monday Reset: Essential Neutrals + Concrete Poetry + ‘Sound of Clothes’”
+周一最适合把账号调回“编辑部档案柜”模式：用一组 Fall 2026 menswear runway 练比例与材质；用 SHOWstudio 的「The Sound Of Clothes」把视频节奏训练成“安静但有锋利度”；再用 Brutalism/quiet luxury 的深阅读把 caption 写成“材料+态度”，而不是穿搭教程或购物导购。
+
+2–3 Xiaohongshu content angles (from today’s pack)
+1) 《周一 reset：把“灰/米/黑”拍出层次》：用 runway 做参照，拆成“同色系的厚薄/纹理/光泽/留白”四格，配 6 张图模板。
+2) 《衣服的“声音”怎么拍出来？》：用 SHOWstudio 练镜头距离 + 环境声 + 摩擦声；做一条“无旁白、只留声”的 city walk/uniform 视频。
+3) 《Concrete poetry caption 写法》：引用 Brutalism 的材料词库（concrete / shadow / void / weight / silence），把穿搭 caption 写成“建筑笔记”。
+
+FEEDBACK PROMPT (how to mark liked/rejected)
+- 你只需要对每条链接打：LIKE / SKIP，并写 3–8 个关键词（例如："washed wool, soft leather, concrete shadow, quiet uniform" 或 "too loud, too influencer, too trend"）。
+- 想直接把反馈写进 taste_memory.json：
+  喜欢某条（示例）：
+  python3 "/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/scripts/link_feedback.py" --link "PASTE_LINK" --type lookbook --like "quiet uniform, shadow, neutral" --note "比例/材质/光线很对"
+
+  不喜欢某条（示例）：
+  python3 "/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/scripts/link_feedback.py" --link "PASTE_LINK" --type article --avoid "generic, influencer, shopping guide" --note "太普通，别再推这种"
+
+============================================================
+LOOKBOOK / IMAGE REFERENCES (6–10)
+Goal today: 练“everyday uniform 的考古学”——低饱和、材质质感、阴影层次；少摆拍、少大 logo、少糖水滤镜。
+
+01) Lemaire — Fall 2026 Menswear (Vogue Runway)
+https://www.vogue.com/fashion-shows/fall-2026-menswear/christophe-lemaire
+Why it’s worth looking at:
+“quiet uniform” 的高级版本：不是极简空白，而是靠比例、面料与组群出场方式建立叙事。
+Visual pattern to study:
+- 灰/米/深棕的层次不是靠颜色，而是靠“纹理差”和“光泽差”
+- 宽裤的垂坠与外套的空间感：走动时的体积变化
+
+02) Hermès — Fall 2026 Menswear (Vogue Runway)
+https://www.vogue.com/fashion-shows/fall-2026-menswear/hermes
+Why it’s worth looking at:
+“slow down”的那种奢侈：极克制的线条里塞进皮革、工艺与寿命感。
+Visual pattern to study:
+- 深色长外套+细节皮具：低饱和里用“材质高光”做焦点
+- 复古单品的混搭逻辑：老款轮廓如何被现代比例更新
+
+03) Auralee — Fall 2026 Menswear (Vogue Runway)
+https://www.vogue.com/fashion-shows/fall-2026-menswear/auralee
+Why it’s worth looking at:
+“阴天也清爽”的材质学：轻、软、浮的面料把灰度做出空气感。
+Visual pattern to study:
+- 同为驼/米：corduroy cashmere 这种“近看才成立”的细腻差别
+- 轻薄外套与内搭的“边缘线”：领口、袖口的留白
+
+04) Officine Générale — Fall 2026 Menswear (Vogue Runway)
+https://www.vogue.com/fashion-shows/fall-2026-menswear/officine-generale
+Why it’s worth looking at:
+左岸 essentialism：不讨好、不跟风，但每件都像“会被穿很久”的日常制服。
+Visual pattern to study:
+- tonal silhouette：灰/棕/海军蓝的“同色套装”如何靠面料成立
+- 外套、裤型略放大但不松垮：肩线与裤脚的控制
+
+05) Our Legacy — Fall 2026 Menswear (Vogue Runway)
+https://www.vogue.com/fashion-shows/fall-2026-menswear/our-legacy
+Why it’s worth looking at:
+Nordic melancholy 的“功能与诗”：workwear 原型 + 细微怪点（边缘、材质、金属感）。
+Visual pattern to study:
+- workwear 的“诚实比例”：口袋、门襟、厚度为功能服务
+- “小怪但不吵”：在中性色里插入一种不稳定的材质（metallic denim / raw edge）
+
+06) Prada — Fall 2026 Menswear (Vogue Runway)
+https://www.vogue.com/fashion-shows/fall-2026-menswear/prada
+Why it’s worth looking at:
+“archeology / pentimento”的衣橱：褶皱、压痕、旧感被当作美学证据。
+Visual pattern to study:
+- 旧痕迹（rumple/crease）如何变成造型语言：像“被生活用过”的新衣
+- 外套叠外套：层与层的长度差、帽饰位置、材质冲突
+
+07) Zegna — Fall 2026 Menswear (Vogue Runway)
+https://www.vogue.com/fashion-shows/fall-2026-menswear/ermenegildo-zegna
+Why it’s worth looking at:
+heritage 的“安静力量”：家族衣橱与面料史被转译成当代轮廓。
+Visual pattern to study:
+- 羊毛与皮革在低光里“保留纹理”的拍法（别压成一片黑）
+- 经典单品的松紧：宽度放大但线条不散
+
+08) JJJJound — Full Archive (Are.na channel)
+https://www.are.na/brian-curran/jjjjound-full-archive
+Why it’s worth looking at:
+最接近“私藏参考册”的冷静滚动：色彩参数、物件选择、空间气味都很统一。
+Visual pattern to study:
+- muted palette 的“可复用参数”：ecru / taupe / dusty blue 的饱和度边界
+- 物件/空间/穿搭同框：如何让生活方式不显摆
+
+09) EDITORIAL FASHION (Are.na channel)
+https://www.are.na/lily-clempson-tfz8voo8tzo/editorial-fashion
+Why it’s worth looking at:
+把 editorial 当作“构图训练”：更像编辑选片，而不是素材站堆图。
+Visual pattern to study:
+- 人物的姿态与镜头距离：不解释、不微笑、但有态度
+- 低饱和里用“阴影形状”做结构
+
+============================================================
+VIDEOS / MOVING IMAGE REFERENCES (4–8)
+Goal today: 学“慢但不睡”的节奏——停顿、摩擦声、环境声；让衣服的材质自己说话。
+
+01) The Sound Of Clothes (project index) — SHOWstudio
+https://www.showstudio.com/projects/the_sound_of_clothes
+Why it matters:
+把“衣服”从图像拉回到“声音与触感”：适合训练你的视频不靠滤镜也成立。
+What to study:
+- 近景的材质摩擦声（wool/leather/metallic embroidery）如何制造高级感
+- 画面越克制，节奏越要准：停顿与切点
+
+02) Fashion Film: Prada — SHOWstudio (The Sound Of Clothes)
+https://www.showstudio.com/projects/the_sound_of_clothes/fashion-film-prada
+Why it matters:
+“音量开大”的极简实验：把一个 look 拍成一条干净、有锋利度的短片。
+What to study:
+- 单一造型的镜头变化：距离/角度/节奏而非内容堆叠
+- 低饱和的“边缘高光”：如何保留纹理不糊
+
+03) Fashion Film: Hermès — SHOWstudio (The Sound Of Clothes)
+https://www.showstudio.com/projects/the_sound_of_clothes/fashion-film-herm%C3%A8s
+Why it matters:
+皮革的声学质感：很适合做“quiet luxury 不是安静，是密度”的视频参考。
+What to study:
+- 皮革披风/外套的摆动声：用声音表现重量与体积
+- 镜头的克制：不靠剧情，只靠材质与动作
+
+04) Fashion Film: Maison Martin Margiela — SHOWstudio (The Sound Of Clothes)
+https://www.showstudio.com/projects/the_sound_of_clothes/fashion-film-maison-martin-margiela
+Why it matters:
+亮片/流苏的“微噪音”很适合做你账号里“安静但不乏味”的节奏模板。
+What to study:
+- 细碎声响 + 极简画面：如何让观众更“靠近”
+- 服装细节在运动中的真实感（不是摆拍）
+
+05) Fashion Film: Undercover — SHOWstudio (The Sound Of Clothes)
+https://www.showstudio.com/projects/the_sound_of_clothes/fashion-film-undercover
+Why it matters:
+羽毛与面料的声音把“怪”变成高级：给你的视频加一点不确定性。
+What to study:
+- 质感的对比：柔软 vs 硬边、轻 vs 重
+- 节奏的突然：安静里来一个锋利点
+
+06) Watch Kenzo’s dystopian social media parody (“The Realest Real”) — Dazed
+https://www.dazeddigital.com/fashion/article/32829/1/watch-kenzos-dystopian-social-media-parody
+Why it matters:
+把“时装片”拍成文化评论：非常适合你做“反网红/反摆拍”的账号立场。
+What to study:
+- 色彩：70s 办公室灰黄调 vs 服装色块的冲突
+- 讽刺感：用表演/剪辑表达态度，而不是靠旁白说教
+
+============================================================
+ARTICLES / DEEP READING (5–8)
+Goal today: 把账号定位从“好看图”推进到“有编辑判断 + 有文化上下文”；caption 更像档案笔记。
+
+01) La Vie Lemaire — SSENSE (interview)
+https://www.ssense.com/en-us/editorial/fashion/la-vie-lemaire
+Why it matters for positioning/captions:
+“romantic pragmatic / poetry of reality” 是你账号语气的核心：克制、日常、但有诗。
+Caption pattern to steal:
+- 1句立场（现实的诗）+ 1句材料/动作（fabric/gesture）+ 1句收束（silence/weight）
+
+02) Lemaire: The Brand Putting Low-Key Luxury on the Map — SSENSE (interview)
+https://www.ssense.com/en-ae/editorial/fashion/lemaire-the-brand-putting-low-key-luxury-on-the-map
+Why it matters for positioning/captions:
+讲“独立、团队、耐心”的叙事，比“高级感”更能撑起你的账号价值观。
+Caption pattern to steal:
+- 用“时间”写高级：12–18 months / wear-testing / five degrees from generic
+
+03) The Row at Habitat 67 — SSENSE (editorial)
+https://www.ssense.com/en-us/editorial/fashion/the-row-at-habitat-67
+Why it matters for positioning/captions:
+把时装放进 Brutalist 空间：你的 lookbook 选景可以从“网红景点”升级到“材料与结构”。
+Caption pattern to steal:
+- 先写空间（concrete / module / hive）再写衣服（shape / drape / material）
+
+04) A 10 Building Guide to Brutalist Architecture — SSENSE (culture)
+https://www.ssense.com/en-dk/editorial/culture/a-10-building-guide-to-brutalist-architecture/
+Why it matters for positioning/captions:
+给你一套可复用的“城市材料词库”，让 caption 更像编辑笔记而不是种草。
+Caption pattern to steal:
+- “无装饰/高伦理/低成本/快效果”这类结构化句子，适合做系列标题
+
+05) How JJJJound Defined Good Taste for the Internet Era — GQ
+https://www.gq.com/story/jjjjound-gq-profile
+Why it matters for positioning/captions:
+你做 Hidden NY/JJJJound adjacent 内容时，最需要的不是“像”，而是“参数”：饱和度、亮度、情绪边界。
+Caption pattern to steal:
+- 用“参数”而非“品牌名”说话：taupe/ecru/dusty blue + five degrees rule
+
+06) The incredible hulks: Jonathan Meades' A-Z of brutalism — The Guardian
+https://www.theguardian.com/artanddesign/2014/feb/13/jonathan-meades-brutalism-a-z
+Why it matters for positioning/captions:
+“Concrete poetry” 的原始写法：词汇密度高、判断明确，适合做你账号的旁白/字幕风格。
+Caption pattern to steal:
+- A–Z 结构：每条 1 个词 + 1 句判断 + 1 个画面证据（很适合做 10 张图系列）
+
+07) Fall 2026, in Designers' Own Words — Vogue
+https://www.vogue.com/article/fall-2026-in-designers-own-words
+Why it matters for positioning/captions:
+直接给你“设计师语气库”：引用式 caption 很适合做“编辑摘录/档案笔记”。
+Caption pattern to steal:
+- “一句引用 + 一句你的翻译（落到材质/动作/场景）”
+
+08) Why is conservative dressing on the rise when modest fashion is under fire? — Vogue Business
+https://www.voguebusiness.com/story/fashion/why-is-conservative-dressing-on-the-rise-when-modest-fashion-is-under-fire
+Why it matters for positioning/captions:
+把“保守/克制”从审美变成语境：能让你写出更有立场的 caption，而不是单纯的“极简好看”。
+Caption pattern to steal:
+- “表面趋势 vs 被忽视的代价”对照句：适合做结尾反问
+

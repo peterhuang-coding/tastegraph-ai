@@ -1,0 +1,113 @@
+DATE: 2026-04-16
+
+DAILY THEME
+Pre–Milan Design Week calm prep — rainy pavements, yellow trams, espresso bar counters, clean concrete + shadow details.
+
+WHY THIS FITS TODAY
+- Today (Apr 16) sits in the week-before window for Milan Design Week / Fuorisalone and Salone del Mobile, when “trip prep” mood (maps, outfits, hotel lobbies, walking routes, espresso breaks) feels natural and timely.
+
+Trend/date anchors (live sources)
+- Milano Design Week / Fuorisalone dates: https://www.fuorisalone.it/en/2026/events
+- Salone del Mobile 2026 dates overview: https://mmdndesign.com/salone-del-mobile/ (lists Apr 21–26, 2026)
+- Polimi “Design System: BOB Noematic Design” exhibition (opens Apr 16, 2026): https://www.polimi.it/en/the-politecnico/events/event-details/design-system-bob-noematic-design-1
+
+SOURCE STRATEGY USED
+1) Tried to prioritize curated moodboards (Are.na / editorial boards), but Are.na pages require heavy JS and couldn’t be reliably accessed in this tool environment.
+2) Used a backup strategy with high-resolution editorial-style photography from Unsplash, selecting only real photographs (no icons, no thumbnails, no generated placeholders) and preferring neutral/low-saturation compositions.
+3) For each pick, I captured a direct CDN image link (w=3000) when retrievable.
+
+QUALITY GATE (BASIC)
+- Only externally sourced real photographs.
+- Direct links target large assets (typically w=3000) suitable for Xiaohongshu review.
+- Avoided logos, favicons, app icons, and tiny thumbnails.
+
+DOWNLOAD RESULT (IMPORTANT)
+FAILED — 0/15 images downloaded into this folder.
+Reason: the sandboxed terminal environment has outbound DNS/network blocked (e.g., `curl: (6) Could not resolve host ...`), so automatic downloading of external images to disk cannot succeed here.
+Do NOT post this folder as-is.
+
+15 PICKS (source page + direct image link + why)
+
+01) Rainy Milan night / car + streetlights (wet asphalt)
+- Source page: https://unsplash.com/photos/a-car-that-is-sitting-in-the-street-in-the-rain-FpMEQMN2i9s
+- Direct image: https://images.unsplash.com/photo-1699146383794-2a9b95fa360a?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000
+- Why: sets the “pre-trip, late-evening citywalk” tone with muted greys.
+
+02) Milan yellow/black tram (classic street frame)
+- Source page: https://unsplash.com/photos/a-yellow-and-black-tram-on-a-city-street-q8PEV9A1KN4
+- Direct image: https://images.unsplash.com/photo-1730346057448-b023a4c795a8?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000
+- Why: Milan signal without being touristy; geometry + utility.
+
+03) Milan tram (alternate angle for rhythm)
+- Source page: https://unsplash.com/photos/a-yellow-and-black-tram-on-a-city-street-0N938HOMXk0
+- Direct image: https://images.unsplash.com/photo-1730438443975-541c8e4fc789?fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.0.3&q=60&w=3000
+- Why: repeats the motif but keeps the set cohesive and editorial.
+
+04) B&W Milan street (high contrast calm)
+- Source page: https://unsplash.com/photos/a-black-and-white-city-street-i8zdn-M5ToA
+- Direct image: https://images.unsplash.com/photo-1745389485961-454887bb1604?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000
+- Why: strips color down to form + street cadence (JJJJound-ish restraint).
+
+05) Milan kiosk / street micro-detail
+- Source page: https://unsplash.com/photos/a-street-scene-in-milan-with-an-italian-kiosk-YrFBl-Mz8zg
+- Direct image: https://images.unsplash.com/photo-1745249829549-e4ccde91ef2e?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000
+- Why: “everyday Milan” instead of landmarks — good for lifestyle moodboards.
+
+06) Italian street with buildings (quiet travel frame)
+- Source page: https://unsplash.com/photos/an-italian-street-with-beautiful-buildings-z4y1i4Lcvbo
+- Direct image: https://images.unsplash.com/photo-1741513543435-5334897a746d?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000
+- Why: travel context, muted palette, straightforward composition.
+
+07) Facade circles + shadow (design-week “detail study”)
+- Source page: https://unsplash.com/photos/architectural-detail-with-circular-patterns-and-shadows-FToF-L6--O4
+- Direct image: https://images.unsplash.com/photo-1758229296953-395f7acd1970?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000
+- Why: clean geometry; reads like a reference page from an architecture book.
+
+08) Hotel lobby (neutral waiting energy)
+- Source page: https://unsplash.com/photos/elegant-hotel-lobby-with-modern-seating-and-large-windows-dgTzAvblPw4
+- Direct image: https://images.unsplash.com/photo-1767395523555-c44546bea0f0?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000
+- Why: “travel buffer zone” — check-in, daylight, glass and stone.
+
+09) Espresso on marble (crema + stone)
+- Source page: https://unsplash.com/photos/a-cup-of-espresso-on-a-marble-surface--y5kKUObezo
+- Direct image: https://images.unsplash.com/photo-1761210784123-800f8e8a9b63?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000
+- Why: object-study minimalism; luxury without logos.
+
+10) Newspaper on table (morning routine)
+- Source page: https://unsplash.com/photos/newspaper-on-table-yvCIZ3jX62I
+- Direct image: https://images.unsplash.com/photo-1546786836-057c9ee6871b?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000
+- Why: adds “editorial still life” pacing between street frames.
+
+11) Cafe counter (pastries + espresso machine, clean tones)
+- Source page: https://unsplash.com/photos/a-cafe-counter-with-pastries-and-coffee-machine-qFSjZ0CVsFI
+- Direct image: https://images.unsplash.com/photo-1769986929344-e7960cd2f1d4?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000
+- Why: the “espresso break” scene; warm neutrals, soft light.
+
+12) Trench coat street portrait (spring outerwear)
+- Source page: https://unsplash.com/photos/a-woman-walking-down-the-street-in-a-trench-coat-vzfk2QjP4l0
+- Direct image: https://images.unsplash.com/photo-1676716105765-e19fe6a01851?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000
+- Why: transitional-season styling that matches April travel.
+
+13) Espresso cup on wooden board (simple prop styling)
+- Source page: https://unsplash.com/photos/espresso-cup-on-a-wooden-board-CTVdn6M2h7Q
+- Direct image: https://images.unsplash.com/photo-1758024708232-f3ce4c3b4565?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000
+- Why: minimal tabletop detail; keeps the palette grounded.
+
+14) Pastry shop counter (menu board + glass case)
+- Source page: https://unsplash.com/photos/a-baker-works-at-a-pastry-shops-counter-s5eZd_Ceszg
+- Direct image: https://images.unsplash.com/photo-1746454874826-fa87ebd1d40c?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000
+- Why: adds lived-in cafe energy; still reads editorial.
+
+15) Concrete architecture + shadow (gallery/week vibe)
+- Source page: https://unsplash.com/photos/modern-concrete-architecture-with-dramatic-light-and-shadow-W6ZYYtHCzis
+- Direct image: https://images.unsplash.com/photo-1766848752456-db83f7439758?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=3000
+- Why: museum/gallery minimalism — a “design week” background texture.
+
+SHARED VISUAL PATTERN (WHAT TIES IT TOGETHER)
+- Muted neutrals + greys, wet-street reflections, strong geometry, everyday travel moments.
+- Mix of wide street frames + tight object still-lifes to keep scroll rhythm.
+
+XIAOHONGSHU TITLE OPTIONS (2–3)
+1) 米兰设计周前一周：低饱和城市漫步 + Espresso 15张氛围图
+2) Hidden NY/JJJJound风的四月旅行感：雨天街景、黄电车、咖啡吧台
+3) 设计周出发前的“冷静收拾”情绪板：城市、建筑细节、咖啡
