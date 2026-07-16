@@ -13,11 +13,13 @@ Usage:
 import argparse
 import asyncio
 import json
+import os
 import sys
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlencode
 
 import aiosqlite
 
@@ -53,6 +55,7 @@ except ImportError:
 # Constants
 # ---------------------------------------------------------------------------
 
+XHS_CONTENT_DATA_API = "https://creator.xiaohongshu.com/statistics/data-analysis"
 DEFAULT_DAYS = 1  # 24h
 MAX_PAGE_SIZE = 50  # content-data page size
 
@@ -182,6 +185,75 @@ def match_note(
 
 
 # ---------------------------------------------------------------------------
+# HTTP-based fetch (no Chrome needed — uses cookies from file)
+# ---------------------------------------------------------------------------
+
+def _load_cookies() -> str:
+    """Load cookies from cookies.json file and format as cookie string."""
+    for path in [
+        DATA_DIR / "xhs_cookies.json",
+        BASE_DIR / "modules" / "xhs_publisher" / "cookies.json",
+    ]:
+        if path.exists():
+            try:
+                with open(path) as f:
+                    data = json.load(f)
+                if isinstance(data, list):
+                    parts = []
+                    for item in data:
+                        if isinstance(item, dict) and "name" in item and "value" in item:
+                            parts.append(f"{item['name']}={item['value']}")
+                    if parts:
+                        return "; ".join(parts)
+                elif isinstance(data, dict):
+                    parts = [f"{k}={v}" for k, v in data.items() if v]
+                    if parts:
+                        return "; ".join(parts)
+            except Exception:
+                continue
+    return ""
+
+
+def fetch_content_data_via_http(
+    page_num: int = 1,
+    page_size: int = 50,
+    note_type: int = 0,
+) -> dict[str, Any]:
+    """Fetch content data directly via HTTP request using saved cookies."""
+    import requests
+
+    cookie_str = _load_cookies()
+    if not cookie_str:
+        return {"error": "No cookies found. Please run 'bash start.sh login' first."}
+
+    params = {"page_num": page_num, "page_size": page_size, "type": note_type}
+    url = f"{XHS_CONTENT_DATA_API}?{urlencode(params)}"
+
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                       "AppleWebKit/537.36 (KHTML, like Gecko) "
+                       "Chrome/134.0.0.0 Safari/537.36",
+        "Accept": "application/json, text/plain, */*",
+        "Referer": "https://creator.xiaohongshu.com/",
+        "Cookie": cookie_str,
+    }
+
+    try:
+        resp = requests.get(url, headers=headers, timeout=15)
+        if resp.status_code == 200:
+            data = resp.json()
+            if isinstance(data, dict):
+                return data
+            return {"rows": data} if isinstance(data, list) else {"error": f"Unexpected response: {str(data)[:200]}"}
+        elif resp.status_code == 302 or resp.status_code == 401:
+            return {"error": f"Login expired (HTTP {resp.status_code}). Please re-run 'bash start.sh login'."}
+        else:
+            return {"error": f"HTTP {resp.status_code}: {resp.text[:200]}"}
+    except Exception as e:
+        return {"error": str(e)}
+
+
+# ---------------------------------------------------------------------------
 # Core fetch logic
 # ---------------------------------------------------------------------------
 
@@ -298,6 +370,7 @@ async def run_auto_feedback(
     cdp_host: str = "127.0.0.1",
     cdp_port: int = 9222,
     account_name: str | None = None,
+    http_mode: bool = False,
 ) -> list[dict[str, Any]]:
     """Main entry point: fetch pending posts, get feedback data, record.
 
@@ -318,32 +391,91 @@ async def run_auto_feedback(
         f"({dry_run=}, {fetch_all=}, days={days or DEFAULT_DAYS})."
     )
 
-    # 2. Connect to CDP
-    if XiaohongshuPublisher is None:
-        print("[auto_feedback] ERROR: Cannot import XiaohongshuPublisher. "
-              "Is Chrome running with --remote-debugging-port=9222?")
-        await db.close()
-        return []
+    # 2. Try HTTP mode first (no Chrome needed), fallback to CDP
+    results: list[dict[str, Any]] = []
+    use_http = http_mode or True  # default to HTTP mode
 
-    publisher = XiaohongshuPublisher(
-        host=cdp_host,
-        port=cdp_port,
-        account_name=account_name,
-    )
-    publisher.connect()
-    publisher.check_login()
+    if use_http:
+        print("[auto_feedback] Using HTTP mode (no Chrome needed)...")
+        content_data = fetch_content_data_via_http(page_num=1, page_size=MAX_PAGE_SIZE)
+        if "error" in content_data:
+            print(f"[auto_feedback] HTTP mode failed: {content_data['error']}")
+            print("[auto_feedback] Falling back to CDP mode...")
+            use_http = False
+        else:
+            rows = content_data.get("rows", [])
+            print(f"[auto_feedback] HTTP mode OK: {len(rows)} note(s) fetched")
+
+    if not use_http:
+        # 2b. CDP mode
+        if XiaohongshuPublisher is None:
+            print("[auto_feedback] ERROR: Cannot import XiaohongshuPublisher. "
+                  "Is Chrome running with --remote-debugging-port=9222?")
+            await db.close()
+            return []
+
+        publisher = XiaohongshuPublisher(
+            host=cdp_host,
+            port=cdp_port,
+            account_name=account_name,
+        )
+        publisher.connect()
+        publisher.check_login()
+
+        try:
+            content_data = publisher.get_content_data(
+                page_num=1,
+                page_size=MAX_PAGE_SIZE,
+                note_type=0,
+            )
+            rows = content_data.get("rows", [])
+        finally:
+            publisher.disconnect()
 
     # 3. Process each post
-    results: list[dict[str, Any]] = []
     try:
         for idx, post in enumerate(pending):
             print(f"\n[auto_feedback] [{idx + 1}/{len(pending)}] "
                   f"Processing pack_id={post.get('pack_id')} "
                   f"(published: {post.get('published_at', '?')})")
 
-            result = await fetch_feedback_for_post(
-                publisher, post, dry_run=dry_run
-            )
+            if use_http:
+                matched = match_note(rows, post.get("pack_id", ""), title=None)
+                if not matched:
+                    result = {
+                        "pack_id": post.get("pack_id"),
+                        "published_at": post.get("published_at"),
+                        "status": "no_match",
+                        "likes": 0, "saves": 0, "comments": 0, "shares": 0,
+                        "note_id": "", "error": "No match in HTTP fetch result",
+                    }
+                else:
+                    likes = _parse_metric(matched.get("点赞"))
+                    saves = _parse_metric(matched.get("收藏"))
+                    comments = _parse_metric(matched.get("评论"))
+                    shares = _parse_metric(matched.get("分享"))
+                    note_id = matched.get("_id", "")
+                    result = {
+                        "pack_id": post.get("pack_id"),
+                        "published_at": post.get("published_at"),
+                        "status": "dry_run" if dry_run else "success",
+                        "likes": likes, "saves": saves, "comments": comments,
+                        "shares": shares, "note_id": note_id, "error": None,
+                    }
+                    if not dry_run:
+                        record_result = await record_publish_metrics(
+                            pack_id=post.get("pack_id", ""),
+                            likes=likes, saves=saves, comments=comments, shares=shares,
+                            post_url=post.get("post_url", ""),
+                        )
+                        result["engagement_score"] = record_result.get("engagement_score")
+                        result["label"] = record_result.get("label")
+                        result["delta"] = record_result.get("delta")
+                        result["affected_images"] = record_result.get("affected_images")
+            else:
+                result = await fetch_feedback_for_post(
+                    publisher, post, dry_run=dry_run
+                )
 
             # Print result summary
             _print_result(result, idx + 1)
@@ -354,12 +486,12 @@ async def run_auto_feedback(
 
             results.append(result)
 
-            # Brief pause between posts to avoid rate limiting
             if idx < len(pending) - 1:
                 await asyncio.sleep(1.5)
 
     finally:
-        publisher.disconnect()
+        if not use_http:
+            publisher.disconnect()
         await db.close()
 
     # 4. Summary
@@ -482,6 +614,18 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default=None,
         help="小红书账号名称（用于登录缓存）",
     )
+    parser.add_argument(
+        "--http",
+        action="store_true",
+        default=True,
+        help="使用 HTTP 模式（无需 Chrome，默认开启）",
+    )
+    parser.add_argument(
+        "--cdp",
+        action="store_true",
+        dest="cdp_mode",
+        help="强制使用 CDP 模式（需要 Chrome 在 9222 端口）",
+    )
     return parser.parse_args(argv)
 
 
@@ -495,6 +639,7 @@ def main() -> None:
         cdp_host=args.cdp_host,
         cdp_port=args.cdp_port,
         account_name=args.account,
+        http_mode=not args.cdp_mode,
     ))
 
 

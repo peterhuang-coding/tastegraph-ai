@@ -60,7 +60,7 @@ TASTE_CONCEPTS = [
 ]
 
 
-async def generate(date_str: str = None, count: int = 5) -> Path:
+async def generate(date_str: str = None, count: int = 5, skip_queue: bool = False) -> Path:
     """Generate publish packs for the given date."""
     if date_str is None:
         date_str = date_type.today().isoformat()
@@ -290,8 +290,9 @@ async def generate(date_str: str = None, count: int = 5) -> Path:
         post_dirs.append(post_dir)
         print(f"  {post_num}: {title} (score={score:.2f})")
 
-    # Generate QUEUE.html overview
-    _generate_queue_html(batch_dir, post_dirs, date_str)
+    # Generate QUEUE.html overview (skip in auto mode)
+    if not skip_queue:
+        _generate_queue_html(batch_dir, post_dirs, date_str)
 
     await db.close()
     print(f"\n✅ {len(post_dirs)} publish packs saved to {batch_dir}")
@@ -1095,9 +1096,10 @@ def main():
     parser = argparse.ArgumentParser(description="生成小红书发布包")
     parser.add_argument("--date", default=date_type.today().isoformat(), help="日期 (YYYY-MM-DD)")
     parser.add_argument("--count", type=int, default=5, help="生成几篇")
+    parser.add_argument("--skip-queue", action="store_true", help="不生成 QUEUE.html（自动模式）")
     args = parser.parse_args()
 
-    asyncio.run(generate(date_str=args.date, count=args.count))
+    asyncio.run(generate(date_str=args.date, count=args.count, skip_queue=args.skip_queue))
 
 
 if __name__ == "__main__":

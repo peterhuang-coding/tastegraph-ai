@@ -88,6 +88,7 @@ def publish_post(post_dir: Path) -> bool:
         sys.executable,
         str(BASE_DIR / "scripts" / "auto_publish.py"),
         "--post-dir", str(post_dir),
+        "--headless",
     ]
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=180)

@@ -1,18 +1,36 @@
 {
   "tasks": [
     {
+      "name": "crawl",
+      "script": "scripts/crawl_loop_6h.py",
+      "schedule": "03:00",
+      "enabled": true,
+      "args": [
+        "--duration-hours",
+        "4",
+        "--rate-limit",
+        "400",
+        "--max-discovered",
+        "200"
+      ]
+    },
+    {
       "name": "publish",
       "script": "scripts/publish_scheduler.py",
       "schedule": "08:00,20:00",
       "enabled": true,
-      "args": ["--run-now"]
+      "args": [
+        "--run-now"
+      ]
     },
     {
       "name": "auto_feedback",
       "script": "scripts/auto_feedback.py",
       "schedule": "09:00",
       "enabled": true,
-      "args": ["--all"]
+      "args": [
+        "--all"
+      ]
     },
     {
       "name": "backup",
