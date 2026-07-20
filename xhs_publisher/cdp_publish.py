@@ -142,11 +142,12 @@ SELECTORS = {
     "content_editor_alt": 'div.ProseMirror[contenteditable="true"]',
     "content_editor_alt2": "div.ql-editor",
     "content_placeholder_text": "输入正文描述",
-    # Publish button (selector is a fallback; _get_publish_button_rect now iterates all
-    # buttons looking for text containing '发布' but not '定时')
-    "publish_button": ".publish-page-publish-btn button.bg-red",
-    "publish_button_alt": "div.publish-video",
-    "publish_button_alt2": '[class*="publish-video"]',
+    # Publish button — the primary selector targets the <xhs-publish-btn>
+    # Web Component custom element (current creator center UI).  Fallback
+    # selectors cover the legacy <button> and div.publish-video patterns.
+    "publish_button": "xhs-publish-btn",
+    "publish_button_alt": ".publish-page-publish-btn button.bg-red",
+    "publish_button_alt2": "div.publish-video",
     "publish_button_text": "发布",
     "publish_button_full_text": "发布笔记",
     "schedule_publish_button_text": "定时发布",
@@ -3443,9 +3444,12 @@ class XiaohongshuPublisher:
                     return {{ x: rect.x, y: rect.y, width: rect.width, height: rect.height }};
                 }};
                 const normalize = (text) => (text || "").replace(/\\s+/g, " ").trim();
-                const hasPublishText = (text) => (
-                    text.includes({json.dumps(SELECTORS["publish_button_text"])}) &&
-                    !text.includes({json.dumps(SELECTORS["schedule_publish_button_text"])})
+                const hasPublishText = (node, text) => (
+                    // <xhs-publish-btn> Web Component — text is inside shadow DOM,
+                    // so accept by tag name alone when visible.
+                    node.tagName === 'XHS-PUBLISH-BTN' ||
+                    (text.includes({json.dumps(SELECTORS["publish_button_text"])}) &&
+                     !text.includes({json.dumps(SELECTORS["schedule_publish_button_text"])}))
                 );
 
                 // Strategy 1: direct CSS / class selectors (fast path)
@@ -3458,19 +3462,19 @@ class XiaohongshuPublisher:
                 for (const sel of directSelectors) {{
                     try {{
                         const el = document.querySelector(sel);
-                        if (visible(el) && hasPublishText(normalize(el.innerText || el.textContent || ""))) {{
+                        if (visible(el) && hasPublishText(el, normalize(el.innerText || el.textContent || ""))) {{
                             return toRect(el);
                         }}
                     }} catch(e) {{}}
                 }}
 
                 // Strategy 2: iterate button-like elements for '发布' text
-                const buttonSelectors = "button, [role='button'], .d-button, .btn, div.publish-video, [class*='publish-video']";
+                const buttonSelectors = "button, [role='button'], .d-button, .btn, div.publish-video, [class*='publish-video'], xhs-publish-btn";
                 const buttons = document.querySelectorAll(buttonSelectors);
                 for (const node of buttons) {{
                     if (!visible(node)) continue;
                     const text = normalize(node.innerText || node.textContent || "");
-                    if (hasPublishText(text)) {{
+                    if (hasPublishText(node, text)) {{
                         return toRect(node);
                     }}
                 }}
@@ -3483,7 +3487,7 @@ class XiaohongshuPublisher:
                         for (const node of nodes) {{
                             if (!visible(node)) continue;
                             const text = normalize(node.innerText || node.textContent || "");
-                            if (hasPublishText(text)) {{
+                            if (hasPublishText(node, text)) {{
                                 return toRect(node);
                             }}
                         }}
@@ -3526,10 +3530,15 @@ class XiaohongshuPublisher:
                     ".publish-page-publish-btn button",
                     "[class*='publish-video']",
                     "[class*='publish'] button",
+                    "xhs-publish-btn",
                 ];
                 for (const selector of selectors) {{
                     try {{
                         const button = document.querySelector(selector);
+                        // <xhs-publish-btn> text is in shadow DOM — accept by tag name
+                        if (button && button.tagName === 'XHS-PUBLISH-BTN' && visible(button)) {{
+                            return true;
+                        }}
                         if (visible(button) && !isDisabled(button)) {{
                             return true;
                         }}
@@ -3538,7 +3547,7 @@ class XiaohongshuPublisher:
 
                 // Strategy 2: text-based search (fallback — handles div-based
                 // publish buttons that are not <button> elements)
-                const buttonSelectors = "button, [role='button'], .d-button, .btn, div.publish-video, [class*='publish-video']";
+                const buttonSelectors = "button, [role='button'], .d-button, .btn, div.publish-video, [class*='publish-video'], xhs-publish-btn";
                 const buttons = document.querySelectorAll(buttonSelectors);
                 for (const node of buttons) {{
                     if (!visible(node)) continue;
