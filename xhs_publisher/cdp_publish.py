@@ -60,6 +60,8 @@ from typing import Any
 
 # Add scripts dir to path so sibling modules can be imported in both
 # "python scripts/cdp_publish.py" and "import scripts.cdp_publish" modes.
+CDP_COMMAND_TIMEOUT = 30  # seconds
+
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 if SCRIPT_DIR not in sys.path:
     sys.path.insert(0, SCRIPT_DIR)
@@ -143,7 +145,10 @@ SELECTORS = {
     # Publish button (selector is a fallback; _get_publish_button_rect now iterates all
     # buttons looking for text containing '发布' but not '定时')
     "publish_button": ".publish-page-publish-btn button.bg-red",
+    "publish_button_alt": "div.publish-video",
+    "publish_button_alt2": '[class*="publish-video"]',
     "publish_button_text": "发布",
+    "publish_button_full_text": "发布笔记",
     "schedule_publish_button_text": "定时发布",
     "schedule_switch": ".post-time-wrapper .d-switch",
     "schedule_datetime_input": ".date-picker-container input",
@@ -832,7 +837,16 @@ class XiaohongshuPublisher:
         return remote_obj.get("value")
 
     def _navigate(self, url: str):
-        """Navigate the current tab to the given URL and wait for load."""
+        """Navigate the current tab to the given URL and wait for load.
+
+        Skips navigation if the browser is already on the target URL so we
+        don't wipe out a partially-filled form or QR-code page.
+        """
+        current = self._evaluate("window.location.href")
+        if current and current.rstrip("/") == url.rstrip("/"):
+            print(f"[cdp_publish] Already on {url}, skipping navigation.")
+            return
+
         print(f"[cdp_publish] Navigating to {url}")
         self._send("Page.enable")
         self._send("Page.navigate", {"url": url})
@@ -844,7 +858,11 @@ class XiaohongshuPublisher:
 
     def check_login(self) -> bool:
         """
-        Navigate to Xiaohongshu creator center and check if the user is logged in.
+        Check if the user is logged in to Xiaohongshu creator center.
+
+        First checks the cache, then looks at the current page URL. Only
+        navigates to the creator center as a last resort, to avoid
+        disrupting QR-code scanning or already-filled forms.
 
         Returns True if logged in. If not logged in, prints instructions
         and returns False.
@@ -856,14 +874,34 @@ class XiaohongshuPublisher:
                 print("[cdp_publish] Login confirmed (cached).")
             return cached_status
 
-        self._navigate(XHS_CREATOR_LOGIN_CHECK_URL)
-        self._sleep(2, minimum_seconds=1.0)
-
-        # Check if we got redirected to a login page
+        # Check the current URL *before* navigating anywhere
         current_url = self._evaluate("window.location.href")
         print(f"[cdp_publish] Current URL: {current_url}")
 
-        if "login" in current_url.lower():
+        # If already on the creator center and NOT on the login page, we're
+        # logged in — cache it and return without navigating.
+        if current_url and "creator.xiaohongshu.com" in current_url:
+            if "login" not in current_url.lower():
+                self._set_login_cache(scope, logged_in=True)
+                print("[cdp_publish] Login confirmed (already on creator page).")
+                return True
+            # We're on the login page — don't navigate away, user may be
+            # scanning QR.  Just report and return False.
+            self._set_login_cache(scope, logged_in=False)
+            print(
+                "\n[cdp_publish] NOT LOGGED IN.\n"
+                "  On creator login page — please scan the QR code.\n"
+            )
+            return False
+
+        # We're on a non-creator page — navigate to creator center to check.
+        self._navigate(XHS_CREATOR_LOGIN_CHECK_URL)
+        self._sleep(2, minimum_seconds=1.0)
+
+        current_url = self._evaluate("window.location.href")
+        print(f"[cdp_publish] After navigate, URL: {current_url}")
+
+        if "login" in (current_url or "").lower():
             self._set_login_cache(scope, logged_in=False)
             print(
                 "\n[cdp_publish] NOT LOGGED IN.\n"
@@ -3382,7 +3420,16 @@ class XiaohongshuPublisher:
         return selector if isinstance(selector, str) and selector.strip() else None
 
     def _get_publish_button_rect(self) -> dict[str, Any] | None:
-        """Locate the publish button by iterating all buttons for '发布' text but not '定时'."""
+        """Locate the publish button.
+
+        Strategy (fast-path first, then broad fallback):
+        1. Try the hard-coded CSS selectors directly (includes legacy button
+           selector and current div.publish-video element).
+        2. Iterate all buttons / pseudo-buttons for text containing '发布'
+           but NOT '定时发布'.
+        3. Wider search: any element whose class contains 'publish' or
+           'submit' that has the right text.
+        """
         return self._evaluate(f"""
             (() => {{
                 const visible = (node) => (
@@ -3396,51 +3443,113 @@ class XiaohongshuPublisher:
                     return {{ x: rect.x, y: rect.y, width: rect.width, height: rect.height }};
                 }};
                 const normalize = (text) => (text || "").replace(/\\s+/g, " ").trim();
+                const hasPublishText = (text) => (
+                    text.includes({json.dumps(SELECTORS["publish_button_text"])}) &&
+                    !text.includes({json.dumps(SELECTORS["schedule_publish_button_text"])})
+                );
 
-                // Iterate all buttons, find one with text containing '发布' but not '定时'
-                const buttons = document.querySelectorAll("button, [role='button'], .d-button");
+                // Strategy 1: direct CSS / class selectors (fast path)
+                const directSelectors = [
+                    {json.dumps(SELECTORS["publish_button"])},
+                    {json.dumps(SELECTORS["publish_button_alt"])},
+                    {json.dumps(SELECTORS["publish_button_alt2"])},
+                    ".publish-page-publish-btn button",
+                ];
+                for (const sel of directSelectors) {{
+                    try {{
+                        const el = document.querySelector(sel);
+                        if (visible(el) && hasPublishText(normalize(el.innerText || el.textContent || ""))) {{
+                            return toRect(el);
+                        }}
+                    }} catch(e) {{}}
+                }}
+
+                // Strategy 2: iterate button-like elements for '发布' text
+                const buttonSelectors = "button, [role='button'], .d-button, .btn, div.publish-video, [class*='publish-video']";
+                const buttons = document.querySelectorAll(buttonSelectors);
                 for (const node of buttons) {{
-                    if (!visible(node)) {{
-                        continue;
-                    }}
+                    if (!visible(node)) continue;
                     const text = normalize(node.innerText || node.textContent || "");
-                    if (text.includes({json.dumps(SELECTORS["publish_button_text"])}) &&
-                        !text.includes({json.dumps(SELECTORS["schedule_publish_button_text"])})) {{
+                    if (hasPublishText(text)) {{
                         return toRect(node);
                     }}
                 }}
+
+                // Strategy 3: wider search — any element with publish-like class
+                const wideSelectors = ['[class*="publish"]', '[class*="submit"]'];
+                for (const sel of wideSelectors) {{
+                    try {{
+                        const nodes = document.querySelectorAll(sel);
+                        for (const node of nodes) {{
+                            if (!visible(node)) continue;
+                            const text = normalize(node.innerText || node.textContent || "");
+                            if (hasPublishText(text)) {{
+                                return toRect(node);
+                            }}
+                        }}
+                    }} catch(e) {{}}
+                }}
+
                 return null;
             }})()
         """)
 
     def _is_publish_button_ready(self) -> bool:
-        """Return True when the publish button is present, visible and not disabled."""
+        """Return True when the publish button is present, visible and not disabled.
+
+        Checks CSS/class selectors first (including the current div.publish-video
+        element), then falls back to text-based search so we are not dependent on
+        a single class name that may change.
+        """
         ready = self._evaluate(f"""
             (() => {{
-                const selectors = [
-                    {json.dumps(SELECTORS["publish_button"])},
-                    "button.publishBtn",
-                ];
                 const visible = (node) => (
                     node instanceof HTMLElement &&
                     node.offsetParent !== null &&
                     node.getBoundingClientRect().width > 0 &&
                     node.getBoundingClientRect().height > 0
                 );
+                const isDisabled = (node) => {{
+                    if (node.hasAttribute("disabled")) return true;
+                    const className = String(node.className || "");
+                    if (className.includes("disabled")) return true;
+                    if (node.getAttribute("aria-disabled") === "true") return true;
+                    return false;
+                }};
+
+                // Strategy 1: CSS / class selectors
+                const selectors = [
+                    {json.dumps(SELECTORS["publish_button"])},
+                    {json.dumps(SELECTORS["publish_button_alt"])},
+                    {json.dumps(SELECTORS["publish_button_alt2"])},
+                    "button.publishBtn",
+                    ".publish-page-publish-btn button",
+                    "[class*='publish-video']",
+                    "[class*='publish'] button",
+                ];
                 for (const selector of selectors) {{
-                    const button = document.querySelector(selector);
-                    if (!visible(button)) {{
-                        continue;
-                    }}
-                    if (button.hasAttribute("disabled")) {{
-                        continue;
-                    }}
-                    const className = String(button.className || "");
-                    if (className.includes("disabled")) {{
-                        continue;
-                    }}
-                    return true;
+                    try {{
+                        const button = document.querySelector(selector);
+                        if (visible(button) && !isDisabled(button)) {{
+                            return true;
+                        }}
+                    }} catch(e) {{}}
                 }}
+
+                // Strategy 2: text-based search (fallback — handles div-based
+                // publish buttons that are not <button> elements)
+                const buttonSelectors = "button, [role='button'], .d-button, .btn, div.publish-video, [class*='publish-video']";
+                const buttons = document.querySelectorAll(buttonSelectors);
+                for (const node of buttons) {{
+                    if (!visible(node)) continue;
+                    if (isDisabled(node)) continue;
+                    const text = (node.innerText || node.textContent || "").trim();
+                    if (text.includes({json.dumps(SELECTORS["publish_button_text"])}) &&
+                        !text.includes({json.dumps(SELECTORS["schedule_publish_button_text"])})) {{
+                        return true;
+                    }}
+                }}
+
                 return false;
             }})()
         """)
@@ -3460,7 +3569,11 @@ class XiaohongshuPublisher:
         )
 
     def _click_tab(self, tab_selector: str, tab_text: str):
-        """Click a publish-mode tab by selector and text content."""
+        """Click a publish-mode tab by selector and text content.
+
+        Only clicks *visible* tabs (ignores off-screen clones that React
+        may create for animation purposes).
+        """
         print(f"[cdp_publish] Clicking '{tab_text}' tab...")
         selector_alt = (
             "div.creator-tab, .creator-tab, [class*='creator-tab'], [role='tab'], button, div"
@@ -3468,14 +3581,26 @@ class XiaohongshuPublisher:
         selector_alt_literal = json.dumps(selector_alt)
         tab_text_literal = json.dumps(tab_text)
 
-        # Poll until the tab actually exists in the DOM (React app needs time on first load).
-        tab_selector_literal = json.dumps(tab_selector)
+        # Poll until a *visible* tab exists in the DOM
         tab_ready_deadline = time.time() + 15.0
         while time.time() < tab_ready_deadline:
-            tab_count = self._evaluate(
-                f"document.querySelectorAll({tab_selector_literal}).length"
-            )
-            if isinstance(tab_count, (int, float)) and tab_count > 0:
+            visible_count = self._evaluate(f"""
+                (() => {{
+                    const nodes = document.querySelectorAll({json.dumps(tab_selector)});
+                    let count = 0;
+                    for (const n of nodes) {{
+                        if (!(n instanceof HTMLElement)) continue;
+                        if (n.offsetParent === null) continue;
+                        const r = n.getBoundingClientRect();
+                        // Must be on-screen (within reasonable viewport)
+                        if (r.x < -1000 || r.y < -1000) continue;
+                        if (r.width <= 0 || r.height <= 0) continue;
+                        count++;
+                    }}
+                    return count;
+                }})()
+            """)
+            if isinstance(visible_count, (int, float)) and visible_count > 0:
                 break
             time.sleep(0.5)
 
@@ -3503,16 +3628,30 @@ class XiaohongshuPublisher:
                     return false;
                 }}
 
-                var tabs = document.querySelectorAll('{tab_selector}');
+                function isVisible(node) {{
+                    if (!(node instanceof HTMLElement)) return false;
+                    if (node.offsetParent === null) return false;
+                    var r = node.getBoundingClientRect();
+                    // Skip off-screen clones (React animation placeholders)
+                    if (r.x < -1000 || r.y < -1000) return false;
+                    if (r.width <= 0 || r.height <= 0) return false;
+                    return true;
+                }}
+
+                // Try primary selector first (visible tabs only)
+                var tabs = document.querySelectorAll({json.dumps(tab_selector)});
                 for (var i = 0; i < tabs.length; i++) {{
+                    if (!isVisible(tabs[i])) continue;
                     if (matches(tabs[i].textContent)) {{
                         tabs[i].click();
                         return true;
                     }}
                 }}
 
+                // Fallback: broad selector set
                 var allTabs = document.querySelectorAll({selector_alt_literal});
                 for (var j = 0; j < allTabs.length; j++) {{
+                    if (!isVisible(allTabs[j])) continue;
                     if (matches(allTabs[j].textContent)) {{
                         allTabs[j].click();
                         return true;
@@ -3575,7 +3714,14 @@ class XiaohongshuPublisher:
         file as base64 on the Python side, then evaluates JS in the page context
         to construct a DataTransfer FileList and dispatch change/input events.
 
+        After the first upload the creator page re-renders its upload area,
+        so for subsequent images we reverse the selector order (try the alt
+        and generic selectors first). We also retry when the input element
+        is temporarily absent due to React re-render.
+
         Verified working against the current (2026-03) creator center.
+        Updated 2026-07: reversed selector order for images 2+, added
+        input-not-found retry loop.
         """
         if not image_paths:
             print("[cdp_publish] No images to upload, skipping.")
@@ -3596,67 +3742,101 @@ class XiaohongshuPublisher:
             file_name = os.path.basename(abs_path)
             mime_type = self._guess_mime_type(file_name)
 
-            # Upload via DataTransfer JS API
-            result = self._evaluate(f"""
-                (async () => {{
-                    const b64 = {json.dumps(b64_data)};
-                    const fileName = {json.dumps(file_name)};
-                    const mimeType = {json.dumps(mime_type)};
+            # After the first upload the page re-renders — the primary
+            # upload_input selector is often replaced.  Reverse the
+            # selector priority for images 2+ so we try the alt /
+            # generic selectors first.
+            if index == 1:
+                selector_list = [
+                    SELECTORS["upload_input"],
+                    SELECTORS["upload_input_alt"],
+                    'input[type="file"]',
+                ]
+            else:
+                selector_list = [
+                    SELECTORS["upload_input_alt"],
+                    'input[type="file"]',
+                    SELECTORS["upload_input"],
+                ]
 
-                    // 1. Convert base64 to Uint8Array
-                    const binaryStr = atob(b64);
-                    const bytes = new Uint8Array(binaryStr.length);
-                    for (let i = 0; i < binaryStr.length; i++) {{
-                        bytes[i] = binaryStr.charCodeAt(i);
-                    }}
+            # Retry loop: the React re-render may temporarily remove the
+            # input element.  Poll up to 10 s for it to reappear.
+            upload_deadline = time.time() + 10.0
+            last_error = "file_input_not_found"
+            result = None
 
-                    // 2. Create File object
-                    const file = new File([bytes], fileName, {{ type: mimeType }});
+            while time.time() < upload_deadline:
+                result = self._evaluate(f"""
+                    (async () => {{
+                        const b64 = {json.dumps(b64_data)};
+                        const fileName = {json.dumps(file_name)};
+                        const mimeType = {json.dumps(mime_type)};
 
-                    // 3. Create DataTransfer and add file
-                    const dt = new DataTransfer();
-                    dt.items.add(file);
-
-                    // 4. Find the file input element
-                    const selectors = [
-                        {json.dumps(SELECTORS["upload_input"])},
-                        {json.dumps(SELECTORS["upload_input_alt"])},
-                        'input[type="file"]',
-                    ];
-                    let inputEl = null;
-                    for (const sel of selectors) {{
-                        const el = document.querySelector(sel);
-                        if (el instanceof HTMLInputElement) {{
-                            inputEl = el;
-                            break;
+                        // 1. Convert base64 to Uint8Array
+                        const binaryStr = atob(b64);
+                        const bytes = new Uint8Array(binaryStr.length);
+                        for (let i = 0; i < binaryStr.length; i++) {{
+                            bytes[i] = binaryStr.charCodeAt(i);
                         }}
-                    }}
-                    if (!inputEl) {{
-                        return {{ ok: false, error: 'file_input_not_found' }};
-                    }}
 
-                    // 5. Use Object.defineProperty to set files (React/Vue intercept)
-                    Object.defineProperty(inputEl, 'files', {{
-                        value: dt.files,
-                        writable: false,
-                        configurable: true,
-                    }});
+                        // 2. Create File object
+                        const file = new File([bytes], fileName, {{ type: mimeType }});
 
-                    // 6. Dispatch events that React/Vue listeners respond to
-                    inputEl.dispatchEvent(new Event('change', {{ bubbles: true, cancelable: true }}));
-                    inputEl.dispatchEvent(new Event('input', {{ bubbles: true, cancelable: true }}));
+                        // 3. Create DataTransfer and add file
+                        const dt = new DataTransfer();
+                        dt.items.add(file);
 
-                    return {{ ok: true, fileName, fileSize: bytes.length }};
-                }})()
-            """)
+                        // 4. Find the file input element
+                        const selectors = {json.dumps(selector_list)};
+                        let inputEl = null;
+                        for (const sel of selectors) {{
+                            const el = document.querySelector(sel);
+                            if (el instanceof HTMLInputElement) {{
+                                inputEl = el;
+                                break;
+                            }}
+                        }}
+                        if (!inputEl) {{
+                            return {{ ok: false, error: 'file_input_not_found' }};
+                        }}
+
+                        // 5. Use Object.defineProperty to set files (React/Vue intercept)
+                        Object.defineProperty(inputEl, 'files', {{
+                            value: dt.files,
+                            writable: false,
+                            configurable: true,
+                        }});
+
+                        // 6. Dispatch events that React/Vue listeners respond to
+                        inputEl.dispatchEvent(new Event('change', {{ bubbles: true, cancelable: true }}));
+                        inputEl.dispatchEvent(new Event('input', {{ bubbles: true, cancelable: true }}));
+
+                        return {{ ok: true, fileName, fileSize: bytes.length }};
+                    }})()
+                """)
+
+                if isinstance(result, dict) and result.get("ok"):
+                    break
+
+                last_error = "unknown"
+                if isinstance(result, dict):
+                    last_error = str(result.get("error", last_error))
+
+                if last_error != "file_input_not_found":
+                    # Non-retryable error — fail immediately
+                    break
+
+                # Input not found yet — brief wait then retry
+                print(
+                    f"[cdp_publish] Image {index}/{len(image_paths)}: "
+                    f"upload input not ready, retrying in 0.5s..."
+                )
+                self._sleep(0.5, minimum_seconds=0.3)
 
             if not isinstance(result, dict) or not result.get("ok"):
-                error_msg = "unknown"
-                if isinstance(result, dict):
-                    error_msg = str(result.get("error", error_msg))
                 raise CDPError(
                     f"Failed to upload image {index}/{len(image_paths)} "
-                    f"({file_name}): {error_msg}"
+                    f"({file_name}): {last_error}"
                 )
 
             print(f"[cdp_publish] Image {index}/{len(image_paths)} uploaded: {result.get('fileName', file_name)}")
