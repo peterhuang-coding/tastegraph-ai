@@ -551,6 +551,51 @@ class XiaohongshuPublisher:
 
         raise CDPError("No browser tabs available.")
 
+    def _inject_shadow_dom_patch(self):
+        """Inject a script that forces all shadow DOMs to 'open' mode.
+
+        Xiaohongshu's <xhs-publish-btn> uses a closed shadow DOM, which blocks
+        access to the real <button> inside.  By monkey-patching attachShadow
+        before the page loads, every Web Component becomes inspectable and
+        clickable via normal DOM APIs.
+        """
+        try:
+            self._send("Page.enable")
+            self._send("Page.addScriptToEvaluateOnNewDocument", {
+                "source": """
+                    (function() {
+                        const _orig = Element.prototype.attachShadow;
+                        Element.prototype.attachShadow = function(init) {
+                            return _orig.call(this, Object.assign({}, init, {mode: 'open'}));
+                        };
+                    })();
+                """
+            })
+        except Exception as exc:
+            print(f"[cdp_publish] Warning: could not inject shadow-DOM patch: {exc}")
+
+    def _inject_shadow_dom_patch_runtime(self):
+        """Patch attachShadow on the CURRENT page for already-running scripts.
+
+        This catches any Web Components created AFTER this call, but will NOT
+        retroactively open already-created closed shadow roots.  For those we
+        need a full page reload (see _inject_shadow_dom_patch + _navigate).
+        """
+        try:
+            self._evaluate("""
+                (function() {
+                    if (window.__cdp_shadow_patched) return true;
+                    window.__cdp_shadow_patched = true;
+                    const _orig = Element.prototype.attachShadow;
+                    Element.prototype.attachShadow = function(init) {
+                        return _orig.call(this, Object.assign({}, init, {mode: 'open'}));
+                    };
+                    return true;
+                })();
+            """)
+        except Exception:
+            pass
+
     def connect(self, target_url_prefix: str = "", reuse_existing_tab: bool = False):
         """Connect to a Chrome tab via WebSocket."""
         ws_url = self._find_or_create_tab(
@@ -563,6 +608,11 @@ class XiaohongshuPublisher:
         print(f"[cdp_publish] Connecting to {ws_url}")
         self.ws = ws_client.connect(ws_url)
         print("[cdp_publish] Connected to Chrome tab.")
+
+        # Inject shadow-DOM patch so that <xhs-publish-btn> and other Web
+        # Components are inspectable after the next page navigation.
+        self._inject_shadow_dom_patch()
+        self._inject_shadow_dom_patch_runtime()
 
     def disconnect(self):
         """Close the WebSocket connection."""
@@ -3423,13 +3473,15 @@ class XiaohongshuPublisher:
     def _get_publish_button_rect(self) -> dict[str, Any] | None:
         """Locate the publish button.
 
-        Strategy (fast-path first, then broad fallback):
-        1. Try the hard-coded CSS selectors directly (primary: button.bg-red
-           inside .publish-page-publish-btn; fallback: xhs-publish-btn).
-        2. Iterate all buttons / pseudo-buttons for text containing '发布'
-           but NOT '定时发布'.
-        3. Wider search: any element whose class contains 'publish' or
-           'submit' that has the right text.
+        The real publish button (button.ce-btn.bg-red) lives inside the
+        Shadow DOM of the <xhs-publish-btn> Web Component, so we must
+        penetrate the shadow root to find it.  Fallback: light-DOM search.
+
+        Strategy:
+        1. Try light-DOM selectors first (in case structure changes).
+        2. Penetrate shadow DOM of <xhs-publish-btn> — this is where the
+           actual <button class="ce-btn bg-red">发布</button> lives.
+        3. Broad fallback: any visible button-like element with '发布' text.
         """
         return self._evaluate(f"""
             (() => {{
@@ -3444,50 +3496,76 @@ class XiaohongshuPublisher:
                     return {{ x: rect.x, y: rect.y, width: rect.width, height: rect.height }};
                 }};
                 const normalize = (text) => (text || "").replace(/\\s+/g, " ").trim();
-                const hasPublishText = (node, text) => (
-                    // <xhs-publish-btn> Web Component — text is inside shadow DOM,
-                    // so accept by tag name alone when visible.
-                    node.tagName === 'XHS-PUBLISH-BTN' ||
-                    (text.includes({json.dumps(SELECTORS["publish_button_text"])}) &&
-                     !text.includes({json.dumps(SELECTORS["schedule_publish_button_text"])}))
+                const PUBLISH_TEXT = {json.dumps(SELECTORS["publish_button_text"])};
+                const SCHEDULE_TEXT = {json.dumps(SELECTORS["schedule_publish_button_text"])};
+                const hasPublishText = (text) => (
+                    text.includes(PUBLISH_TEXT) && !text.includes(SCHEDULE_TEXT)
                 );
 
-                // Strategy 1: direct CSS / class selectors (fast path)
-                const directSelectors = [
-                    {json.dumps(SELECTORS["publish_button"])},
-                    {json.dumps(SELECTORS["publish_button_alt"])},
-                    {json.dumps(SELECTORS["publish_button_alt2"])},
-                    ".publish-page-publish-btn button",
+                // Strategy 1: light-DOM selectors (fast path, may work if
+                // Xiaohongshu changes away from Web Components)
+                const lightSelectors = [
+                    ".publish-page-publish-btn button.bg-red",
+                    "button.ce-btn.bg-red",
                 ];
-                for (const sel of directSelectors) {{
+                for (const sel of lightSelectors) {{
                     try {{
                         const el = document.querySelector(sel);
-                        if (visible(el) && hasPublishText(el, normalize(el.innerText || el.textContent || ""))) {{
+                        if (visible(el) && hasPublishText(normalize(el.innerText || el.textContent || ""))) {{
                             return toRect(el);
                         }}
                     }} catch(e) {{}}
                 }}
 
-                // Strategy 2: iterate button-like elements for '发布' text
-                const buttonSelectors = "button, [role='button'], .d-button, .btn, .ce-btn, [class*='publish-btn'], xhs-publish-btn";
-                const buttons = document.querySelectorAll(buttonSelectors);
-                for (const node of buttons) {{
+                // Strategy 2: penetrate shadow DOM of <xhs-publish-btn>
+                // This is where the real button lives in the current UI.
+                const xhsBtns = document.querySelectorAll('xhs-publish-btn');
+                for (const host of xhsBtns) {{
+                    if (!visible(host)) continue;
+                    const root = host.shadowRoot;
+                    if (!root) continue;
+
+                    // Try to find the real button inside the shadow DOM
+                    const shadowSelectors = [
+                        'button.bg-red',
+                        '.publish-page-publish-btn button.bg-red',
+                        'button.ce-btn.bg-red',
+                        'button',
+                    ];
+                    for (const sel of shadowSelectors) {{
+                        try {{
+                            const btn = root.querySelector(sel);
+                            if (btn && visible(btn) && hasPublishText(normalize(btn.innerText || btn.textContent || ""))) {{
+                                return toRect(btn);
+                            }}
+                        }} catch(e) {{}}
+                    }}
+                }}
+
+                // Strategy 3: xhs-publish-btn itself (last resort — clicking the
+                // wrapper may not trigger the publish action)
+                const xhsBtn = document.querySelector('xhs-publish-btn');
+                if (visible(xhsBtn)) {{
+                    return toRect(xhsBtn);
+                }}
+
+                // Strategy 4: broad light-DOM search for any '发布' button
+                const allButtons = document.querySelectorAll("button, [role='button'], .d-button, .btn, .ce-btn");
+                for (const node of allButtons) {{
                     if (!visible(node)) continue;
-                    const text = normalize(node.innerText || node.textContent || "");
-                    if (hasPublishText(node, text)) {{
+                    if (hasPublishText(normalize(node.innerText || node.textContent || ""))) {{
                         return toRect(node);
                     }}
                 }}
 
-                // Strategy 3: wider search — any element with publish-like class
+                // Strategy 5: wider search — any element with publish-like class
                 const wideSelectors = ['[class*="publish"]', '[class*="submit"]'];
                 for (const sel of wideSelectors) {{
                     try {{
                         const nodes = document.querySelectorAll(sel);
                         for (const node of nodes) {{
                             if (!visible(node)) continue;
-                            const text = normalize(node.innerText || node.textContent || "");
-                            if (hasPublishText(node, text)) {{
+                            if (hasPublishText(normalize(node.innerText || node.textContent || ""))) {{
                                 return toRect(node);
                             }}
                         }}
@@ -3501,9 +3579,9 @@ class XiaohongshuPublisher:
     def _is_publish_button_ready(self) -> bool:
         """Return True when the publish button is present, visible and not disabled.
 
-        Checks CSS/class selectors first (primary: button.bg-red inside
-        .publish-page-publish-btn), then falls back to text-based search so
-        we are not dependent on a single class name that may change.
+        Penetrates the Shadow DOM of <xhs-publish-btn> to find the actual
+        <button class="ce-btn bg-red">发布</button> inside, then checks its
+        disabled state.  Falls back to light-DOM search.
         """
         ready = self._evaluate(f"""
             (() => {{
@@ -3518,37 +3596,66 @@ class XiaohongshuPublisher:
                     const className = String(node.className || "");
                     if (className.includes("disabled")) return true;
                     if (node.getAttribute("aria-disabled") === "true") return true;
+                    if (node.getAttribute("aria-busy") === "true") return true;
                     return false;
                 }};
+                const PUBLISH_TEXT = {json.dumps(SELECTORS["publish_button_text"])};
+                const SCHEDULE_TEXT = {json.dumps(SELECTORS["schedule_publish_button_text"])};
+                const hasPublishText = (text) => (
+                    text.includes(PUBLISH_TEXT) && !text.includes(SCHEDULE_TEXT)
+                );
 
-                // Strategy 1: CSS / class selectors
-                const selectors = [
-                    {json.dumps(SELECTORS["publish_button"])},
-                    {json.dumps(SELECTORS["publish_button_alt"])},
-                    {json.dumps(SELECTORS["publish_button_alt2"])},
-                    ".publish-page-publish-btn button",
-                    "[class*='publish'] button",
-                    "xhs-publish-btn",
+                // Strategy 1: light-DOM selectors
+                const lightSelectors = [
+                    ".publish-page-publish-btn button.bg-red",
+                    "button.ce-btn.bg-red",
                 ];
-                for (const selector of selectors) {{
+                for (const sel of lightSelectors) {{
                     try {{
-                        const button = document.querySelector(selector);
-                        if (visible(button) && !isDisabled(button)) {{
+                        const btn = document.querySelector(sel);
+                        if (visible(btn) && !isDisabled(btn)) {{
                             return true;
                         }}
                     }} catch(e) {{}}
                 }}
 
-                // Strategy 2: text-based search (fallback — handles div-based
-                // publish buttons and Web Components with shadow DOM)
-                const buttonSelectors = "button, [role='button'], .d-button, .btn, .ce-btn, [class*='publish-btn'], xhs-publish-btn";
-                const buttons = document.querySelectorAll(buttonSelectors);
-                for (const node of buttons) {{
+                // Strategy 2: penetrate shadow DOM of <xhs-publish-btn>
+                const xhsBtns = document.querySelectorAll('xhs-publish-btn');
+                for (const host of xhsBtns) {{
+                    if (!visible(host)) continue;
+                    const root = host.shadowRoot;
+                    if (!root) continue;
+
+                    const shadowSelectors = [
+                        'button.bg-red',
+                        '.publish-page-publish-btn button.bg-red',
+                        'button.ce-btn.bg-red',
+                        'button',
+                    ];
+                    for (const sel of shadowSelectors) {{
+                        try {{
+                            const btn = root.querySelector(sel);
+                            if (btn && visible(btn) && !isDisabled(btn) &&
+                                hasPublishText((btn.innerText || btn.textContent || "").trim())) {{
+                                return true;
+                            }}
+                        }} catch(e) {{}}
+                    }}
+                }}
+
+                // Strategy 3: xhs-publish-btn visible (fallback)
+                const xhsBtn = document.querySelector('xhs-publish-btn');
+                if (visible(xhsBtn)) {{
+                    return true;
+                }}
+
+                // Strategy 4: broad light-DOM search
+                const allButtons = document.querySelectorAll("button, [role='button'], .d-button, .btn, .ce-btn");
+                for (const node of allButtons) {{
                     if (!visible(node)) continue;
                     if (isDisabled(node)) continue;
                     const text = (node.innerText || node.textContent || "").trim();
-                    if (text.includes({json.dumps(SELECTORS["publish_button_text"])}) &&
-                        !text.includes({json.dumps(SELECTORS["schedule_publish_button_text"])})) {{
+                    if (hasPublishText(text)) {{
                         return true;
                     }}
                 }}
@@ -4281,9 +4388,16 @@ class XiaohongshuPublisher:
                 "It must follow the format 'yyyy-MM-dd HH:mm' and fall within the next 14 days."
             )
 
-        # Step 1: Navigate to publish page
-        self._navigate(XHS_CREATOR_URL)
-        self._sleep(2, minimum_seconds=1.0)
+        # Step 0: Force a full page load so the shadow-DOM monkey-patch
+        # (injected by connect) takes effect.  Without this, any
+        # <xhs-publish-btn> created before the patch will have a closed
+        # shadow root and the publish button inside will be unreachable.
+        self._send("Page.enable")
+        self._send("Page.navigate", {"url": XHS_CREATOR_URL})
+        self._sleep(PAGE_LOAD_WAIT + 1, minimum_seconds=2.0)
+
+        # Step 1: Navigate to publish page (already there from Step 0)
+        self._sleep(1, minimum_seconds=0.5)
 
         # Step 2: Click '上传图文' tab
         self._click_image_text_tab()
