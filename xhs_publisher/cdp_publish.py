@@ -144,10 +144,10 @@ SELECTORS = {
     "content_placeholder_text": "输入正文描述",
     # Publish button — the primary selector targets the <xhs-publish-btn>
     # Web Component custom element (current creator center UI).  Fallback
-    # selectors cover the legacy <button> and div.publish-video patterns.
-    "publish_button": "xhs-publish-btn",
-    "publish_button_alt": ".publish-page-publish-btn button.bg-red",
-    "publish_button_alt2": "div.publish-video",
+    # selectors cover the legacy <xhs-publish-btn> Web Component and fallback patterns.
+    "publish_button": ".publish-page-publish-btn button.bg-red",
+    "publish_button_alt": "button.ce-btn.bg-red",
+    "publish_button_alt2": "xhs-publish-btn",
     "publish_button_text": "发布",
     "publish_button_full_text": "发布笔记",
     "schedule_publish_button_text": "定时发布",
@@ -3424,8 +3424,8 @@ class XiaohongshuPublisher:
         """Locate the publish button.
 
         Strategy (fast-path first, then broad fallback):
-        1. Try the hard-coded CSS selectors directly (includes legacy button
-           selector and current div.publish-video element).
+        1. Try the hard-coded CSS selectors directly (primary: button.bg-red
+           inside .publish-page-publish-btn; fallback: xhs-publish-btn).
         2. Iterate all buttons / pseudo-buttons for text containing '发布'
            but NOT '定时发布'.
         3. Wider search: any element whose class contains 'publish' or
@@ -3469,7 +3469,7 @@ class XiaohongshuPublisher:
                 }}
 
                 // Strategy 2: iterate button-like elements for '发布' text
-                const buttonSelectors = "button, [role='button'], .d-button, .btn, div.publish-video, [class*='publish-video'], xhs-publish-btn";
+                const buttonSelectors = "button, [role='button'], .d-button, .btn, .ce-btn, [class*='publish-btn'], xhs-publish-btn";
                 const buttons = document.querySelectorAll(buttonSelectors);
                 for (const node of buttons) {{
                     if (!visible(node)) continue;
@@ -3501,9 +3501,9 @@ class XiaohongshuPublisher:
     def _is_publish_button_ready(self) -> bool:
         """Return True when the publish button is present, visible and not disabled.
 
-        Checks CSS/class selectors first (including the current div.publish-video
-        element), then falls back to text-based search so we are not dependent on
-        a single class name that may change.
+        Checks CSS/class selectors first (primary: button.bg-red inside
+        .publish-page-publish-btn), then falls back to text-based search so
+        we are not dependent on a single class name that may change.
         """
         ready = self._evaluate(f"""
             (() => {{
@@ -3526,19 +3526,13 @@ class XiaohongshuPublisher:
                     {json.dumps(SELECTORS["publish_button"])},
                     {json.dumps(SELECTORS["publish_button_alt"])},
                     {json.dumps(SELECTORS["publish_button_alt2"])},
-                    "button.publishBtn",
                     ".publish-page-publish-btn button",
-                    "[class*='publish-video']",
                     "[class*='publish'] button",
                     "xhs-publish-btn",
                 ];
                 for (const selector of selectors) {{
                     try {{
                         const button = document.querySelector(selector);
-                        // <xhs-publish-btn> text is in shadow DOM — accept by tag name
-                        if (button && button.tagName === 'XHS-PUBLISH-BTN' && visible(button)) {{
-                            return true;
-                        }}
                         if (visible(button) && !isDisabled(button)) {{
                             return true;
                         }}
@@ -3546,8 +3540,8 @@ class XiaohongshuPublisher:
                 }}
 
                 // Strategy 2: text-based search (fallback — handles div-based
-                // publish buttons that are not <button> elements)
-                const buttonSelectors = "button, [role='button'], .d-button, .btn, div.publish-video, [class*='publish-video'], xhs-publish-btn";
+                // publish buttons and Web Components with shadow DOM)
+                const buttonSelectors = "button, [role='button'], .d-button, .btn, .ce-btn, [class*='publish-btn'], xhs-publish-btn";
                 const buttons = document.querySelectorAll(buttonSelectors);
                 for (const node of buttons) {{
                     if (!visible(node)) continue;
