@@ -91,25 +91,22 @@ async def run():
 
         # 5. Optional auto-publish (if --auto-publish passed)
         if "--auto-publish" in sys.argv and packs:
-            print("[5/5] Auto-publishing best pack...")
+            print("[5/5] Auto-publishing best pack via CDP...")
             try:
-                from modules.xhs_publisher.composer import MoodboardComposer
-                from modules.xhs_publisher.publisher import XiaohongshuPublisher
-                from taste_graph_ai.config import XHS_COOKIES_FILE
+                from taste_graph_ai.cdp_adapter import publish_via_cdp
                 best = max(packs, key=lambda p: p.taste_score)
                 imgs = await pack_repo.get_pack_images(best.id)
                 paths = [i["local_path"] for i in imgs if i.get("local_path")]
                 if paths:
-                    composer = MoodboardComposer()
                     title = best.title_options[0] if best.title_options else best.theme
-                    export_path = composer.compose(
-                        image_paths=paths, theme=best.theme, caption=best.caption, title=title,
-                    )
-                    async with XiaohongshuPublisher(cookies_path=XHS_COOKIES_FILE) as publisher:
-                        post_url = await publisher.publish(str(export_path), title, best.caption)
-                    best.publish()
-                    await pack_repo.save(best)
-                    print(f"  Published: {post_url}")
+                    caption = best.caption or best.theme
+                    result = publish_via_cdp(title=title, content=caption, image_paths=paths)
+                    if result.get("success"):
+                        best.publish()
+                        await pack_repo.save(best)
+                        print(f"  Published: {result.get('post_url', '')}")
+                    else:
+                        print(f"  CDP publish failed: {result.get('message', 'unknown')}")
             except Exception as e:
                 print(f"  Auto-publish failed: {e}")
 

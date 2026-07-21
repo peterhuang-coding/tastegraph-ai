@@ -39,6 +39,7 @@ class TaskType(str, Enum):
     SOURCE_ROTATION = "source_rotation"
     SERIES_IDEA = "series_idea"
     GAP_ALERT = "gap_alert"
+    PUBLISH_PACK = "publish_pack"
 
 
 class TaskPriority(str, Enum):

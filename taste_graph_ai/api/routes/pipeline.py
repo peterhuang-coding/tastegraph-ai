@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends
+from pydantic import BaseModel
+
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
 
 from taste_graph_ai.api import schemas
 from taste_graph_ai.api.deps import (
@@ -129,27 +131,25 @@ async def trigger_full(
 
         await ai.close()
 
-        # 5. Optional auto-publish (best-scoring pack)
+        # 5. Optional auto-publish (best-scoring pack) via CDP
         auto_pub_result = ""
         if auto_publish and packs:
+            from taste_graph_ai.cdp_adapter import publish_via_cdp
             best = max(packs, key=lambda p: p.taste_score)
             try:
-                from modules.xhs_publisher.composer import MoodboardComposer
-                composer = MoodboardComposer()
                 imgs = await pack_repo.get_pack_images(best.id)
                 paths = [i["local_path"] for i in imgs if i.get("local_path")]
                 if paths:
                     title = best.title_options[0] if best.title_options else best.theme
-                    export_path = composer.compose(
-                        image_paths=paths, theme=best.theme, caption=best.caption, title=title,
-                    )
-                    from modules.xhs_publisher.publisher import XiaohongshuPublisher
-                    from taste_graph_ai.config import XHS_COOKIES_FILE
-                    async with XiaohongshuPublisher(cookies_path=XHS_COOKIES_FILE) as publisher:
-                        post_url = await publisher.publish(str(export_path), title, best.caption)
-                    best.publish()
-                    await pack_repo.save(best)
-                    auto_pub_result = f" | Auto-published: {post_url}"
+                    caption = best.caption or best.theme
+                    result = publish_via_cdp(title=title, content=caption, image_paths=paths)
+                    if result.get("success"):
+                        post_url = result.get("post_url", "")
+                        best.publish()
+                        await pack_repo.save(best)
+                        auto_pub_result = f" | CDP published: {post_url}"
+                    else:
+                        auto_pub_result = f" | CDP publish failed: {result.get('message', 'unknown')}"
             except Exception as e:
                 auto_pub_result = f" | Auto-publish failed: {e}"
                 event_log.append("pipeline.auto_publish_error", {"error": str(e)})
@@ -170,3 +170,79 @@ async def trigger_full(
             success=False,
             message=f"Pipeline failed: {e}",
         )
+
+
+class CDPPublishRequest(BaseModel):
+    pack_id: str = ""
+    title: str = ""
+    content: str = ""
+    image_paths: list[str] = []
+
+
+@router.post("/cdp-publish", response_model=schemas.PipelineResult)
+async def trigger_cdp_publish(
+    body: CDPPublishRequest,
+    pack_repo: PackRepository = Depends(get_pack_repo),
+    event_log: EventLog = Depends(get_event_log),
+):
+    """Publish directly via CDP browser automation.
+
+    Two modes:
+    1. Provide pack_id — loads title/content/images from the pack in DB.
+    2. Provide title/content/image_paths directly (for manual / curated packs).
+    """
+    from taste_graph_ai.cdp_adapter import publish_via_cdp, is_chrome_ready
+
+    if not is_chrome_ready():
+        raise HTTPException(
+            status_code=503,
+            detail="Chrome with remote debugging (port 9222) is not running. "
+                   "Start Chrome with: chrome --remote-debugging-port=9222",
+        )
+
+    pack_id = body.pack_id
+    title = body.title
+    content = body.content
+    image_paths = body.image_paths
+
+    if pack_id:
+        pack = await pack_repo.get_by_id(pack_id)
+        if not pack:
+            raise HTTPException(status_code=404, detail="Pack not found")
+        imgs = await pack_repo.get_pack_images(pack_id)
+        paths = [i["local_path"] for i in imgs if i.get("local_path")]
+        if not paths:
+            raise HTTPException(status_code=400, detail="Pack has no local images")
+        title = pack.title_options[0] if pack.title_options else pack.theme
+        content = pack.caption or pack.theme
+    else:
+        if not title or not content or not image_paths:
+            raise HTTPException(
+                status_code=400,
+                detail="Provide pack_id or (title + content + image_paths)",
+            )
+        paths = image_paths
+
+    result = publish_via_cdp(title=title, content=content, image_paths=paths)
+
+    if result.get("success"):
+        if pack_id:
+            pack = await pack_repo.get_by_id(pack_id)
+            if pack:
+                pack.publish()
+                await pack_repo.save(pack)
+        event_log.append("pipeline.cdp_publish_ok", {
+            "pack_id": pack_id,
+            "post_url": result.get("post_url", ""),
+        })
+    else:
+        event_log.append("pipeline.cdp_publish_error", {
+            "pack_id": pack_id,
+            "error": result.get("message", "unknown"),
+        })
+
+    return schemas.PipelineResult(
+        success=result.get("success", False),
+        message=result.get("message", ""),
+        data={"post_url": result.get("post_url", "")},
+    )

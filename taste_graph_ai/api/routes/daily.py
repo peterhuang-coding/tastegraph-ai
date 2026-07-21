@@ -227,26 +227,38 @@ async def auto_publish_pack(
         title=title,
     )
 
-    # Try Playwright publish
+    # Use CDP publisher (not Playwright — the shadow DOM fix is only in CDP)
     try:
-        from modules.xhs_publisher.publisher import XiaohongshuPublisher
-        from taste_graph_ai.config import XHS_COOKIES_FILE
-        async with XiaohongshuPublisher(cookies_path=XHS_COOKIES_FILE) as publisher:
-            post_url = await publisher.publish(
-                image_path=str(export_path),
-                title=title,
-                caption=pack.caption,
+        from taste_graph_ai.cdp_adapter import publish_via_cdp, is_chrome_ready
+
+        if not is_chrome_ready():
+            return schemas.AutoPublishResponse(
+                success=False,
+                error="Chrome 未在调试模式运行。请用 chrome --remote-debugging-port=9222 启动。",
             )
-    except ImportError:
+
+        result = publish_via_cdp(
+            title=title,
+            content=pack.caption or pack.theme,
+            image_paths=image_paths,
+        )
+
+        if not result.get("success"):
+            return schemas.AutoPublishResponse(
+                success=False,
+                error=f"CDP 发布失败: {result.get('message', 'unknown')}",
+            )
+        post_url = result.get("post_url", "")
+    except ImportError as e:
         return schemas.AutoPublishResponse(
             success=False,
-            error="Playwright 未安装。请运行: pip install playwright && playwright install chromium",
+            error=f"CDP adapter 导入失败: {e}",
         )
     except Exception as e:
         event_log.append("publish.auto_failed", {"pack_id": pack_id, "error": str(e)})
         return schemas.AutoPublishResponse(
             success=False,
-            error=f"自动发布失败: {e}。请使用手动导出。导出文件: /exports/{export_path.name}",
+            error=f"自动发布失败: {e}。导出文件: /exports/{export_path.name}",
         )
 
     # Success
