@@ -6,6 +6,7 @@ dist/
 
 # Data (runtime)
 data/taste_graph.db
+data/taste_graph.db-*
 data/events.log
 data/backups/
 data/images/

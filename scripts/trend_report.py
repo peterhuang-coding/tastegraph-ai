@@ -193,7 +193,7 @@ def compute_keyword_trends(
     Splits the period into two halves to compare recent vs. earlier frequency.
     """
     if not records:
-        return {"all_keywords": [], "rising": [], "fading": [], "total_records": 0}
+        return {"all_keywords": [], "rising": [], "fading": [], "total_records": 0, "total_keywords": 0}
 
     # Sort by created_at ascending
     sorted_recs = sorted(records, key=lambda r: r["created_at"])
