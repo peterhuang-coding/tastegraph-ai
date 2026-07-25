@@ -503,11 +503,11 @@ async def run(args: argparse.Namespace) -> int:
 
         batch.append(record)
 
-        # Flush batch
-        if len(batch) >= 10:
-            _write_batch(out_file, batch)
-            batch.clear()
-            _print_progress(stats, deadline)
+        # Flush after every item for live visibility
+        _write_batch(out_file, batch)
+        batch.clear()
+        _print_progress(stats, deadline)
+        sys.stdout.flush()
 
     # Final flush
     if batch:
