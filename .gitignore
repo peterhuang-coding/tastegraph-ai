@@ -21,6 +21,7 @@ data/logs/
 # IDE
 .vscode/
 .idea/
+.claude/
 
 # Scripts pycache
 scripts/__pycache__/
