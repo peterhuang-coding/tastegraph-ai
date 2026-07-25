@@ -64,16 +64,21 @@ class ImageRepository:
         return [self._row_to_image(r) for r in await cursor.fetchall()]
 
     async def list_by_status_paginated(
-        self, status: ImageStatus, page: int = 1, limit: int = 50
+        self, status: ImageStatus, page: int = 1, limit: int = 50,
+        require_local_file: bool = False,
     ) -> tuple[list[Image], int]:
         offset = (page - 1) * limit
+        if require_local_file:
+            where = "status = ? AND local_path IS NOT NULL AND local_path != ''"
+        else:
+            where = "status = ?"
         cursor = await self.db.execute(
-            "SELECT COUNT(*) FROM images WHERE status = ?", (status.value,)
+            f"SELECT COUNT(*) FROM images WHERE {where}", (status.value,)
         )
         total_row = await cursor.fetchone()
         total = total_row[0] if total_row else 0
         cursor = await self.db.execute(
-            "SELECT * FROM images WHERE status = ? ORDER BY final_score DESC LIMIT ? OFFSET ?",
+            f"SELECT * FROM images WHERE {where} ORDER BY id DESC LIMIT ? OFFSET ?",
             (status.value, limit, offset),
         )
         images = [self._row_to_image(r) for r in await cursor.fetchall()]
