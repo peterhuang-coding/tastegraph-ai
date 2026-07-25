@@ -4,7 +4,9 @@ from typing import Optional
 
 from taste_graph_ai.config import FEEDBACK_PROPAGATION_DEPTH, FEEDBACK_PROPAGATION_DECAY
 from taste_graph_ai.container import get_container
-from taste_graph_ai.domain.enums import FeedbackLabel, FeedbackTargetType, NodeType
+from taste_graph_ai.domain.enums import (
+    FeedbackLabel, FeedbackTargetType, NodeType, RelationType,
+)
 from taste_graph_ai.domain.models import Feedback
 from taste_graph_ai.infrastructure.db.event_log import EventLog
 from taste_graph_ai.infrastructure.repos.feedback import FeedbackRepository

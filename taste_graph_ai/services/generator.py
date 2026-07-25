@@ -2,7 +2,7 @@ import re
 import uuid
 from datetime import date, datetime, timezone
 
-from taste_graph_ai.config import DAILY_PACK_COUNT
+from taste_graph_ai.config import DAILY_PACK_COUNT, TASTE_SCORE_NORMALIZATION_FACTOR
 from taste_graph_ai.domain.enums import PackStatus
 from taste_graph_ai.domain.models import DailyPack
 from taste_graph_ai.container import get_container
@@ -64,8 +64,11 @@ class PackGenerationService:
             taste_score = graph.score_content(
                 keywords[:5] + theme_data.get("theme", "").split(),
             )
-            # Normalize to 0.5-1.0 range
-            taste_score = max(0.5, min(1.0, taste_score / 10))
+            # Normalize to 0.5-1.0 range.
+            # score_content() returns raw scores (keyword matches × edge weights),
+            # typically in 0-15 range. Divide by TASTE_SCORE_NORMALIZATION_FACTOR
+            # (default 10.0) and clamp to [0.5, 1.0].
+            taste_score = max(0.5, min(1.0, taste_score / TASTE_SCORE_NORMALIZATION_FACTOR))
 
             pack = DailyPack(
                 id=uuid.uuid4().hex[:12],

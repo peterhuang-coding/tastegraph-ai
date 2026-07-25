@@ -137,6 +137,13 @@ const App = {
 
   renderEmpty(container, msg='暂无数据') {
     container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📭</div><p>${msg}</p></div>`;
+  },
+
+  // Shared HTML escape utility — use this instead of copy-pasting esc() everywhere
+  esc(str) {
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
   }
 };
 
@@ -173,7 +180,7 @@ const API = {
   }
 };
 
-// Template helpers
+// Template helper
 function h(tag, attrs={}, ...children) {
   const el = document.createElement(tag);
   Object.entries(attrs).forEach(([k,v]) => {
@@ -186,10 +193,4 @@ function h(tag, attrs={}, ...children) {
     else if (c instanceof Node) el.appendChild(c);
   });
   return el;
-}
-
-function scoreClass(score) {
-  if (score >= 80) return 'score-high';
-  if (score >= 60) return 'score-mid';
-  return 'score-low';
 }

@@ -1,69 +1,75 @@
-import re
+"""BS4 + httpx web crawler for image scraping from any web page.
+
+Scrapes images from fashion/design/editorial sites. Handles pagination
+discovery, article-link extraction, image download with dimension validation,
+and CLIP embedding pre-computation.
+
+Uses shared utilities from .utils and stealth helpers from .stealth.
+"""
+
+import asyncio
+import random
 import uuid
-from io import BytesIO
 from pathlib import Path
 from urllib.parse import urljoin, urlparse
 
 import httpx
 from bs4 import BeautifulSoup
-from PIL import Image as PILImage
 
 from taste_graph_ai.config import IMAGES_DIR
 from taste_graph_ai.domain.enums import ImageStatus
 from taste_graph_ai.domain.models import Image
 from taste_graph_ai.infrastructure.crawlers.base import Crawler, DiscoveredSource
+from taste_graph_ai.infrastructure.crawlers.utils import (
+    IMAGE_EXTENSIONS,
+    MIN_IMAGE_DIMENSION,
+    SKIP_PAGE_PATTERNS,
+    best_srcset_url,
+    check_dimensions,
+    clean_alt_text,
+    generate_image_filename,
+    guess_ext,
+    is_bad_url,
+    is_image_url,
+    is_likely_content_image,
+    normalize_url,
+    upgrade_cdn_url,
+)
 from taste_graph_ai.infrastructure.repos.images import ImageRepository
+from taste_graph_ai.infrastructure.repos.scrape_failures import ScrapeFailureRepository
 
 USER_AGENT = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
     "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/124.0.0.0 Safari/537.36"
+    "Chrome/131.0.0.0 Safari/537.36"
 )
-
-IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
-MIN_IMAGE_DIMENSION = 200  # minimum width or height in pixels (lowered for design archives)
-
-# URL patterns that indicate tiny/low-quality images
-_SKIP_URL_PATTERNS = [
-    "logo", "icon", "avatar", "pixel", "1x1", "tracking",
-    "thumbnail", "thumb-", "-thumb", "_thumb", "favicon",
-    "button-", "banner-", "sidebar-",
-]
-
-# CDN resizing patterns — strip to get original/full-size
-_CDN_SIZE_PATTERNS = [
-    (re.compile(r"\.width-\d+", re.I), ""),          # .width-30 → remove
-    (re.compile(r"\.fill-\d+x\d+", re.I), ""),        # .fill-30x12 → remove
-    (re.compile(r"\.fit-\d+x\d+", re.I), ""),         # .fit-100x100 → remove
-    (re.compile(r"w_\d+,"), "w_1200,"),               # Cloudinary w_100 → w_1200
-    (re.compile(r"h_\d+,"), ""),                      # Cloudinary h_100 → remove
-    (re.compile(r"c_limit,"), "c_limit,"),            # keep
-]
 
 
 class WebCrawler(Crawler):
     """Scrapes images from specific web pages (Vogue, SSENSE, magazines, etc.)."""
 
-    def __init__(self):
+    def __init__(self, failure_repo: ScrapeFailureRepository | None = None):
         self.client = httpx.AsyncClient(
-            headers={"User-Agent": USER_AGENT},
+            headers={
+                "User-Agent": USER_AGENT,
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+                "Accept-Language": "en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7",
+            },
             timeout=30,
             follow_redirects=True,
         )
         self.failures: list[dict] = []
+        self._failure_repo = failure_repo
 
     async def discover(self) -> list[DiscoveredSource]:
         return []
 
     async def fetch_images(self, source_url: str, limit: int = 20) -> list[dict]:
         """Visit a page and extract all images."""
-        try:
-            html = await self._fetch_page(source_url)
-            if not html:
-                return []
-            return self._extract_images(html, source_url, limit)
-        except Exception:
+        html = await self._fetch_page(source_url)
+        if not html:
             return []
+        return self._extract_images(html, source_url, limit)
 
     async def scrape_and_download(
         self,
@@ -84,12 +90,14 @@ class WebCrawler(Crawler):
             if len(all_article_urls) >= max_pages:
                 break
             try:
-                links = await self._discover_article_links(listing_url, max_pages - len(all_article_urls))
+                links = await self._discover_article_links(
+                    listing_url, max_pages - len(all_article_urls)
+                )
                 for link in links:
                     if link not in all_article_urls:
                         all_article_urls.append(link)
-            except Exception:
-                continue
+            except Exception as exc:
+                self._add_failure(listing_url, "article_discovery_failed", str(exc)[:200])
 
         if not all_article_urls:
             all_article_urls = [source_url]
@@ -100,12 +108,14 @@ class WebCrawler(Crawler):
             if len(all_discovered) >= limit:
                 break
             try:
-                page_images = await self.fetch_images(article_url, limit=limit - len(all_discovered))
+                page_images = await self.fetch_images(
+                    article_url, limit=limit - len(all_discovered)
+                )
                 for d in page_images:
                     d["page_url"] = article_url
                 all_discovered.extend(page_images)
-            except Exception:
-                continue
+            except Exception as exc:
+                self._add_failure(article_url, "article_scrape_failed", str(exc)[:200])
 
         images = []
 
@@ -115,9 +125,7 @@ class WebCrawler(Crawler):
             if existing:
                 continue
 
-            img_id = uuid.uuid4().hex[:12]
-            ext = self._guess_ext(d["url"])
-            filename = f"{img_id}{ext}"
+            filename = generate_image_filename(d["url"])
             filepath = IMAGES_DIR / filename
 
             local_path = ""
@@ -125,21 +133,26 @@ class WebCrawler(Crawler):
                 r = await self.client.get(d["url"])
                 if r.status_code == 200:
                     filepath.write_bytes(r.content)
-                    if self._check_dimensions(filepath):
+                    if check_dimensions(filepath):
                         local_path = str(filepath)
                     else:
                         filepath.unlink(missing_ok=True)
-                        self._add_failure(d["url"], "image_too_small", f"dimensions < {MIN_IMAGE_DIMENSION}px")
+                        self._add_failure(
+                            d["url"], "image_too_small",
+                            f"dimensions < {MIN_IMAGE_DIMENSION}px",
+                        )
                         continue
                 else:
-                    self._add_failure(d["url"], "image_download_failed", f"HTTP {r.status_code}")
+                    self._add_failure(
+                        d["url"], "image_download_failed",
+                        f"HTTP {r.status_code}",
+                    )
                     continue
-            except Exception as e:
-                self._add_failure(d["url"], "image_download_failed", str(e)[:200])
-                continue
+            except Exception as exc:
+                self._add_failure(d["url"], "image_download_failed", str(exc)[:200])
 
             img = Image(
-                id=img_id,
+                id=filename.split(".")[0],
                 source_id=source_id,
                 url=d["url"],
                 page_url=d.get("page_url", source_url),
@@ -158,8 +171,8 @@ class WebCrawler(Crawler):
                 from taste_graph_ai.services.clip import get_clip
                 clip_svc = get_clip()
                 clip_svc.embed_image(local_path)
-            except Exception:
-                pass
+            except Exception as exc:
+                self._add_failure(d["url"], "clip_embed_failed", str(exc)[:200])
 
             images.append(img)
 
@@ -194,35 +207,47 @@ class WebCrawler(Crawler):
                     alt_texts.append(alt)
 
             return {"title": title, "description": description, "alt_texts": alt_texts}
-        except Exception:
+        except Exception as exc:
+            self._add_failure(url, "metadata_parse_failed", str(exc)[:200])
             return {}
+
+    # ── Pagination ──────────────────────────────────────────────
 
     @staticmethod
     def _generate_pagination_urls(base_url: str, depth: int = 5) -> list[str]:
         """Generate potential pagination URLs from a base listing URL.
-        Handles common patterns: /page/2, ?page=2, &page=2, ?paged=2, etc."""
+
+        Generates URLs for common patterns (/page/N, ?page=N, &page=N).
+        The caller should probe these and skip 404s — this is just URL generation.
+        Limited to 2 pages per pattern to reduce 404 waste.
+        """
         urls = [base_url]
         parsed = urlparse(base_url)
+        path = parsed.path.rstrip("/")
 
         for n in range(2, depth + 2):
             # Pattern: /page/N/
-            if not parsed.path.endswith(f"/{n}") and not parsed.path.endswith(f"/{n}/"):
-                path = parsed.path.rstrip("/")
-                # Try appending /page/N
-                urls.append(urljoin(base_url, f"{path}/page/{n}/"))
-                # Try ?page=N
-                if not parsed.query:
-                    urls.append(f"{base_url}?page={n}")
-                else:
-                    urls.append(f"{base_url}&page={n}")
+            urls.append(urljoin(base_url, f"{path}/page/{n}/"))
+            # Pattern: ?page=N or &page=N
+            if not parsed.query:
+                urls.append(f"{base_url}?page={n}")
+            else:
+                urls.append(f"{base_url}&page={n}")
+
+            # Stop after 2 pages of each pattern to reduce 404s
+            if n > 3:
+                break
 
         return urls
 
-    async def _discover_article_links(self, page_url: str, max_links: int = 15) -> list[str]:
+    # ── Article discovery ───────────────────────────────────────
+
+    async def _discover_article_links(
+        self, page_url: str, max_links: int = 15
+    ) -> list[str]:
         """From a listing/index page, discover article/story links to scrape deeper.
 
-        Uses heuristics: same-domain links with descriptive paths (not /about, /contact, etc).
-        Returns unique, deduplicated article URLs.
+        Uses heuristics: same-domain links with descriptive paths.
         """
         html = await self._fetch_page(page_url)
         if not html:
@@ -233,43 +258,36 @@ class WebCrawler(Crawler):
             base_domain = urlparse(page_url).netloc
             links = []
 
-            # Skip patterns for non-article pages
-            skip_patterns = [
-                "about", "contact", "login", "signup", "subscribe",
-                "privacy", "terms", "policy", "faq", "cart", "search",
-                "account", "wishlist", "newsletter",
-            ]
-
+            # Pass 1: prefer article-like paths
             for a in soup.find_all("a", href=True):
-                href = self._normalize_url(a["href"], page_url)
+                href = normalize_url(a["href"], page_url)
                 if not href or not href.startswith("http"):
                     continue
 
                 parsed = urlparse(href)
-                # Same domain only
                 if parsed.netloc != base_domain:
                     continue
 
                 path = parsed.path.strip("/").lower()
-                # Skip homepage, short paths, admin pages
                 if not path or len(path) < 4:
                     continue
-                if any(skp in path for skp in skip_patterns):
+                if any(skp in path for skp in SKIP_PAGE_PATTERNS):
                     continue
-                # Skip query-heavy / filter URLs
                 if parsed.query and len(parsed.query) > 100:
                     continue
 
-                # Prefer article-like paths
-                if "/" in path or any(kw in path for kw in ["article", "story", "post", "news", "fashion", "style"]):
+                if "/" in path or any(
+                    kw in path
+                    for kw in ["article", "story", "post", "news", "fashion", "style"]
+                ):
                     links.append(href)
                     if len(links) >= max_links * 2:
                         break
 
-            # If not enough article-like links, take any reasonable path
+            # Pass 2: if not enough article-like links, take any reasonable path
             if len(links) < 5:
                 for a in soup.find_all("a", href=True):
-                    href = self._normalize_url(a["href"], page_url)
+                    href = normalize_url(a["href"], page_url)
                     if not href or not href.startswith("http"):
                         continue
                     parsed = urlparse(href)
@@ -278,7 +296,7 @@ class WebCrawler(Crawler):
                     path = parsed.path.strip("/").lower()
                     if not path or len(path) < 4:
                         continue
-                    if any(skp in path for skp in skip_patterns):
+                    if any(skp in path for skp in SKIP_PAGE_PATTERNS):
                         continue
                     if href not in links:
                         links.append(href)
@@ -297,12 +315,14 @@ class WebCrawler(Crawler):
                     break
 
             return unique
-        except Exception:
+        except Exception as exc:
+            self._add_failure(page_url, "article_discovery_parse_failed", str(exc)[:200])
             return []
 
+    # ── Page fetch ──────────────────────────────────────────────
+
     async def _fetch_page(self, url: str) -> str | None:
-        import random, asyncio
-        # Small random delay for politeness / anti-bot
+        """Fetch a page with polite random delay and error tracking."""
         await asyncio.sleep(random.uniform(0.3, 1.0))
         headers = {
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
@@ -314,12 +334,14 @@ class WebCrawler(Crawler):
             if r.status_code == 200:
                 return r.text
             if r.status_code == 403:
-                self._add_failure(url, "page_fetch_forbidden", f"HTTP 403 (anti-bot)")
+                self._add_failure(url, "page_fetch_forbidden", "HTTP 403 (anti-bot)")
             elif r.status_code >= 400:
                 self._add_failure(url, "page_fetch_failed", f"HTTP {r.status_code}")
-        except Exception as e:
-            self._add_failure(url, "page_fetch_failed", str(e)[:200])
+        except Exception as exc:
+            self._add_failure(url, "page_fetch_failed", str(exc)[:200])
         return None
+
+    # ── Image extraction ────────────────────────────────────────
 
     def _extract_images(self, html: str, page_url: str, limit: int) -> list[dict]:
         soup = BeautifulSoup(html, "html.parser")
@@ -329,172 +351,84 @@ class WebCrawler(Crawler):
         # 1. og:image (highest priority — usually the main editorial image)
         og_img = soup.find("meta", property="og:image")
         if og_img and og_img.get("content"):
-            url = self._normalize_url(og_img["content"], page_url)
-            if url and url not in seen and not self._is_bad_url(url):
+            url = normalize_url(og_img["content"], page_url)
+            if url and url not in seen and not is_bad_url(url):
                 seen.add(url)
-                images.append({"url": self._upgrade_url(url), "thumbnail": "", "keywords": []})
+                images.append({
+                    "url": upgrade_cdn_url(url), "thumbnail": "", "keywords": [],
+                })
 
         # 2. twitter:image
         tw_img = soup.find("meta", attrs={"name": "twitter:image"})
         if tw_img and tw_img.get("content"):
-            url = self._normalize_url(tw_img["content"], page_url)
-            if url and url not in seen and not self._is_bad_url(url):
+            url = normalize_url(tw_img["content"], page_url)
+            if url and url not in seen and not is_bad_url(url):
                 seen.add(url)
-                images.append({"url": self._upgrade_url(url), "thumbnail": "", "keywords": []})
+                images.append({
+                    "url": upgrade_cdn_url(url), "thumbnail": "", "keywords": [],
+                })
 
-        # 3. All <img> tags, sorted by likely quality
+        # 3. All <img> tags
         for img in soup.find_all("img"):
             if len(images) >= limit:
                 break
-            src = img.get("src") or img.get("data-src") or img.get("data-lazy-src") or ""
+            src = (
+                img.get("src")
+                or img.get("data-src")
+                or img.get("data-lazy-src")
+                or ""
+            )
             if not src:
                 continue
-            src = self._normalize_url(src, page_url)
+            src = normalize_url(src, page_url)
             if not src or src in seen:
                 continue
-            # Skip tiny icons, tracking pixels, logos, thumbnails
-            if self._is_bad_url(src):
+            if is_bad_url(src):
                 self._add_failure(src, "bad_url_skipped", "matches low-quality pattern")
                 continue
             seen.add(src)
 
-            # Try to upgrade CDN URL to full resolution
-            src = self._upgrade_url(src)
-
+            src = upgrade_cdn_url(src)
             alt = img.get("alt", "")
-            keywords = self._clean_alt_text(alt)
-            images.append({
-                "url": src,
-                "thumbnail": "",
-                "keywords": keywords,
-            })
+            keywords = clean_alt_text(alt)
+            images.append({"url": src, "thumbnail": "", "keywords": keywords})
 
         # 4. srcset for higher-res versions
         for img in soup.find_all("img"):
             srcset = img.get("srcset", "")
             if srcset:
-                best = self._best_srcset(srcset, page_url)
-                if best and best not in seen and not self._is_bad_url(best):
+                best = best_srcset_url(srcset, page_url)
+                if best and best not in seen and not is_bad_url(best):
                     seen.add(best)
-                    best = self._upgrade_url(best)
+                    best = upgrade_cdn_url(best)
                     images.append({"url": best, "thumbnail": "", "keywords": []})
 
         # 5. Picture > source elements
         for source in soup.find_all("source"):
             srcset = source.get("srcset", "")
             if srcset:
-                best = self._best_srcset(srcset, page_url)
-                if best and best not in seen and not self._is_bad_url(best):
+                best = best_srcset_url(srcset, page_url)
+                if best and best not in seen and not is_bad_url(best):
                     seen.add(best)
-                    best = self._upgrade_url(best)
+                    best = upgrade_cdn_url(best)
                     images.append({"url": best, "thumbnail": "", "keywords": []})
 
         # Filter to direct image URLs
         for i in images:
-            if not self._is_image_url(i["url"]):
-                self._add_failure(i["url"], "not_image_url", "no image extension or photo in path")
-        images = [i for i in images if self._is_image_url(i["url"])]
+            if not is_image_url(i["url"]):
+                self._add_failure(
+                    i["url"], "not_image_url", "no image extension or photo in path"
+                )
+        images = [i for i in images if is_image_url(i["url"])]
         return images[:limit]
 
-    def _normalize_url(self, url: str, page_url: str) -> str:
-        if not url:
-            return ""
-        url = url.strip()
-        if url.startswith("data:"):
-            return ""
-        if url.startswith("//"):
-            url = "https:" + url
-        if url.startswith("/"):
-            url = urljoin(page_url, url)
-        return url
-
-    def _is_image_url(self, url: str) -> bool:
-        path = urlparse(url).path.lower()
-        return any(path.endswith(ext) for ext in IMAGE_EXTENSIONS) or "photo" in path
-
-    def _best_srcset(self, srcset: str, page_url: str) -> str | None:
-        candidates = []
-        for part in srcset.split(","):
-            part = part.strip()
-            if not part:
-                continue
-            tokens = part.rsplit(" ", 1)
-            url = tokens[0].strip()
-            if len(tokens) == 2:
-                try:
-                    w = int(tokens[1].rstrip("w").strip())
-                except ValueError:
-                    w = 0
-            else:
-                w = 0
-            url = self._normalize_url(url, page_url)
-            if url:
-                candidates.append((w, url))
-        if not candidates:
-            return None
-        candidates.sort(key=lambda x: x[0], reverse=True)
-        return candidates[0][1]
-
-    def _guess_ext(self, url: str) -> str:
-        path = urlparse(url).path.lower()
-        for ext in IMAGE_EXTENSIONS:
-            if path.endswith(ext):
-                return ext
-        return ".jpg"
-
-    def _is_bad_url(self, url: str) -> bool:
-        """Reject URLs that are clearly thumbnails, icons, or low-quality."""
-        lower = url.lower()
-        for pat in _SKIP_URL_PATTERNS:
-            if pat in lower:
-                return True
-        return False
-
-    def _upgrade_url(self, url: str) -> str:
-        """Strip CDN resizing params to get the largest available version."""
-        for pattern, replacement in _CDN_SIZE_PATTERNS:
-            url = pattern.sub(replacement, url)
-        return url
+    # ── Failure tracking ────────────────────────────────────────
 
     def _add_failure(self, url: str, reason: str, detail: str = "") -> None:
+        """Record a scrape failure for later analysis and DB persistence."""
         self.failures.append({"url": url, "reason": reason, "detail": detail})
 
-    @staticmethod
-    def _clean_alt_text(alt: str) -> list[str]:
-        """Filter garbage alt text (auto-generated accessibility descriptions).
-        Returns cleaned list of useful keywords, or empty list if all garbage."""
-        if not alt:
-            return []
-        alt_lower = alt.lower().strip()
-
-        # Skip auto-generated patterns
-        garbage_patterns = [
-            "image may contain", "person standing", "person sitting",
-            "indoor", "outdoor", "no description available", "untitled",
-            "picture of", "photo of", "photograph of", "image of",
-            "img", "image", "picture", "photo",
-        ]
-        if any(p in alt_lower for p in garbage_patterns):
-            return []
-
-        # Skip if too long (likely a sentence, not keywords)
-        if len(alt) > 60:
-            return []
-
-        # Split on common separators
-        import re
-        parts = re.split(r'[,;，；、\s]+', alt.strip())
-        cleaned = [p.strip() for p in parts if 2 <= len(p.strip()) <= 30]
-        return cleaned[:5]
-
-    def _check_dimensions(self, filepath: Path) -> bool:
-        """Returns True if the image meets minimum dimension requirements."""
-        try:
-            with PILImage.open(filepath) as img:
-                w, h = img.size
-                return min(w, h) >= MIN_IMAGE_DIMENSION
-        except Exception:
-            return True  # Keep the image if we can't check dimensions
+    # ── Cleanup ─────────────────────────────────────────────────
 
     async def close(self):
         await self.client.aclose()

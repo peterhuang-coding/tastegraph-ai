@@ -203,20 +203,36 @@ class TasteGraph:
     ) -> float:
         """Score content against the taste graph.
 
-        Walks from keyword-matched concept nodes, accumulating
-        edge weights along prefers/avoids paths.
+        Multi-layer scoring:
+        1. Keyword match: find concept/mood/visual_element nodes matching keywords,
+           aggregate edge weights (prefers +, avoids -)
+        2. Source bonus: established sources get weight-based bonus,
+           new sources get exploration uplift
+        3. Time decay: edges older than 90 days are down-weighted
+        4. Returns a float typically in 0-15 range.
+
+        Callers should normalize by TASTE_SCORE_NORMALIZATION_FACTOR (default 10.0).
         """
         if not keywords:
             return 0.0
 
+        from datetime import datetime, timezone, timedelta
+        now = datetime.now(timezone.utc)
+        decay_half_life_days = 90  # edges older than this are halved in weight
+
         total_score = 0.0
         matched = 0
+        source_ids_seen: set[str] = set()  # for diversity tracking
 
         for keyword in keywords:
             kw_lower = keyword.lower().strip()
+            if not kw_lower:
+                continue
             # Find matching concept nodes
             for node_id, data in self.graph.nodes(data=True):
-                if data["type"] not in (NodeType.CONCEPT, NodeType.VISUAL_ELEMENT, NodeType.MOOD):
+                if data["type"] not in (
+                    NodeType.CONCEPT, NodeType.VISUAL_ELEMENT, NodeType.MOOD,
+                ):
                     continue
                 label = data["label"].lower()
                 if kw_lower in label or label in kw_lower:
@@ -224,9 +240,27 @@ class TasteGraph:
                     node_score = 0.0
                     edge_count = 0
                     for _, target, edge_data in self.graph.out_edges(node_id, data=True):
-                        if edge_data["relation"] in (RelationType.PREFERS, RelationType.AVOIDS):
-                            node_score += edge_data["weight"]
+                        if edge_data["relation"] in (
+                            RelationType.PREFERS, RelationType.AVOIDS,
+                        ):
+                            weight = edge_data["weight"]
+                            # Apply time decay
+                            last_updated = edge_data.get("last_updated", "")
+                            if last_updated:
+                                try:
+                                    edge_time = datetime.fromisoformat(last_updated)
+                                    age_days = (now - edge_time).days
+                                    if age_days > decay_half_life_days:
+                                        weight *= 0.5 ** (
+                                            age_days / decay_half_life_days
+                                        )
+                                except (ValueError, TypeError):
+                                    pass
+                            node_score += weight
                             edge_count += 1
+                            # Track source for diversity
+                            source_ids_seen.add(target)
+
                     if edge_count > 0:
                         total_score += node_score / edge_count
                     else:
@@ -242,16 +276,121 @@ class TasteGraph:
                 if data["relation"] == RelationType.PREFERS:
                     source_bonus += data["weight"]
                     in_edge_count += 1
-            # Exploration uplift: sources with few connections get a baseline boost
+            # Cold-start boost: sources with few connections get baseline boost
             if in_edge_count == 0:
-                source_bonus = 0.3  # Pure exploration — let this source be seen
+                source_bonus = 0.3  # Pure exploration
             elif in_edge_count < 3:
-                source_bonus = max(source_bonus, 0.15)  # Small boost for under-connected sources
+                source_bonus = max(source_bonus, 0.15)  # Under-connected boost
             total_score += source_bonus
+
+        # Diversity penalty: repeated same-source matches → mild penalty
+        diversity_penalty = max(0, (len(source_ids_seen) - 3) * 0.05)
+        total_score -= diversity_penalty
 
         return round(total_score / max(matched, 1), 2)
 
     # ── Graph Enrichment ─────────────────────────────────────
+
+    def enrich_from_crawl(
+        self,
+        source_name: str,
+        source_url: str = "",
+        visible_text: str = "",
+        page_title: str = "",
+        alt_texts: list[str] | None = None,
+    ) -> int:
+        """Auto-enrich graph from crawl output.
+
+        Creates concept nodes from crawl page text and links them to
+        the source via APPEARS_WITH edges with cumulative weights.
+
+        Returns count of new nodes created.
+        """
+        if not visible_text and not page_title:
+            return 0
+
+        # Find or create source node
+        source_node_id = None
+        for node_id, data in self.graph.nodes(data=True):
+            if data["type"] == NodeType.SOURCE and data["label"] == source_name:
+                source_node_id = node_id
+                break
+        if not source_node_id:
+            source_node_id = self.add_node(
+                source_name, NodeType.SOURCE,
+                auto_discovered=True,
+                source="crawl_enrichment",
+                url=source_url,
+            )
+
+        # Extract candidate keywords from visible text + title + alt texts
+        text_blob = f"{page_title} {visible_text}"
+        if alt_texts:
+            text_blob += " " + " ".join(alt_texts)
+
+        # Simple keyword extraction: find capitalized words, compound nouns,
+        # and material/color/object indicators in the visible text
+        import re
+        new_count = 0
+        # Extract: brands (ALL_CAPS words), colors (common color words),
+        # materials (fabric/texture words), objects (compound nouns)
+        found_concepts: list[tuple[str, NodeType]] = []
+
+        # Color detection
+        color_words = [
+            "black", "white", "grey", "gray", "navy", "olive", "beige",
+            "cream", "khaki", "brown", "tan", "charcoal", "slate", "sand",
+            "stone", "ivory", "camel", "burgundy", "rust", "sage",
+            "黑色", "白色", "灰色", "蓝色", "橄榄色", "米色", "棕色",
+        ]
+        for cw in color_words:
+            if cw.lower() in text_blob.lower():
+                found_concepts.append((cw.capitalize(), NodeType.COLOR))
+
+        # Material detection
+        material_words = [
+            "cotton", "wool", "silk", "linen", "leather", "denim", "canvas",
+            "nylon", "polyester", "cashmere", "tweed", "gabardine", "ripstop",
+            "concrete", "steel", "glass", "wood", "stone", "aluminum",
+            "棉", "羊毛", "丝", "亚麻", "皮革", "牛仔", "帆布",
+            "混凝土", "钢", "玻璃", "木头", "石材",
+        ]
+        for mw in material_words:
+            if mw.lower() in text_blob.lower():
+                found_concepts.append((mw.capitalize(), NodeType.OBJECT))
+
+        # Brand detection: ALL_CAPS words of 2+ chars in visible text
+        caps_matches = re.findall(r'\b([A-Z][A-Z0-9]{1,}(?:\s+[A-Z][A-Z0-9]{1,})?)\b', text_blob)
+        for brand in caps_matches[:5]:
+            if len(brand) >= 2:
+                found_concepts.append((brand.strip(), NodeType.BRAND))
+
+        # Create nodes and edges
+        for concept_label, node_type in found_concepts:
+            node_id = f"{node_type.value}:{concept_label.lower().replace(' ', '_')}"
+            if node_id not in self.graph:
+                self.add_node(
+                    concept_label, node_type,
+                    node_id=node_id,
+                    source="crawl_enrichment",
+                )
+                new_count += 1
+
+            # APPEARS_WITH edge with cumulative weight
+            if self.has_edge(source_node_id, node_id):
+                # Increment existing weight
+                edge = self.graph.edges[source_node_id, node_id]
+                current_weight = edge.get("weight", 0.0)
+                edge["weight"] = min(current_weight + 0.15, 1.0)
+                edge["last_updated"] = datetime.now().isoformat()
+            else:
+                self.add_edge(
+                    source_node_id, node_id,
+                    RelationType.APPEARS_WITH,
+                    weight=0.3,
+                )
+
+        return new_count
 
     def enrich_from_content(
         self,
@@ -301,12 +440,18 @@ class TasteGraph:
                         source="ai_entity_extraction",
                     )
                     new_count += 1
-                # Link source to entity via APPEARS_WITH
-                if not self.has_edge(source_node_id, node_id):
+                # Link source to entity via APPEARS_WITH with cumulative weight.
+                # First appearance: weight=0.3. Each repeat: +0.15, cap at 1.0.
+                if self.has_edge(source_node_id, node_id):
+                    edge = self.graph.edges[source_node_id, node_id]
+                    current_weight = edge.get("weight", 0.0)
+                    edge["weight"] = min(current_weight + 0.15, 1.0)
+                    edge["last_updated"] = datetime.now().isoformat()
+                else:
                     self.add_edge(
                         source_node_id, node_id,
                         RelationType.APPEARS_WITH,
-                        weight=0.5,
+                        weight=0.3,
                     )
 
         return new_count

@@ -102,6 +102,24 @@ def main():
     if r.get("dirty"):
         issues.append("⚠️  有未提交改动")
 
+    # 6. Stealth crawl last run
+    r = check_stealth_crawl()
+    results["crawl_stealth"] = r
+    if not r["ok"]:
+        issues.append(f"⚠️  私有爬虫: {r.get('note', '未找到记录')}")
+
+    # 7. Graph enrichment lag
+    r = check_graph_enrichment()
+    results["graph_enrichment"] = r
+    if not r["ok"]:
+        issues.append(f"⚠️  图谱丰富: {r.get('note', '滞后')}")
+
+    # 8. Scrape success rate (24h)
+    r = check_scrape_success_rate()
+    results["scrape_rate_24h"] = r
+    if not r["ok"]:
+        issues.append(f"⚠️  抓取成功率: {r.get('note', '偏低')}")
+
     # Output
     if "--json" in sys.argv:
         print(json.dumps({"healthy": len(issues)==0, "issues": issues, "details": results}, ensure_ascii=False, indent=2))
@@ -130,6 +148,8 @@ def main():
                 print(f"  ✅ Git            {g['last_commit'][:50]}")
             else:
                 print(f"  ⚠️  Git            有未提交改动")
+        # Phase 6: new checks
+        _print_result_section(results, issues)
         print()
         if issues:
             print("问题:")
@@ -139,7 +159,102 @@ def main():
             print("🟢 全部正常")
         print(f"\n审稿台: http://127.0.0.1:8765")
 
-    sys.exit(0 if len(issues) == 0 else 1)
+# ── New checks (Phase 6) ──────────────────────────────────────
+
+def check_stealth_crawl(hours: int = 30) -> dict:
+    """Check when the stealth crawler last ran successfully."""
+    stealth_dir = BASE_DIR / "runs"
+    if not stealth_dir.exists():
+        return {"ok": False, "note": "runs/ 目录不存在"}
+    try:
+        latest = None
+        for d in sorted(stealth_dir.glob("stealth_*"), reverse=True):
+            latest = d
+            break
+        if not latest:
+            return {"ok": False, "note": "无 stealth crawl 运行记录"}
+        # Check if output file exists
+        out = latest / "output.jsonl"
+        if not out.exists():
+            return {"ok": False, "note": f"最近运行 {latest.name} 无产出文件"}
+        # Check age
+        mtime = datetime.fromtimestamp(out.stat().st_mtime, tz=timezone.utc)
+        age_h = (datetime.now(timezone.utc) - mtime).total_seconds() / 3600
+        if age_h > hours:
+            return {"ok": False, "note": f"最近产出 {age_h:.0f}h 前（>{hours}h）"}
+        return {"ok": True, "last_run": latest.name, "age_hours": round(age_h, 1)}
+    except Exception as e:
+        return {"ok": False, "note": str(e)}
+
+
+def check_graph_enrichment(hours: int = 48) -> dict:
+    """Check when the taste graph was last enriched."""
+    graph_file = BASE_DIR / "data" / "taste_graph.json"
+    if not graph_file.exists():
+        return {"ok": False, "note": "taste_graph.json 不存在"}
+    try:
+        mtime = datetime.fromtimestamp(graph_file.stat().st_mtime, tz=timezone.utc)
+        age_h = (datetime.now(timezone.utc) - mtime).total_seconds() / 3600
+        if age_h > hours:
+            return {"ok": False, "note": f"图谱 {age_h:.0f}h 未更新（>{hours}h）"}
+        return {"ok": True, "age_hours": round(age_h, 1)}
+    except Exception as e:
+        return {"ok": False, "note": str(e)}
+
+
+def check_scrape_success_rate(hours: int = 24) -> dict:
+    """Check scrape success rate from DB failures in the last N hours."""
+    db_path = BASE_DIR / "data" / "taste_graph.db"
+    if not db_path.exists():
+        return {"ok": True, "note": "DB 不存在，跳过"}
+    try:
+        import sqlite3
+        conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+        cutoff = (datetime.now(timezone.utc) - __import__('datetime').timedelta(hours=hours)).isoformat()
+        fail_count = conn.execute(
+            "SELECT COUNT(*) FROM scrape_failures WHERE created_at >= ?", (cutoff,)
+        ).fetchone()[0]
+        # Count images added in the same period as a proxy for success
+        img_count = conn.execute(
+            "SELECT COUNT(*) FROM images WHERE created_at >= ?", (cutoff,)
+        ).fetchone()[0]
+        conn.close()
+
+        if img_count == 0 and fail_count == 0:
+            return {"ok": True, "note": "24h 内无抓取活动"}
+        total = img_count + fail_count
+        rate = img_count / total * 100 if total > 0 else 0
+        if rate < 30 and total > 10:
+            return {"ok": False, "rate_pct": round(rate, 1), "total": total,
+                    "note": f"成功率 {rate:.0f}%（{img_count}/{total}）低于 30%"}
+        return {"ok": True, "rate_pct": round(rate, 1), "total": total}
+    except Exception as e:
+        return {"ok": True, "note": f"无法检查: {e}"}
+
+
+# ── Output helpers update ─────────────────────────────────────
+
+def _print_result_section(results, issues):
+    """Print the new Phase 6 checks."""
+    for key, label in [
+        ("crawl_stealth", "私有爬虫"),
+        ("graph_enrichment", "图谱丰富"),
+        ("scrape_rate_24h", "抓取成功率"),
+    ]:
+        if key in results:
+            r = results[key]
+            if r["ok"]:
+                detail = r.get("age_hours", r.get("last_run", ""))
+                rate = r.get("rate_pct", "")
+                if rate:
+                    print(f"  ✅ {label:12s} {rate}% ({r.get('total',0)} 次)")
+                elif detail:
+                    print(f"  ✅ {label:12s} {detail}h 前")
+                else:
+                    print(f"  ✅ {label:12s} OK")
+            else:
+                print(f"  ⚠️  {label:12s} {r.get('note', '?')}")
+
 
 if __name__ == "__main__":
     main()

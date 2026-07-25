@@ -167,6 +167,7 @@ body {
 }
 .toast-success { background: #2d4a33; }
 .toast-error { background: #4a2d2d; }
+.toast-info { background: #2d3a4a; }
 @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
 /* Modal */

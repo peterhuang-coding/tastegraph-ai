@@ -54,10 +54,10 @@ const HistoryTab = {
             ${list.map(item => `
             <tr style="border-bottom:1px solid var(--border)">
               <td style="padding:10px">${(item.published_at || '').slice(0,10)}</td>
-              <td>${this.esc(item.theme || '未命名')}</td>
-              <td><span class="tag tag-muted">${this.esc(item.platform)}</span></td>
+              <td>${App.esc(item.theme || '未命名')}</td>
+              <td><span class="tag tag-muted">${App.esc(item.platform)}</span></td>
               <td>❤️ ${item.likes || 0} · 💾 ${item.saves || 0} · 💬 ${item.comments || 0}</td>
-              <td>${item.post_url ? `<a href="${this.esc(item.post_url)}" target="_blank" class="btn btn-ghost btn-sm">查看</a>` : '-'}</td>
+              <td>${item.post_url ? `<a href="${App.esc(item.post_url)}" target="_blank" class="btn btn-ghost btn-sm">查看</a>` : '-'}</td>
             </tr>`).join('')}
           </tbody>
         </table>
@@ -66,10 +66,4 @@ const HistoryTab = {
 
     container.innerHTML = html;
   },
-
-  esc(str) {
-    const div = document.createElement('div');
-    div.textContent = str || '';
-    return div.innerHTML;
-  }
 };

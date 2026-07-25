@@ -53,26 +53,28 @@ class MoodboardComposer:
         return output_path
 
     def _paste_grid(self, canvas: Image.Image, image_paths: list[str]) -> None:
+        cell_size = CELL_SIZE
         for idx, path in enumerate(image_paths[:GRID_COLS * GRID_ROWS]):
             try:
                 img = Image.open(path).convert("RGB")
             except Exception:
                 continue
             cropped = self._crop_center_square(img)
-            cropped = cropped.resize((CELL_SIZE, CELL_SIZE), Image.LANCZOS)
 
             col = idx % GRID_COLS
             row = idx // GRID_COLS
-            x = col * CELL_SIZE
-            y = row * CELL_SIZE
 
             if GRID_BORDER > 0:
-                x += GRID_BORDER
-                y += GRID_BORDER
-                cropped = cropped.resize(
-                    (CELL_SIZE - GRID_BORDER * 2, CELL_SIZE - GRID_BORDER * 2),
-                    Image.LANCZOS,
-                )
+                # Shrink cell to accommodate borders on both sides
+                inner_size = CELL_SIZE - GRID_BORDER * 2
+                cropped = cropped.resize((inner_size, inner_size), Image.LANCZOS)
+                # Center each cell within its slot: offset by (border + col*CELL_SIZE)
+                x = col * CELL_SIZE + GRID_BORDER
+                y = row * CELL_SIZE + GRID_BORDER
+            else:
+                cropped = cropped.resize((CELL_SIZE, CELL_SIZE), Image.LANCZOS)
+                x = col * CELL_SIZE
+                y = row * CELL_SIZE
 
             canvas.paste(cropped, (x, y))
 

@@ -65,6 +65,13 @@ PRODUCT_SCORE_WEIGHT = float(os.environ.get("TASTEGRAPH_PRODUCT_WEIGHT", "0.1"))
 DAILY_PACK_COUNT = int(os.environ.get("TASTEGRAPH_PACK_COUNT", "3"))
 DAILY_IMAGES_PER_PACK = int(os.environ.get("TASTEGRAPH_IMAGES_PER_PACK", "9"))
 
+# score_content() returns raw scores typically in the 0-15 range
+# (keyword matches × edge weights). Divide by this factor to normalize
+# to a 0.5-1.0 range for display and comparison.
+TASTE_SCORE_NORMALIZATION_FACTOR = float(
+    os.environ.get("TASTEGRAPH_SCORE_NORM_FACTOR", "10.0")
+)
+
 # ── Feedback ─────────────────────────────────────────────────
 
 FEEDBACK_PROPAGATION_DEPTH = int(os.environ.get("TASTEGRAPH_FEEDBACK_DEPTH", "2"))

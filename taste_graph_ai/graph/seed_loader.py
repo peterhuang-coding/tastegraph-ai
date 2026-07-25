@@ -178,7 +178,10 @@ class SeedLoader:
                         if concept_label in why_text or any(
                             word in why_text for word in concept_label.split()
                         ):
-                            if not self.graph.has_edge(node_id, node_id_existing):
+                            # Check if ANY edge already exists between these nodes
+                            # (has_edge in NetworkX doesn't filter by relation type)
+                            existing_edge = self.graph.has_edge(node_id, node_id_existing)
+                            if not existing_edge:
                                 self.graph.add_edge(
                                     node_id, node_id_existing,
                                     RelationType.APPEARS_WITH,

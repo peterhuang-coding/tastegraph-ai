@@ -58,12 +58,12 @@ const CurationTab = {
         <div class="curation-item ${isSelected ? 'selected' : ''}"
              data-id="${img.image_id}"
              onclick="CurationTab.toggleImage('${img.image_id}')">
-          <img src="${this.esc(src)}" alt="图片" loading="lazy"
+          <img src="${App.esc(src)}" alt="图片" loading="lazy"
                onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
           <div class="curation-img-fallback" style="display:none">图片加载失败</div>
           <div class="curation-check">${isSelected ? '✓' : ''}</div>
           <div class="curation-overlay">
-            <span>${img.source_name ? this.esc(img.source_name) : Math.round(img.final_score * 100) + '分'}</span>
+            <span>${img.source_name ? App.esc(img.source_name) : Math.round(img.final_score * 100) + '分'}</span>
           </div>
         </div>`;
       }).join('')}
@@ -154,7 +154,7 @@ const CurationTab = {
   async goPage(page) {
     if (page < 1) return;
     this._page = page;
-    this._selected.clear();
+    // Preserve selections across pagination — only clear if explicitly reset
     const container = document.getElementById('tab-curation');
     App.renderLoading(container);
     try {
@@ -205,7 +205,7 @@ const CurationTab = {
     overlay.innerHTML = `
       <div class="image-modal" onclick="event.stopPropagation()" style="max-width:720px">
         <div class="image-modal-header">
-          <h3>策展包 · ${this.esc(pack.theme)}</h3>
+          <h3>策展包 · ${App.esc(pack.theme)}</h3>
           <button class="image-modal-close" onclick="CurationTab.closePreview()">×</button>
         </div>
         <div class="image-modal-body" style="flex-direction:column">
@@ -222,7 +222,7 @@ const CurationTab = {
               </div>
             `).join('')}
           </div>
-          ${pack.caption ? `<textarea class="input" readonly style="margin-top:12px;min-height:80px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:12px;font-family:var(--font);font-size:14px;width:100%;resize:vertical">${this.esc(pack.caption)}</textarea>` : ''}
+          ${pack.caption ? `<textarea class="input" readonly style="margin-top:12px;min-height:80px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:12px;font-family:var(--font);font-size:14px;width:100%;resize:vertical">${App.esc(pack.caption)}</textarea>` : ''}
           <div style="display:flex;gap:8px;margin-top:16px">
             <button class="btn btn-accent" style="flex:1" id="auto-publish-btn-${pack.id}" onclick="CurationTab.autoPublish('${pack.id}')">一键发布小红书</button>
             <button class="btn btn-success" style="flex:1" onclick="CurationTab.publishCurated('${pack.id}')">导出并发布</button>
@@ -266,13 +266,7 @@ const CurationTab = {
       App.toast(`发布失败: ${e.message}`, 'error');
     }
     if (btn) { btn.textContent = '一键发布小红书'; btn.disabled = false; }
-  },
-
-  esc(str) {
-    const div = document.createElement('div');
-    div.textContent = str || '';
-    return div.innerHTML;
-  },
+  },,
 
   async loadFailures() {
     try {
@@ -312,7 +306,7 @@ const CurationTab = {
       html += '<div style="font-size:12px;margin-bottom:12px">';
       html += '<div style="color:var(--text-dim);margin-bottom:6px">按来源分类:</div>';
       for (const s of data.by_source.slice(0, 10)) {
-        html += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)"><span>' + this.esc(s.source_name || '未知') + '</span><span style="color:var(--text-muted)">' + (reasons[s.reason] || s.reason) + ' ×' + s.cnt + '</span></div>';
+        html += '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)"><span>' + App.esc(s.source_name || '未知') + '</span><span style="color:var(--text-muted)">' + (reasons[s.reason] || s.reason) + ' ×' + s.cnt + '</span></div>';
       }
       html += '</div>';
     }

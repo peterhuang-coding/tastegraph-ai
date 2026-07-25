@@ -1,31 +1,27 @@
 """Playwright-based crawler for JS-rendered pages (Vogue Runway, SSENSE, NOWNESS, etc.).
 
-Used as a fallback when the BS4 WebCrawler returns 0 images from a source.
+Used as a fallback when the BS4 WebCrawler returns < 3 images from a source.
 Extracts fully-rendered images including lazy-loaded and JS-injected content.
+
+Uses shared utilities from .utils for URL filtering and normalization.
 """
 
 import asyncio
-from pathlib import Path
 from urllib.parse import urljoin, urlparse
 
-from taste_graph_ai.config import IMAGES_DIR
 from taste_graph_ai.infrastructure.crawlers.base import Crawler, DiscoveredSource
+from taste_graph_ai.infrastructure.crawlers.utils import (
+    IMAGE_EXTENSIONS,
+    MIN_IMAGE_DIMENSION,
+    is_bad_url,
+    normalize_url,
+)
 
 USER_AGENT = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
     "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/124.0.0.0 Safari/537.36"
+    "Chrome/131.0.0.0 Safari/537.36"
 )
-
-IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
-MIN_IMAGE_DIMENSION = 200  # lowered for design archives
-
-# URL patterns that indicate tiny/low-quality images
-_SKIP_URL_PATTERNS = [
-    "logo", "icon", "avatar", "pixel", "1x1", "tracking",
-    "thumbnail", "thumb-", "-thumb", "_thumb", "favicon",
-    "button-", "banner-", "sidebar-",
-]
 
 
 class PlaywrightCrawler(Crawler):
@@ -63,9 +59,16 @@ class PlaywrightCrawler(Crawler):
             except Exception:
                 # Some pages never reach networkidle — try domcontentloaded
                 try:
-                    await page.goto(page_url, wait_until="domcontentloaded", timeout=15000)
-                except Exception:
+                    await page.goto(
+                        page_url, wait_until="domcontentloaded", timeout=15000
+                    )
+                except Exception as goto_err:
                     await context.close()
+                    # Log the error instead of silently returning
+                    print(
+                        f"[playwright_crawler] Page load failed for {page_url}: "
+                        f"{type(goto_err).__name__}"
+                    )
                     return []
 
             # Scroll to trigger lazy loading
@@ -75,7 +78,7 @@ class PlaywrightCrawler(Crawler):
             await page.evaluate("window.scrollTo(0, 0)")
             await asyncio.sleep(1)
 
-            # Extract images via JS evaluation (gets ALL rendered images including lazy-loaded)
+            # Extract images via JS evaluation
             image_data = await page.evaluate("""() => {
                 const images = [];
                 const seen = new Set();
@@ -111,7 +114,7 @@ class PlaywrightCrawler(Crawler):
                     }
                 }
 
-                // Also check <picture> elements and <source> tags
+                // <picture> elements and <source> tags
                 for (const source of document.querySelectorAll('source')) {
                     const srcset = source.srcset || '';
                     if (!srcset) continue;
@@ -127,7 +130,7 @@ class PlaywrightCrawler(Crawler):
                     }
                 }
 
-                // Also check CSS background-images on key elements
+                // CSS background-images on key elements
                 for (const el of document.querySelectorAll('[style*="background-image"]')) {
                     const style = el.getAttribute('style') || '';
                     const match = style.match(/url\\(["']?([^"')]+)["']?\\)/);
@@ -144,10 +147,10 @@ class PlaywrightCrawler(Crawler):
             results = []
             seen_urls = set()
             for item in image_data:
-                url = self._normalize_url(item["url"], page_url)
+                url = normalize_url(item["url"], page_url)
                 if not url or url in seen_urls:
                     continue
-                if self._is_bad_url(url):
+                if is_bad_url(url):
                     continue
 
                 seen_urls.add(url)
@@ -165,27 +168,12 @@ class PlaywrightCrawler(Crawler):
             await context.close()
             return results
 
-        except Exception:
+        except Exception as exc:
+            print(
+                f"[playwright_crawler] Browser extraction failed for {page_url}: "
+                f"{type(exc).__name__}: {str(exc)[:200]}"
+            )
             return []
-
-    def _normalize_url(self, url: str, page_url: str) -> str:
-        if not url:
-            return ""
-        url = url.strip()
-        if url.startswith("data:"):
-            return ""
-        if url.startswith("//"):
-            url = "https:" + url
-        if url.startswith("/"):
-            url = urljoin(page_url, url)
-        return url
-
-    def _is_bad_url(self, url: str) -> bool:
-        lower = url.lower()
-        for pat in _SKIP_URL_PATTERNS:
-            if pat in lower:
-                return True
-        return False
 
     async def close(self):
         if self._browser:

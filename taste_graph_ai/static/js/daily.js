@@ -35,8 +35,8 @@ const DailyTab = {
       <div class="card-header" style="cursor:pointer" onclick="DailyTab.togglePack('${pack.id}')">
         <div>
           <div class="card-title">方案 ${['A','B','C'][index] || index+1} · 品味得分 ${scorePct}</div>
-          <div style="font-size:14px;color:var(--accent-bright);margin-top:4px">主题：${this.esc(pack.theme)}</div>
-          <div style="font-size:12px;color:var(--text-muted)">${this.esc(pack.why_today)}</div>
+          <div style="font-size:14px;color:var(--accent-bright);margin-top:4px">主题：${App.esc(pack.theme)}</div>
+          <div style="font-size:12px;color:var(--text-muted)">${App.esc(pack.why_today)}</div>
         </div>
         <span class="tag tag-${scorePct >= 80 ? 'green' : scorePct >= 60 ? 'yellow' : 'red'}">${scorePct}</span>
       </div>
@@ -45,7 +45,7 @@ const DailyTab = {
         ${pack.title_options.length ? `
         <div style="margin:8px 0">
           <span style="font-size:12px;color:var(--text-dim)">标题选项：</span>
-          ${pack.title_options.map(t => `<span class="tag tag-muted" style="margin:2px">${this.esc(t)}</span>`).join('')}
+          ${pack.title_options.map(t => `<span class="tag tag-muted" style="margin:2px">${App.esc(t)}</span>`).join('')}
         </div>` : ''}
 
         ${pack.images.length ? `
@@ -63,7 +63,7 @@ const DailyTab = {
         ${pack.caption ? `
         <div style="margin:12px 0">
           <div style="font-size:12px;color:var(--text-dim);margin-bottom:4px">文案草稿：</div>
-          <textarea class="input" id="caption-${pack.id}">${this.esc(pack.caption)}</textarea>
+          <textarea class="input" id="caption-${pack.id}">${App.esc(pack.caption)}</textarea>
         </div>` : ''}
 
         <div style="display:flex;gap:8px;margin-top:12px">
@@ -95,25 +95,25 @@ const DailyTab = {
         </div>
         <div class="image-modal-body">
           <div class="image-modal-view">
-            <img src="${this.esc(src)}" alt="图片 ${imgIdx+1}"
+            <img src="${App.esc(src)}" alt="图片 ${imgIdx+1}"
                  onerror="this.parentElement.innerHTML='<div style=color:var(--text-dim)>图片加载失败</div>'">
           </div>
           <div class="image-modal-info">
             <div>
               <div style="font-size:12px;color:var(--text-dim);margin-bottom:4px">文件</div>
-              <div class="image-modal-filename">${this.esc(src.split('/').pop())}</div>
+              <div class="image-modal-filename">${App.esc(src.split('/').pop())}</div>
             </div>
             ${img.page_url ? `
             <div>
               <div style="font-size:12px;color:var(--text-dim);margin-bottom:4px">来源</div>
-              ${img.source_name ? `<div style="font-weight:600;margin-bottom:2px">${this.esc(img.source_name)}</div>` : ''}
-              <a href="${this.esc(img.page_url)}" target="_blank" style="color:var(--accent-bright);font-size:12px;word-break:break-all">${this.esc(img.page_url)}</a>
+              ${img.source_name ? `<div style="font-weight:600;margin-bottom:2px">${App.esc(img.source_name)}</div>` : ''}
+              <a href="${App.esc(img.page_url)}" target="_blank" style="color:var(--accent-bright);font-size:12px;word-break:break-all">${App.esc(img.page_url)}</a>
             </div>` : ''}
             ${img.keywords && img.keywords.length ? `
             <div>
               <div style="font-size:12px;color:var(--text-dim);margin-bottom:4px">关键词</div>
               <div class="image-modal-keywords">
-                ${img.keywords.map(k => `<span class="tag tag-muted">${this.esc(k)}</span>`).join('')}
+                ${img.keywords.map(k => `<span class="tag tag-muted">${App.esc(k)}</span>`).join('')}
               </div>
             </div>` : ''}
             <div class="image-modal-actions">
@@ -206,18 +206,18 @@ const DailyTab = {
     overlay.innerHTML = `
       <div class="image-modal" onclick="event.stopPropagation()">
         <div class="image-modal-header">
-          <h3>出品预览 · ${this.esc(exportData.theme)}</h3>
+          <h3>出品预览 · ${App.esc(exportData.theme)}</h3>
           <button class="image-modal-close" onclick="DailyTab.closePublishModal()">&times;</button>
         </div>
         <div class="image-modal-body">
           <div class="image-modal-view" style="min-height:auto;background:transparent">
-            <img src="${this.esc(exportData.url)}" alt="出品预览" style="max-height:50vh" onerror="this.parentElement.innerHTML='<div style=color:var(--text-dim)>预览加载失败</div>'">
+            <img src="${App.esc(exportData.url)}" alt="出品预览" style="max-height:50vh" onerror="this.parentElement.innerHTML='<div style=color:var(--text-dim)>预览加载失败</div>'">
           </div>
           <div class="image-modal-info">
-            <a href="${this.esc(exportData.url)}" download class="btn btn-primary" style="text-decoration:none;text-align:center;">下载出品图</a>
+            <a href="${App.esc(exportData.url)}" download class="btn btn-primary" style="text-decoration:none;text-align:center;">下载出品图</a>
             <div>
               <div style="font-size:12px;color:var(--text-dim);margin-bottom:4px">文案草稿（可编辑）</div>
-              <textarea class="input" id="publish-caption-${packId}" style="min-height:100px">${this.esc(caption)}</textarea>
+              <textarea class="input" id="publish-caption-${packId}" style="min-height:100px">${App.esc(caption)}</textarea>
             </div>
             <div style="font-size:12px;color:var(--text-dim)">发布链接（手动发完贴后填写）</div>
             <input type="text" id="publish-url-${packId}" placeholder="https://www.xiaohongshu.com/..." style="width:100%;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:13px">
@@ -246,10 +246,4 @@ const DailyTab = {
     overlay.innerHTML = '';
     document.body.style.overflow = '';
   },
-
-  esc(str) {
-    const div = document.createElement('div');
-    div.textContent = str || '';
-    return div.innerHTML;
-  }
 };

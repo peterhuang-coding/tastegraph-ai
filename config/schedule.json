@@ -16,6 +16,21 @@
       ]
     },
     {
+      "name": "crawl_stealth",
+      "script": "scripts/crawl_stealth.py",
+      "schedule": "01:00",
+      "enabled": true,
+      "timeout": 21600,
+      "args": [
+        "--duration-hours",
+        "5",
+        "--rate-limit",
+        "150",
+        "--depth",
+        "2"
+      ]
+    },
+    {
       "name": "publish",
       "script": "scripts/publish_scheduler.py",
       "schedule": "08:00,20:00",

@@ -31,8 +31,8 @@ const Tasks = {
       <div class="task-item priority-${t.priority}" id="task-${t.id}">
         <span class="task-icon">${iconMap[t.task_type] || '📋'}</span>
         <div class="task-text">
-          <div class="task-title">${this.esc(t.title)}</div>
-          ${t.body ? `<div class="task-body">${this.esc(t.body)}</div>` : ''}
+          <div class="task-title">${App.esc(t.title)}</div>
+          ${t.body ? `<div class="task-body">${App.esc(t.body)}</div>` : ''}
         </div>
         <div class="task-actions">
           ${gotoBtn}
@@ -83,10 +83,4 @@ const Tasks = {
   goto(url) {
     App.switchTab(url.includes('sources') ? 'sources' : 'daily');
   },
-
-  esc(str) {
-    const div = document.createElement('div');
-    div.textContent = str || '';
-    return div.innerHTML;
-  }
 };
