@@ -1,0 +1,323 @@
+{
+  "report_date": "2026-07-13",
+  "analysis_period_days": 90,
+  "total_records": 916,
+  "total_keywords": 1304,
+  "top_themes": [
+    {
+      "rank": 1,
+      "name": "时装与设计师",
+      "mention_count": 26,
+      "trend_pct": 0,
+      "description": "设计师品牌与高级成衣持续占据话题核心，ss27与独立设计师如Kiko Kostadinov和Nicholson带来新叙事"
+    },
+    {
+      "rank": 2,
+      "name": "音乐与文化",
+      "mention_count": 6,
+      "trend_pct": 0,
+      "description": "亚文化视觉语言与音乐人身份交织，Tyler与032c的counterculture cap成为符号"
+    },
+    {
+      "rank": 3,
+      "name": "建筑与空间",
+      "mention_count": 4,
+      "trend_pct": 0,
+      "description": "空间美学作为背景语境被讨论，与品牌形象和陈列逻辑关联"
+    },
+    {
+      "rank": 4,
+      "name": "物件与材质",
+      "mention_count": 4,
+      "trend_pct": -100,
+      "description": "单件设计品与材质探讨热度下降，如Vitra Panton Chair与Moncler鞋款关注度回落"
+    },
+    {
+      "rank": 5,
+      "name": "设计与艺术",
+      "mention_count": 2,
+      "trend_pct": -100,
+      "description": "纯设计艺术话题边缘化，关注度被更具体的时装与文化概念吸收"
+    }
+  ],
+  "rising_keywords": [
+    {
+      "keyword": "ss27",
+      "reason": "新一季发布周期启动，品牌陆续释出春夏系列预览与showroom信息"
+    },
+    {
+      "keyword": "fashion",
+      "reason": "广义时装话题在迁移期重新聚焦，新闻密度上升"
+    },
+    {
+      "keyword": "counterculture cap - 032c",
+      "reason": "柏林文化符号与时尚单品链接强化，单品成为亚文化归属感的具象表达"
+    },
+    {
+      "keyword": "comme",
+      "reason": "Comme des Garçons相关露出增加，品牌季度视觉与联名引发回温"
+    },
+    {
+      "keyword": "couture",
+      "reason": "高级定制话题借时装周余温与限定系列获得讨论周期"
+    },
+    {
+      "keyword": "fakemink dazed cover shoot",
+      "reason": "独立杂志封面拍摄扩展了造型与材质讨论边界，话题性上升"
+    }
+  ],
+  "fading_keywords": [
+    {
+      "keyword": "denim",
+      "reason": "牛仔常规单品热度消退，转向更结构化的面料叙事"
+    },
+    {
+      "keyword": "moncler 2026 sneakers",
+      "reason": "运动鞋合作概念已过新闻窗口，现货讨论率下降"
+    },
+    {
+      "keyword": "vitra panton chair 2026",
+      "reason": "设计椅再版话题缺乏新叙事支撑，关注回归理性"
+    },
+    {
+      "keyword": "bottega veneta perfume alta",
+      "reason": "香氛高定线热度下降，话题被更直接的时装发布取代"
+    },
+    {
+      "keyword": "stussy sweater",
+      "reason": "经典款讨论疲劳，受众注意力转向新季单品"
+    },
+    {
+      "keyword": "saul nash",
+      "reason": "独立设计师话题周期已过，短期内缺乏新项目承接"
+    }
+  ],
+  "editorial_picks": [
+    {
+      "topic": "SS27 设计师新语言：从 Kiko Kostadinov 到 Nicholson",
+      "rationale": "多品牌同时进入新季叙事阶段，比较式观察能为冷静调性读者提供结构化的风格解读"
+    },
+    {
+      "topic": "032c 的 counterculture cap 如何成为时装符号",
+      "rationale": "单品在话题中持续走高，其文化溯源与造型适配性值得以低饱和度视角拆解"
+    },
+    {
+      "topic": "Dazed 封面造型中的材质实验：fakemink 的视觉逻辑",
+      "rationale": "封面拍摄延伸的材质讨论与造型语言具有分析深度，贴合都市读者对细节的关注"
+    }
+  ],
+  "summary": "本周趋势从设计物件转向时装本身，SS27、独立设计师与亚文化符号成为低增幅下的主要驱动，材质与单品话题回落为更叙事性的内容腾出空间",
+  "clusters": [
+    {
+      "cluster": "fashion/designer",
+      "count": 26,
+      "keywords": [
+        "ss27",
+        "fw26",
+        "couture",
+        "bottega veneta perfume alta"
+      ],
+      "avg_pct_change": 0,
+      "direction": "rising"
+    },
+    {
+      "cluster": "music/culture",
+      "count": 6,
+      "keywords": [
+        "counterculture cap - 032c"
+      ],
+      "avg_pct_change": 0,
+      "direction": "rising"
+    },
+    {
+      "cluster": "architecture/space",
+      "count": 4,
+      "keywords": [
+        "studio"
+      ],
+      "avg_pct_change": 0,
+      "direction": "rising"
+    },
+    {
+      "cluster": "object/material",
+      "count": 4,
+      "keywords": [
+        "vitra panton chair 2026",
+        "denim"
+      ],
+      "avg_pct_change": 0,
+      "direction": "fading"
+    },
+    {
+      "cluster": "design/art",
+      "count": 2,
+      "keywords": [
+        "vitra panton chair 2026"
+      ],
+      "avg_pct_change": 0,
+      "direction": "fading"
+    }
+  ],
+  "keyword_trends": [
+    {
+      "keyword": "ss27",
+      "count": 17,
+      "earlier": 0,
+      "later": 17,
+      "pct_change": 100,
+      "direction": "rising"
+    },
+    {
+      "keyword": "fashion",
+      "count": 9,
+      "earlier": 0,
+      "later": 9,
+      "pct_change": 100,
+      "direction": "rising"
+    },
+    {
+      "keyword": "counterculture cap - 032c",
+      "count": 6,
+      "earlier": 0,
+      "later": 6,
+      "pct_change": 100,
+      "direction": "rising"
+    },
+    {
+      "keyword": "week",
+      "count": 5,
+      "earlier": 0,
+      "later": 5,
+      "pct_change": 100,
+      "direction": "rising"
+    },
+    {
+      "keyword": "shopper images",
+      "count": 4,
+      "earlier": 4,
+      "later": 0,
+      "pct_change": -100,
+      "direction": "fading"
+    },
+    {
+      "keyword": "pronounce",
+      "count": 4,
+      "earlier": 4,
+      "later": 0,
+      "pct_change": -100,
+      "direction": "fading"
+    },
+    {
+      "keyword": "comme",
+      "count": 4,
+      "earlier": 0,
+      "later": 4,
+      "pct_change": 100,
+      "direction": "rising"
+    },
+    {
+      "keyword": "studio",
+      "count": 4,
+      "earlier": 0,
+      "later": 4,
+      "pct_change": 100,
+      "direction": "rising"
+    },
+    {
+      "keyword": "couture",
+      "count": 4,
+      "earlier": 0,
+      "later": 4,
+      "pct_change": 100,
+      "direction": "rising"
+    },
+    {
+      "keyword": "tyler",
+      "count": 4,
+      "earlier": 0,
+      "later": 4,
+      "pct_change": 100,
+      "direction": "rising"
+    },
+    {
+      "keyword": "paul smith",
+      "count": 3,
+      "earlier": 2,
+      "later": 1,
+      "pct_change": -50,
+      "direction": "fading"
+    },
+    {
+      "keyword": "missoni",
+      "count": 3,
+      "earlier": 3,
+      "later": 0,
+      "pct_change": -100,
+      "direction": "fading"
+    },
+    {
+      "keyword": "camo cap",
+      "count": 3,
+      "earlier": 0,
+      "later": 3,
+      "pct_change": 100,
+      "direction": "rising"
+    },
+    {
+      "keyword": "fakemink dazed cover shoot",
+      "count": 3,
+      "earlier": 0,
+      "later": 3,
+      "pct_change": 100,
+      "direction": "rising"
+    },
+    {
+      "keyword": "celine",
+      "count": 3,
+      "earlier": 0,
+      "later": 3,
+      "pct_change": 100,
+      "direction": "rising"
+    },
+    {
+      "keyword": "brand",
+      "count": 3,
+      "earlier": 0,
+      "later": 3,
+      "pct_change": 100,
+      "direction": "rising"
+    },
+    {
+      "keyword": "nicholson",
+      "count": 3,
+      "earlier": 0,
+      "later": 3,
+      "pct_change": 100,
+      "direction": "rising"
+    },
+    {
+      "keyword": "style",
+      "count": 3,
+      "earlier": 0,
+      "later": 3,
+      "pct_change": 100,
+      "direction": "rising"
+    },
+    {
+      "keyword": "kiko",
+      "count": 3,
+      "earlier": 0,
+      "later": 3,
+      "pct_change": 100,
+      "direction": "rising"
+    },
+    {
+      "keyword": "kostadinov",
+      "count": 3,
+      "earlier": 0,
+      "later": 3,
+      "pct_change": 100,
+      "direction": "rising"
+    }
+  ]
+}

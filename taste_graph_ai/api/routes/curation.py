@@ -55,31 +55,47 @@ async def list_pending_images(
     image_repo: ImageRepository = Depends(get_image_repo),
     source_repo: SourceRepository = Depends(get_source_repo),
 ):
-    images, total = await image_repo.list_by_status_paginated(
-        ImageStatus.PENDING, page=page, limit=limit
-    )
-    # Batch lookup source names
-    source_names = {}
-    for img in images:
-        if img.source_id and img.source_id not in source_names:
-            source = await source_repo.get_by_id(img.source_id)
-            source_names[img.source_id] = source.name if source else ""
+    # Fetch more than requested because some DB records reference files
+    # that were never downloaded.  We keep pulling until we have enough
+    # images whose local files actually exist on disk.
+    items: list[schemas.PendingImageResponse] = []
+    source_names: dict[str, str] = {}
+    fetch_page = page
+    max_probe_pages = 12  # safety cap
 
-    items = []
-    for img in images:
-        fname = Path(img.local_path).name if img.local_path else ""
-        items.append(schemas.PendingImageResponse(
-            image_id=img.id,
-            url=img.url,
-            local_path=img.local_path,
-            image_url=f"/images/{fname}" if fname else "",
-            keywords=img.keywords,
-            final_score=img.final_score,
-            page_url=img.page_url,
-            source_name=source_names.get(img.source_id, ""),
-        ))
+    while len(items) < limit and fetch_page < page + max_probe_pages:
+        images, _ = await image_repo.list_by_status_paginated(
+            ImageStatus.PENDING, page=fetch_page, limit=limit
+        )
+        if not images:
+            break
+
+        for img in images:
+            if len(items) >= limit:
+                break
+            if not img.local_path or not Path(img.local_path).is_file():
+                continue
+            if img.source_id and img.source_id not in source_names:
+                source = await source_repo.get_by_id(img.source_id)
+                source_names[img.source_id] = source.name if source else ""
+            fname = Path(img.local_path).name
+            items.append(schemas.PendingImageResponse(
+                image_id=img.id,
+                url=img.url,
+                local_path=img.local_path,
+                image_url=f"/images/{fname}",
+                keywords=img.keywords,
+                final_score=img.final_score,
+                page_url=img.page_url,
+                source_name=source_names.get(img.source_id, ""),
+            ))
+        fetch_page += 1
+
     return schemas.PendingImagesResponse(
-        images=items, total=total, page=page, limit=limit
+        images=items,
+        total=len(items),
+        page=page,
+        limit=limit,
     )
 
 

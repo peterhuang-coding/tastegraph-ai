@@ -7,6 +7,7 @@ dist/
 # Data (runtime)
 data/taste_graph.db
 data/events.log
+data/backups/
 data/images/
 data/logs/
 
@@ -26,3 +27,4 @@ scripts/__pycache__/
 
 # Pipeline runs (generated output)
 runs/
+posts/
