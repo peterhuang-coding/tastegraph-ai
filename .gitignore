@@ -8,6 +8,7 @@ dist/
 data/taste_graph.db
 data/taste_graph.db-*
 data/events.log
+data/trend-report-*
 data/backups/
 data/images/
 data/logs/
