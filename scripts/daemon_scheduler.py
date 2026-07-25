@@ -154,7 +154,7 @@ def run_task(task: dict, run_args: list[str] | None = None) -> bool:
         return False
 
     args = run_args if run_args is not None else task.get("args", [])
-    cmd = [sys.executable, str(script_path)] + args
+    cmd = [sys.executable, "-u", str(script_path)] + args
     name = task["name"]
 
     for attempt in range(1, MAX_RETRIES + 1):
@@ -162,7 +162,7 @@ def run_task(task: dict, run_args: list[str] | None = None) -> bool:
         try:
             result = subprocess.run(
                 cmd,
-                capture_output=True,
+                capture_output=False,
                 text=True,
                 timeout=task.get("timeout", 600),
             )
@@ -175,10 +175,7 @@ def run_task(task: dict, run_args: list[str] | None = None) -> bool:
                 })
                 return True
             else:
-                stderr_trunc = result.stderr[:300] if result.stderr else "(no stderr)"
-                stdout_trunc = result.stdout[:200] if result.stdout else "(no stdout)"
-                print(f"[scheduler] [{name}] 失败 (exit={result.returncode}): {stderr_trunc}")
-                print(f"[scheduler] [{name}] stdout: {stdout_trunc}")
+                print(f"[scheduler] [{name}] 失败 (exit={result.returncode})")
         except subprocess.TimeoutExpired:
             print(f"[scheduler] [{name}] 超时 (尝试 {attempt})")
         except OSError as exc:
