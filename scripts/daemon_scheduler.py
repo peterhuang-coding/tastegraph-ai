@@ -164,7 +164,7 @@ def run_task(task: dict, run_args: list[str] | None = None) -> bool:
                 cmd,
                 capture_output=True,
                 text=True,
-                timeout=600,
+                timeout=task.get("timeout", 600),
             )
             if result.returncode == 0:
                 print(f"[scheduler] [{name}] 成功")

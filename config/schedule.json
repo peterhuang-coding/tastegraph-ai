@@ -5,6 +5,7 @@
       "script": "scripts/crawl_loop_6h.py",
       "schedule": "03:00",
       "enabled": true,
+      "timeout": 18000,
       "args": [
         "--duration-hours",
         "4",
