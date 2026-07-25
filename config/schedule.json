@@ -34,10 +34,8 @@
       "name": "publish",
       "script": "scripts/publish_scheduler.py",
       "schedule": "08:00,20:00",
-      "enabled": true,
-      "args": [
-        "--run-now"
-      ]
+      "enabled": false,
+      "_note": "DISABLED — XHS account under community penalty"
     },
     {
       "name": "auto_feedback",
