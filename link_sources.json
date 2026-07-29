@@ -156,5 +156,125 @@
       "url": "https://www.siteinspire.com",
       "why": "Curated editorial and minimal web design. Useful for layout, typography, white space, and grid composition references. Clean, not trendy."
     }
+  ],
+  "architecture_interiors": [
+    {
+      "name": "Dezeen",
+      "url": "https://www.dezeen.com/",
+      "why": "Global architecture and design, minimalist interiors"
+    },
+    {
+      "name": "ArchDaily",
+      "url": "https://www.archdaily.com/",
+      "why": "Architecture projects with clean photography"
+    },
+    {
+      "name": "Leibal",
+      "url": "https://leibal.com/",
+      "why": "Minimalist architecture and interior design blog"
+    },
+    {
+      "name": "Divisare",
+      "url": "https://divisare.com/",
+      "why": "Atlas of architecture, very editorial photography"
+    },
+    {
+      "name": "designboom",
+      "url": "https://www.designboom.com/",
+      "why": "Design, architecture, art magazine"
+    }
+  ],
+  "japanese_korean_aesthetics": [
+    {
+      "name": "Spoon & Tamago",
+      "url": "https://www.spoon-tamago.com/",
+      "why": "Japanese art, design, and culture"
+    },
+    {
+      "name": "Tokyo Art Beat",
+      "url": "https://www.tokyoartbeat.com/",
+      "why": "Tokyo art and exhibition listings"
+    },
+    {
+      "name": "Hypebeast KR",
+      "url": "https://hypebeast.kr/",
+      "why": "Korean fashion and street culture"
+    },
+    {
+      "name": "OK Fred",
+      "url": "https://okfred.com/",
+      "why": "Japanese brand lookbooks and editorial curation"
+    },
+    {
+      "name": "Mastered Japan",
+      "url": "https://www.mastered.jp/",
+      "why": "Japanese fashion editorial and brand archives"
+    }
+  ],
+  "archive_reference": [
+    {
+      "name": "ARCHIVE.pdf",
+      "url": "https://archivepdf.com/",
+      "why": "Fashion archive scans and documentation"
+    },
+    {
+      "name": "Wikimedia Commons Fashion",
+      "url": "https://commons.wikimedia.org/wiki/Category:Fashion",
+      "why": "Public domain fashion images and archives"
+    },
+    {
+      "name": "Europeana Fashion",
+      "url": "https://www.europeana.eu/en/collections/topic/55-fashion",
+      "why": "European fashion heritage archive"
+    },
+    {
+      "name": "The Metropolitan Museum - Costume Institute",
+      "url": "https://www.metmuseum.org/about-the-met/collection-areas/the-costume-institute",
+      "why": "Historical costume and fashion reference"
+    }
+  ],
+  "street_photography": [
+    {
+      "name": "Streetpeeper",
+      "url": "https://streetpeeper.com/",
+      "why": "Global street style photography"
+    },
+    {
+      "name": "TokyoFashion",
+      "url": "https://www.tokyofashion.com/",
+      "why": "Tokyo street fashion, raw and unfiltered"
+    },
+    {
+      "name": "The Sartorialist",
+      "url": "https://www.thesartorialist.com/",
+      "why": "OG street style photography blog"
+    },
+    {
+      "name": "Style Du Monde",
+      "url": "https://www.styledumonde.com/",
+      "why": "Street style photography from fashion weeks"
+    }
+  ],
+  "product_object_design": [
+    {
+      "name": "Muji Advisory",
+      "url": "https://www.muji.com.cn/",
+      "why": "MUJI aesthetic reference for taste objects"
+    },
+    {
+      "name": "Yanko Design",
+      "url": "https://www.yankodesign.com/",
+      "why": "Modern industrial design and product concepts"
+    },
+    {
+      "name": "Wallpaper* Design",
+      "url": "https://www.wallpaper.com/design",
+      "why": "High-end design, interiors, lifestyle"
+    },
+    {
+      "name": "Creative Boom",
+      "url": "https://www.creativeboom.com/",
+      "why": "Art, design, visual culture inspiration"
+    }
   ]
 }

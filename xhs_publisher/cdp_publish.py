@@ -4312,43 +4312,290 @@ class XiaohongshuPublisher:
             })
             time.sleep(0.05)
 
+    def _detect_publish_result(self, wait_seconds: float = 5.0) -> dict:
+        """After clicking publish, detect success, failure, or confirmation dialogs.
+
+        Returns a dict with keys:
+            status: 'success' | 'banned' | 'confirm_needed' | 'unknown'
+            message: human-readable description
+            note_url: note link if published successfully
+        """
+        self._sleep(wait_seconds, minimum_seconds=2.0)
+
+        result = self._evaluate("""
+            (function() {
+                var body = document.body.textContent || '';
+                var url = window.location.href;
+                var normalize = function(text) {
+                    return (text || '').replace(/\\s+/g, ' ').trim();
+                };
+
+                // ---- Check for ERROR dialogs FIRST ----
+                var banKeywords = [
+                    '违反社区规范', '禁止发笔记', '禁止发布', '封禁',
+                    '违规', '处罚', '暂时无法发布', '功能被限制',
+                    '账号异常', '发布失败', '请稍后再试', '内容不符合',
+                    '审核未通过', '该账号', '申诉',
+                ];
+                var dialogs = document.querySelectorAll(
+                    '[class*="dialog"], [class*="modal"], [class*="toast"], ' +
+                    '[class*="popup"], [class*="notice"], [class*="message"], ' +
+                    '[class*="alert"], [class*="error"], [class*="warning"], ' +
+                    '[class*="tips"], [class*="notification"], [class*="snackbar"]'
+                );
+                for (var i = 0; i < dialogs.length; i++) {
+                    var d = dialogs[i];
+                    var style = window.getComputedStyle(d);
+                    if (style.display === 'none' || style.visibility === 'hidden') continue;
+                    var text = normalize(d.textContent || d.innerText || '');
+                    if (text.length < 3) continue;
+                    for (var j = 0; j < banKeywords.length; j++) {
+                        if (text.indexOf(banKeywords[j]) >= 0) {
+                            return {
+                                status: 'banned',
+                                message: text.slice(0, 300),
+                                reason: banKeywords[j],
+                                elementClass: (d.className || '').toString().slice(0, 100),
+                            };
+                        }
+                    }
+                }
+
+                // Also check body text for ban messages (some show as inline errors)
+                for (var j = 0; j < banKeywords.length; j++) {
+                    var idx = body.indexOf(banKeywords[j]);
+                    if (idx >= 0) {
+                        return {
+                            status: 'banned',
+                            message: body.slice(Math.max(0, idx - 50), idx + 150),
+                            reason: banKeywords[j],
+                        };
+                    }
+                }
+
+                // ---- Check for SUCCESS ----
+                var successKeywords = ['发布成功', '已发布', '发布中', '审核中'];
+                for (var j = 0; j < successKeywords.length; j++) {
+                    if (body.indexOf(successKeywords[j]) >= 0) {
+                        // Try to find note link
+                        var noteUrl = null;
+                        var links = document.querySelectorAll('a[href*="explore"], a[href*="discovery/item"]');
+                        if (links.length > 0) {
+                            noteUrl = links[0].href;
+                        }
+                        return {
+                            status: 'success',
+                            message: successKeywords[j],
+                            note_url: noteUrl,
+                        };
+                    }
+                }
+
+                // ---- Check for URL redirect (also success) ----
+                if (url.indexOf('publish') < 0 && url.indexOf('creator') >= 0) {
+                    return {status: 'success', message: 'URL redirected', note_url: url};
+                }
+
+                // ---- Check for CONFIRMATION DIALOG ----
+                var confirmKeywords = ['确认发布', '确定', '继续发布'];
+                for (var j = 0; j < confirmKeywords.length; j++) {
+                    if (body.indexOf(confirmKeywords[j]) >= 0) {
+                        return {status: 'confirm_needed', message: 'Confirmation dialog detected: ' + confirmKeywords[j]};
+                    }
+                }
+
+                // ---- Nothing detected ----
+                return {status: 'unknown', message: 'No success or error detected'};
+            })()
+        """)
+
+        if not isinstance(result, dict):
+            return {"status": "unknown", "message": "Failed to evaluate page result"}
+
+        status = result.get("status", "unknown")
+        message = result.get("message", "")
+        note_url = result.get("note_url")
+
+        if status == "banned":
+            print(f"[cdp_publish] ❌ PUBLISH BLOCKED: {message}")
+        elif status == "success":
+            print(f"[cdp_publish] ✅ PUBLISH SUCCESS: {message}")
+            if note_url:
+                print(f"[cdp_publish]    Note URL: {note_url}")
+        elif status == "confirm_needed":
+            print(f"[cdp_publish] ⚠️  CONFIRMATION NEEDED: {message}")
+        else:
+            print(f"[cdp_publish] ⚠️  UNKNOWN RESULT: {message}")
+
+        return result
+
     def _click_publish(self, scheduled: bool = False):
-        """Click the publish button using CDP mouse events."""
+        """Click the publish button and detect the result.
+
+        Returns a dict with:
+            status: 'success' | 'banned' | 'confirm_needed' | 'unknown' | 'error'
+            message: human-readable description
+            note_url: note link if published successfully
+        """
         print("[cdp_publish] Clicking publish button...")
         self._sleep(ACTION_INTERVAL, minimum_seconds=0.25)
         self._wait_for_publish_button_ready(timeout_seconds=20.0)
         rect = self._get_publish_button_rect()
         if not rect:
-            raise CDPError(
-                "Could not find publish button. "
-                "The creator center page structure may have changed."
-            )
+            return {
+                "status": "error",
+                "message": "Could not find publish button. The creator center page structure may have changed.",
+            }
 
         cx = rect["x"] + rect["width"] / 2
         cy = rect["y"] + rect["height"] / 2
         print(f"[cdp_publish] Clicking publish button at ({cx:.0f}, {cy:.0f})...")
-        self._click_mouse(cx, cy)
-        print("[cdp_publish] Publish button clicked.")
 
-        # Wait for publish success and get note link
-        self._sleep(5, minimum_seconds=2.0)
-        note_link = self._evaluate("""
+        # Move mouse first, then click — some frameworks require the mousemove
+        self._send("Input.dispatchMouseEvent", {
+            "type": "mouseMoved",
+            "x": cx,
+            "y": cy,
+        })
+        time.sleep(0.05)
+
+        self._click_mouse(cx, cy)
+        print("[cdp_publish] Publish button clicked — detecting result...")
+
+        # Detect the actual result
+        result = self._detect_publish_result(wait_seconds=5.0)
+
+        # If there's a confirmation dialog, try to confirm
+        if result.get("status") == "confirm_needed":
+            print("[cdp_publish] Attempting to confirm...")
+            confirm_clicked = self._evaluate("""
+                (function() {
+                    var dialogs = document.querySelectorAll(
+                        '[class*="dialog"], [class*="modal"], [class*="popup"]'
+                    );
+                    for (var i = 0; i < dialogs.length; i++) {
+                        var d = dialogs[i];
+                        if (window.getComputedStyle(d).display === 'none') continue;
+                        var btns = d.querySelectorAll('button');
+                        for (var j = 0; j < btns.length; j++) {
+                            var t = (btns[j].textContent || '').trim();
+                            if (t === '确定' || t === '确认' || t === '发布' || t === '确认发布') {
+                                btns[j].click();
+                                return {confirmed: true, buttonText: t};
+                            }
+                        }
+                    }
+                    return {confirmed: false, reason: 'no confirm button found'};
+                })()
+            """)
+            print(f"[cdp_publish] Confirm attempt: {confirm_clicked}")
+            if confirm_clicked.get("confirmed"):
+                # Re-check result after confirmation
+                result = self._detect_publish_result(wait_seconds=4.0)
+
+        return result
+
+    def _click_save_draft(self):
+        """Click the '暂存离开' (Save Draft) button inside xhs-publish-btn shadow DOM.
+
+        This saves the current form as a draft without publishing.
+        Used for the human-in-the-loop workflow: AI fills form → saves draft → human publishes.
+
+        Returns a dict with:
+            status: 'draft_saved' | 'error'
+            message: human-readable description
+        """
+        print("[cdp_publish] Clicking '暂存离开' (Save Draft)...")
+        self._sleep(ACTION_INTERVAL, minimum_seconds=0.25)
+
+        # Find the draft button inside xhs-publish-btn shadow DOM
+        draft_info = self._evaluate("""
             (function() {
-                // Try to find note link in success message
-                var links = document.querySelectorAll('a[href*="xiaohongshu.com/explore"]');
-                if (links.length > 0) {
-                    return links[0].href;
+                var xhsBtn = document.querySelector('xhs-publish-btn');
+                if (!xhsBtn || !xhsBtn.shadowRoot) {
+                    return {found: false, reason: 'xhs-publish-btn or shadow root not found'};
                 }
-                // Try to find note ID in page
-                var noteId = document.body.textContent.match(/\\b[0-9a-fA-F]{24}\\b/);
-                if (noteId) {
-                    return 'https://www.xiaohongshu.com/explore/' + noteId[0];
+
+                var buttons = xhsBtn.shadowRoot.querySelectorAll('button');
+                for (var i = 0; i < buttons.length; i++) {
+                    var text = (buttons[i].textContent || '').trim();
+                    // Match "暂存离开" or "存草稿" or "保存草稿"
+                    if (text === '暂存离开' || text.indexOf('暂存') >= 0 || text.indexOf('草稿') >= 0) {
+                        var r = buttons[i].getBoundingClientRect();
+                        return {
+                            found: true,
+                            text: text,
+                            disabled: buttons[i].disabled,
+                            cx: Math.round(r.x + r.width / 2),
+                            cy: Math.round(r.y + r.height / 2),
+                            x: Math.round(r.x), y: Math.round(r.y),
+                            w: Math.round(r.width), h: Math.round(r.height),
+                        };
+                    }
                 }
-                return null;
-            })();
+                return {found: false, reason: 'no draft button found in shadow DOM'};
+            })()
         """)
 
-        return note_link
+        if not draft_info.get("found"):
+            msg = draft_info.get("reason", "Unknown")
+            print(f"[cdp_publish] ❌ Draft button not found: {msg}")
+            return {"status": "error", "message": f"Draft button not found: {msg}"}
+
+        if draft_info.get("disabled"):
+            print("[cdp_publish] ⚠️ Draft button is disabled")
+            return {"status": "error", "message": "Draft button is disabled"}
+
+        cx = draft_info["cx"]
+        cy = draft_info["cy"]
+        print(f"[cdp_publish] Clicking draft button '{draft_info['text']}' at ({cx}, {cy})...")
+
+        # CDP mouse click sequence
+        self._send("Input.dispatchMouseEvent", {
+            "type": "mouseMoved", "x": cx, "y": cy,
+        })
+        time.sleep(0.05)
+        self._click_mouse(cx, cy)
+        print("[cdp_publish] Draft button clicked.")
+
+        # Wait and detect result
+        self._sleep(3.0, minimum_seconds=1.5)
+
+        result = self._evaluate("""
+            (function() {
+                var url = window.location.href;
+                var body = (document.body.textContent || '');
+
+                // Check for success indicators
+                if (body.indexOf('已保存') >= 0 || body.indexOf('保存成功') >= 0 ||
+                    body.indexOf('已存为草稿') >= 0 || body.indexOf('暂存成功') >= 0) {
+                    return {status: 'draft_saved', message: 'Draft saved successfully'};
+                }
+
+                // If URL changed away from publish page, likely saved
+                if (url.indexOf('/publish/publish') < 0 && url.indexOf('creator') >= 0) {
+                    return {status: 'draft_saved', message: 'Redirected away from publish page'};
+                }
+
+                // Check for error
+                if (body.indexOf('违反社区规范') >= 0 || body.indexOf('禁止') >= 0) {
+                    return {status: 'error', message: 'Account restriction detected'};
+                }
+
+                // No clear indicator, but click went through
+                return {status: 'draft_saved', message: 'Draft click completed (no error detected)'};
+            })()
+        """)
+
+        status = result.get("status", "unknown") if isinstance(result, dict) else "unknown"
+        message = result.get("message", "") if isinstance(result, dict) else ""
+
+        if status == "draft_saved":
+            print(f"[cdp_publish] ✅ DRAFT SAVED: {message}")
+        else:
+            print(f"[cdp_publish] ❌ DRAFT FAILED: {message}")
+
+        return result
 
     # ------------------------------------------------------------------
     # Main publish workflow
@@ -4896,16 +5143,49 @@ def main():
             print("FILL_STATUS: READY_TO_PUBLISH")
 
             if args.command == "publish":
-                publisher._click_publish()
-                print("PUBLISH_STATUS: PUBLISHED")
+                pub_result = publisher._click_publish()
+                status = pub_result.get("status", "unknown") if isinstance(pub_result, dict) else "unknown"
+                message = pub_result.get("message", "") if isinstance(pub_result, dict) else ""
+                if status == "success":
+                    print("PUBLISH_STATUS: PUBLISHED")
+                    note_url = pub_result.get("note_url") if isinstance(pub_result, dict) else None
+                    if note_url:
+                        print(f"NOTE_URL: {note_url}")
+                elif status == "banned":
+                    print(f"PUBLISH_STATUS: BLOCKED")
+                    print(f"BLOCK_REASON: {message}")
+                    sys.exit(3)
+                elif status == "confirm_needed":
+                    print(f"PUBLISH_STATUS: CONFIRMATION_REQUIRED")
+                    sys.exit(4)
+                else:
+                    print(f"PUBLISH_STATUS: UNKNOWN")
+                    print(f"PUBLISH_MESSAGE: {message}")
+                    sys.exit(5)
 
         elif args.command == "click-publish":
             publisher.connect(
                 target_url_prefix="https://creator.xiaohongshu.com/publish",
                 reuse_existing_tab=reuse_existing_tab,
             )
-            publisher._click_publish()
-            print("PUBLISH_STATUS: PUBLISHED")
+            pub_result = publisher._click_publish()
+            status = pub_result.get("status", "unknown") if isinstance(pub_result, dict) else "unknown"
+            message = pub_result.get("message", "") if isinstance(pub_result, dict) else ""
+            if status == "success":
+                print("PUBLISH_STATUS: PUBLISHED")
+                note_url = pub_result.get("note_url") if isinstance(pub_result, dict) else None
+                if note_url:
+                    print(f"NOTE_URL: {note_url}")
+            elif status == "banned":
+                print(f"PUBLISH_STATUS: BLOCKED")
+                print(f"BLOCK_REASON: {message}")
+                sys.exit(3)
+            elif status == "confirm_needed":
+                print(f"PUBLISH_STATUS: CONFIRMATION_REQUIRED")
+                sys.exit(4)
+            else:
+                print(f"PUBLISH_STATUS: UNKNOWN")
+                sys.exit(5)
 
         elif args.command in ("list-feeds", "list_feeds"):
             publisher.connect(reuse_existing_tab=reuse_existing_tab)

@@ -17,11 +17,19 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
-PLIST_SRC="$PROJECT_DIR/taste_graph_ai/scheduler/com.user.tastegraph.daemon.plist"
-PLIST_DST="$HOME/Library/LaunchAgents/com.user.tastegraph.daemon.plist"
+PLIST_DIR="$PROJECT_DIR/taste_graph_ai/scheduler"
+LAUNCHD_DIR="$HOME/Library/LaunchAgents"
+LOG_DIR="$HOME/Library/Logs/TasteGraph"
 CHROME_APP="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 CDP_PORT=9222
 PROFILE_DIR="$HOME/Google/Chrome/XiaohongshuProfiles/default"
+
+# All plists to manage
+PLISTS=(
+    "com.user.tastegraph.daemon"
+    "com.user.tastegraph.publish-08"
+    "com.user.tastegraph.publish-20"
+)
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -76,42 +84,45 @@ start_chrome_cdp() {
     return 1
 }
 
-# ── 安装并加载 launchd ──────────────────────────────────
+# ── 安装并加载所有 launchd plists ──────────────────────
 setup_launchd() {
-    mkdir -p "$HOME/Library/LaunchAgents"
+    mkdir -p "$LAUNCHD_DIR"
+    mkdir -p "$LOG_DIR"
 
-    if [ ! -f "$PLIST_SRC" ]; then
-        err "Plist not found: $PLIST_SRC"
-        return 1
-    fi
+    for plist_name in "${PLISTS[@]}"; do
+        local src="$PLIST_DIR/${plist_name}.plist"
+        local dst="$LAUNCHD_DIR/${plist_name}.plist"
 
-    cp "$PLIST_SRC" "$PLIST_DST"
-    log "Plist installed: $PLIST_DST"
+        if [ ! -f "$src" ]; then
+            warn "Plist source not found: $src (skipping)"
+            continue
+        fi
 
-    # Unload if already loaded
-    launchctl bootout gui/$(id -u)/com.user.tastegraph.daemon 2>/dev/null || true
+        # Unload old, copy new, bootstrap
+        launchctl bootout "gui/$(id -u)/${plist_name}" 2>/dev/null || true
+        cp "$src" "$dst"
+        launchctl bootstrap "gui/$(id -u)" "$dst"
+        log "Loaded: ${plist_name}"
+    done
 
-    # Load (bootstrap)
-    launchctl bootstrap gui/$(id -u) "$PLIST_DST"
-    log "launchd daemon bootstrapped"
-
-    # Verify
     sleep 2
-    if launchctl list | grep -q "com.user.tastegraph.daemon"; then
-        log "✓ com.user.tastegraph.daemon is running"
-    else
-        warn "com.user.tastegraph.daemon may not have started — check logs"
-    fi
+    log "All launchd services loaded."
 }
 
 # ── 停止所有服务 ────────────────────────────────────────
 stop_all() {
     log "Stopping all services..."
 
-    # Stop launchd daemon
-    launchctl bootout gui/$(id -u)/com.user.tastegraph.daemon 2>/dev/null && \
-        log "daemon unloaded" || \
-        warn "daemon was not loaded"
+    for plist_name in "${PLISTS[@]}"; do
+        launchctl bootout "gui/$(id -u)/${plist_name}" 2>/dev/null && \
+            log "Unloaded: ${plist_name}" || \
+            warn "Was not loaded: ${plist_name}"
+    done
+
+    # Also stop old plists
+    for old in com.user.tastegraph com.user.tastegraph.scrape; do
+        launchctl bootout "gui/$(id -u)/${old}" 2>/dev/null || true
+    done
 
     # Kill Chrome CDP
     if lsof -i ":$CDP_PORT" &>/dev/null; then
@@ -138,24 +149,26 @@ show_status() {
         echo -e "  Chrome CDP (:$CDP_PORT)  ${RED}○ stopped${NC}"
     fi
 
-    # launchd daemon
-    if launchctl list | grep -q "com.user.tastegraph.daemon"; then
-        local status_code=$(launchctl list | grep "com.user.tastegraph.daemon" | awk '{print $2}')
-        if [ "$status_code" = "0" ]; then
-            echo -e "  daemon_scheduler        ${GREEN}● running${NC}"
+    # All launchd services
+    for plist_name in "${PLISTS[@]}"; do
+        local line=$(launchctl list | grep "$plist_name" || true)
+        if [ -n "$line" ]; then
+            local pid=$(echo "$line" | awk '{print $1}')
+            local code=$(echo "$line" | awk '{print $2}')
+            if [ "$pid" != "-" ] && [ "$code" = "0" ]; then
+                echo -e "  ${plist_name}  ${GREEN}● PID=$pid${NC}"
+            else
+                echo -e "  ${plist_name}  ${YELLOW}◉ loaded (pid=$pid, exit=$code)${NC}"
+            fi
         else
-            echo -e "  daemon_scheduler        ${YELLOW}◉ running (exit=$status_code, may be restarting)${NC}"
+            echo -e "  ${plist_name}  ${RED}○ not loaded${NC}"
         fi
-    else
-        echo -e "  daemon_scheduler        ${RED}○ not loaded${NC}"
-    fi
+    done
 
-    # Other launchd services
-    for svc in com.user.tastegraph com.user.tastegraph.scrape; do
-        if launchctl list | grep -q "$svc"; then
-            echo -e "  $svc  ${GREEN}● loaded${NC}"
-        else
-            echo -e "  $svc  ${RED}○ not loaded${NC}"
+    # Also show old plists
+    for old in com.user.tastegraph com.user.tastegraph.scrape; do
+        if launchctl list | grep -q "$old"; then
+            echo -e "  ${old}  ${YELLOW}◉ loaded (legacy)${NC}"
         fi
     done
 
@@ -165,16 +178,13 @@ show_status() {
         echo "  Last publish event: $last_publish"
     fi
 
-    # Unpublished posts
-    local unpublished=$(python3 "$PROJECT_DIR/scripts/publish_scheduler.py" --dry-run 2>/dev/null | grep "没有待发布" && echo "0" || echo "?")
-    if [ "$unpublished" = "0" ]; then
-        echo -e "  Pending posts:          ${GREEN}0${NC}"
-    fi
+    # Quick dry-run
+    local dry=$(cd "$PROJECT_DIR" && /opt/anaconda3/bin/python3 -u scripts/publish_scheduler.py --dry-run 2>&1 | head -3)
+    echo "  $dry"
 
     echo "═══════════════════════════════════════════════════"
-    echo "  Logs: data/logs/daemon.log"
-    echo "        data/logs/daemon.err"
-    echo "        data/events.log"
+    echo "  Logs: ~/Library/Logs/TasteGraph/"
+    echo "  Events: data/events.log"
     echo "═══════════════════════════════════════════════════"
     echo ""
 }

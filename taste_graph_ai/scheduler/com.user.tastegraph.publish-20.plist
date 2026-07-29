@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.user.tastegraph.publish-20</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>-c</string>
+        <string>
+            export PYTHONUNBUFFERED=1
+            export PATH="/opt/anaconda3/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin"
+            export HOME="/Users/peter_mini"
+            cd "/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound"
+            /opt/anaconda3/bin/python3 -u scripts/publish_scheduler.py --run-now
+        </string>
+    </array>
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>20</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+    <key>StandardOutPath</key>
+    <string>/Users/peter_mini/Library/Logs/TasteGraph/publish-20.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/peter_mini/Library/Logs/TasteGraph/publish-20.err</string>
+</dict>
+</plist>

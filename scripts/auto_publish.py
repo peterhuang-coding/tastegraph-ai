@@ -75,8 +75,8 @@ def random_interval(min_interval: int = 180, max_interval: int = 300) -> int:
 
 
 def publish_post(post_dir: Path, headless: bool = False,
-                 timing_jitter: float = 0.35) -> bool:
-    """Publish a single post using XiaohongshuSkills, with retry logic."""
+                 timing_jitter: float = 0.35, draft_mode: bool = False) -> bool:
+    """Publish a single post or save to drafts using Xiaohongshu CDP, with retry logic."""
     title_file = post_dir / "title.txt"
     body_file = post_dir / "body.txt"
     hashtags_file = post_dir / "hashtags.txt"
@@ -91,7 +91,8 @@ def publish_post(post_dir: Path, headless: bool = False,
     hashtags = hashtags_file.read_text(encoding="utf-8").strip() if hashtags_file.exists() else ""
     content = f"{body}\n\n{hashtags}" if hashtags else body
 
-    print(f"  发布: {title}")
+    action = "存草稿" if draft_mode else "发布"
+    print(f"  {action}: {title}")
 
     for attempt in range(1, MAX_RETRIES + 2):  # first attempt + retries
         cmd = [
@@ -107,18 +108,29 @@ def publish_post(post_dir: Path, headless: bool = False,
 
         if headless:
             cmd.append("--headless")
+        if draft_mode:
+            cmd.append("--draft")
 
         try:
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+            stdout_text = result.stdout + result.stderr
             if result.returncode == 0:
                 print(f"  ✅ {post_dir.name}: 发布成功")
                 return True
             elif result.returncode == 1:
                 print(f"  ❌ {post_dir.name}: 未登录（请先运行 --login）")
                 return False
+            elif result.returncode == 3:
+                # BLOCKED - account banned from publishing
+                print(f"  🚫 {post_dir.name}: 账号被禁止发布！")
+                print(f"     {result.stderr[:300] if result.stderr else result.stdout[:300]}")
+                return False  # Don't retry - account is banned
+            elif result.returncode == 4:
+                print(f"  ⚠️ {post_dir.name}: 需要手动确认")
+                return False
             else:
                 if attempt <= MAX_RETRIES:
-                    print(f"  ⚠️ {post_dir.name}: 发布失败，{RETRY_DELAY}秒后重试 (第{attempt}/{MAX_RETRIES}次)")
+                    print(f"  ⚠️ {post_dir.name}: 发布失败(exit={result.returncode})，{RETRY_DELAY}秒后重试 (第{attempt}/{MAX_RETRIES}次)")
                     print(f"     {result.stderr[:200]}")
                     time.sleep(RETRY_DELAY)
                 else:
@@ -147,6 +159,8 @@ def main():
                         help="最小发布间隔（秒，默认: 180）")
     parser.add_argument("--max-interval", type=int, default=300,
                         help="最大发布间隔（秒，默认: 300）")
+    parser.add_argument("--draft", action="store_true", default=False,
+                        help="存入草稿箱而非直接发布（推荐，避免封号）")
     args = parser.parse_args()
 
     if not check_chrome():
@@ -181,7 +195,7 @@ def main():
             print(f"❌ 未找到: {post_dir}")
             sys.exit(1)
         publish_post(post_dir, headless=args.headless,
-                     timing_jitter=args.timing_jitter)
+                     timing_jitter=args.timing_jitter, draft_mode=args.draft)
         # 单篇模式也加入随机等待
         time.sleep(random_interval(args.min_interval, args.max_interval))
     elif args.all:

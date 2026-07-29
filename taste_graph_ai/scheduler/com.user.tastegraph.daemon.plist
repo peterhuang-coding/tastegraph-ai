@@ -7,18 +7,28 @@
     <string>com.user.tastegraph.daemon</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/bin/bash</string>
-        <string>/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/scripts/launchd_daemon.sh</string>
+        <string>/opt/anaconda3/bin/python3</string>
+        <string>-u</string>
+        <string>/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/scripts/daemon_scheduler.py</string>
     </array>
+    <key>WorkingDirectory</key>
+    <string>/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PYTHONUNBUFFERED</key>
+        <string>1</string>
+        <key>PATH</key>
+        <string>/opt/anaconda3/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin</string>
+        <key>HOME</key>
+        <string>/Users/peter_mini</string>
+    </dict>
     <key>RunAtLoad</key>
     <true/>
     <key>KeepAlive</key>
     <true/>
-    <key>ThrottleInterval</key>
-    <integer>30</integer>
     <key>StandardOutPath</key>
-    <string>/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/data/logs/daemon.log</string>
+    <string>/Users/peter_mini/Library/Logs/TasteGraph/daemon.log</string>
     <key>StandardErrorPath</key>
-    <string>/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/data/logs/daemon.err</string>
+    <string>/Users/peter_mini/Library/Logs/TasteGraph/daemon.err</string>
 </dict>
 </plist>

@@ -44,6 +44,11 @@ def check_last_event(hours: int = 6) -> dict:
             return {"ok": False, "error": "events.log 为空"}
         last = json.loads(lines[-1])
         ts = datetime.fromisoformat(last["ts"])
+        # normalize: 部分历史事件是 naive datetime，部分 aware，统一到 UTC tz-aware
+        if ts.tzinfo is None:
+            ts = ts.replace(tzinfo=timezone.utc)
+        else:
+            ts = ts.astimezone(timezone.utc)
         age = datetime.now(timezone.utc) - ts
         recent = age.total_seconds() < hours * 3600
         return {"ok": recent, "last_event": last, "age_minutes": round(age.total_seconds()/60)}

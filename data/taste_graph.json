@@ -2693,6 +2693,1208 @@
       "properties": {
         "source": "ai_entity_extraction"
       }
+    },
+    {
+      "id": "brand:sgd",
+      "type": "brand",
+      "label": "SGD",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:summer_sale",
+      "type": "brand",
+      "label": "SUMMER SALE",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "object:linen",
+      "type": "object",
+      "label": "Linen",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:presse",
+      "type": "brand",
+      "label": "PRESSE",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:exclusive",
+      "type": "brand",
+      "label": "EXCLUSIVE",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:cphfw",
+      "type": "brand",
+      "label": "CPHFW",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:og",
+      "type": "brand",
+      "label": "OG",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:rip_rei",
+      "type": "brand",
+      "label": "RIP REI",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "source:brand_magazine",
+      "type": "source",
+      "label": "BranD Magazine",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "http://www.brandmagazine.com.hk"
+      }
+    },
+    {
+      "id": "brand:search",
+      "type": "brand",
+      "label": "SEARCH",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:home_event",
+      "type": "brand",
+      "label": "HOME EVENT",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:info_press",
+      "type": "brand",
+      "label": "INFO PRESS",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:latest_shop",
+      "type": "brand",
+      "label": "LATEST SHOP",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:subscribe_contribute",
+      "type": "brand",
+      "label": "SUBSCRIBE CONTRIBUTE",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "source:toshio_saeki_estate",
+      "type": "source",
+      "label": "Toshio Saeki Estate",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.toshiosaeki.estate"
+      }
+    },
+    {
+      "id": "source:same_energy_—_visual_search",
+      "type": "source",
+      "label": "Same Energy — Visual Search",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://same.energy"
+      }
+    },
+    {
+      "id": "brand:cc",
+      "type": "brand",
+      "label": "CC",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:by",
+      "type": "brand",
+      "label": "BY",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "color:tan",
+      "type": "color",
+      "label": "Tan",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:omse",
+      "type": "brand",
+      "label": "OMSE",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:hyperfocus",
+      "type": "brand",
+      "label": "HYPERFOCUS",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:bafta",
+      "type": "brand",
+      "label": "BAFTA",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:superultrarare",
+      "type": "brand",
+      "label": "SUPERULTRARARE",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:obys",
+      "type": "brand",
+      "label": "OBYS",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:mqueyt",
+      "type": "brand",
+      "label": "MQUEYT",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "color:slate",
+      "type": "color",
+      "label": "Slate",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:loading",
+      "type": "brand",
+      "label": "LOADING",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:tv",
+      "type": "brand",
+      "label": "TV",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:ib",
+      "type": "brand",
+      "label": "IB",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:nyfw_ss25",
+      "type": "brand",
+      "label": "NYFW SS25",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:ssense",
+      "type": "brand",
+      "label": "SSENSE",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:isabella_lovestory",
+      "type": "brand",
+      "label": "ISABELLA LOVESTORY",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:is_coming",
+      "type": "brand",
+      "label": "IS COMING",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:clean",
+      "type": "brand",
+      "label": "CLEAN",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:iii",
+      "type": "brand",
+      "label": "III",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:whole",
+      "type": "brand",
+      "label": "WHOLE",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:pull",
+      "type": "brand",
+      "label": "PULL",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:bear",
+      "type": "brand",
+      "label": "BEAR",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:aw26",
+      "type": "brand",
+      "label": "AW26",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:ss27",
+      "type": "brand",
+      "label": "SS27",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:guess",
+      "type": "brand",
+      "label": "GUESS",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:rw",
+      "type": "brand",
+      "label": "RW",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "object:silk",
+      "type": "object",
+      "label": "Silk",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:cest",
+      "type": "brand",
+      "label": "CEST",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "source:https://www.vogue.com/fashion-shows/spring-2026-menswear",
+      "type": "source",
+      "label": "https://www.vogue.com/fashion-shows/spring-2026-menswear",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.vogue.com/fashion-shows/spring-2026-menswear"
+      }
+    },
+    {
+      "id": "color:brown",
+      "type": "color",
+      "label": "Brown",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "object:wood",
+      "type": "object",
+      "label": "Wood",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "source:https://www.vogue.com/fashion-shows/fall-2026-menswear/christophe-lemaire",
+      "type": "source",
+      "label": "https://www.vogue.com/fashion-shows/fall-2026-menswear/christophe-lemaire",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.vogue.com/fashion-shows/fall-2026-menswear/christophe-lemaire"
+      }
+    },
+    {
+      "id": "source:https://www.vogue.com/fashion-shows/spring-2026-menswear/christophe-lemaire",
+      "type": "source",
+      "label": "https://www.vogue.com/fashion-shows/spring-2026-menswear/christophe-lemaire",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.vogue.com/fashion-shows/spring-2026-menswear/christophe-lemaire"
+      }
+    },
+    {
+      "id": "color:sand",
+      "type": "color",
+      "label": "Sand",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "color:sage",
+      "type": "color",
+      "label": "Sage",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "source:https://www.vogue.com/fashion-shows/spring-2026-menswear/courreges",
+      "type": "source",
+      "label": "https://www.vogue.com/fashion-shows/spring-2026-menswear/courreges",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.vogue.com/fashion-shows/spring-2026-menswear/courreges"
+      }
+    },
+    {
+      "id": "brand:ac",
+      "type": "brand",
+      "label": "AC",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "source:https://www.vogue.com/fashion-shows/spring-2026-menswear/saint-laurent",
+      "type": "source",
+      "label": "https://www.vogue.com/fashion-shows/spring-2026-menswear/saint-laurent",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.vogue.com/fashion-shows/spring-2026-menswear/saint-laurent"
+      }
+    },
+    {
+      "id": "color:navy",
+      "type": "color",
+      "label": "Navy",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "color:burgundy",
+      "type": "color",
+      "label": "Burgundy",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "color:rust",
+      "type": "color",
+      "label": "Rust",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "source:https://www.vogue.com/fashion-shows/spring-2026-menswear/032c",
+      "type": "source",
+      "label": "https://www.vogue.com/fashion-shows/spring-2026-menswear/032c",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.vogue.com/fashion-shows/spring-2026-menswear/032c"
+      }
+    },
+    {
+      "id": "source:https://www.showstudio.com/projects/fashion_film_submissions",
+      "type": "source",
+      "label": "https://www.showstudio.com/projects/fashion_film_submissions",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.showstudio.com/projects/fashion_film_submissions"
+      }
+    },
+    {
+      "id": "source:https://www.showstudio.com/projects/fashion_film_submissions/fashion-film-showcase-summer-2025",
+      "type": "source",
+      "label": "https://www.showstudio.com/projects/fashion_film_submissions/fashion-film-showcase-summer-2025",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.showstudio.com/projects/fashion_film_submissions/fashion-film-showcase-summer-2025"
+      }
+    },
+    {
+      "id": "source:https://www.showstudio.com/projects/fashions-digital-future/the-future-of-fashion-is-fashion-film",
+      "type": "source",
+      "label": "https://www.showstudio.com/projects/fashions-digital-future/the-future-of-fashion-is-fashion-film",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.showstudio.com/projects/fashions-digital-future/the-future-of-fashion-is-fashion-film"
+      }
+    },
+    {
+      "id": "source:https://vimeo.com/channels/dazed",
+      "type": "source",
+      "label": "https://vimeo.com/channels/dazed",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://vimeo.com/channels/dazed"
+      }
+    },
+    {
+      "id": "brand:ep",
+      "type": "brand",
+      "label": "EP",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:dop",
+      "type": "brand",
+      "label": "DOP",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:diy",
+      "type": "brand",
+      "label": "DIY",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:maxilla",
+      "type": "brand",
+      "label": "MAXILLA",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "source:https://www.dazeddigital.com/fashion/article/17977/1/the-da-zed-guide-to-fashion-film",
+      "type": "source",
+      "label": "https://www.dazeddigital.com/fashion/article/17977/1/the-da-zed-guide-to-fashion-film",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.dazeddigital.com/fashion/article/17977/1/the-da-zed-guide-to-fashion-film"
+      }
+    },
+    {
+      "id": "brand:is_for",
+      "type": "brand",
+      "label": "IS FOR",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:augmented_reality",
+      "type": "brand",
+      "label": "AUGMENTED REALITY",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:aw10",
+      "type": "brand",
+      "label": "AW10",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:bart_hess",
+      "type": "brand",
+      "label": "BART HESS",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "source:https://www.dazeddigital.com/fashion/article/34117/1/the-most-spellbinding-fashion-films-of-2016",
+      "type": "source",
+      "label": "https://www.dazeddigital.com/fashion/article/34117/1/the-most-spellbinding-fashion-films-of-2016",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.dazeddigital.com/fashion/article/34117/1/the-most-spellbinding-fashion-films-of-2016"
+      }
+    },
+    {
+      "id": "brand:calvin_klein",
+      "type": "brand",
+      "label": "CALVIN KLEIN",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:aw16_campaign",
+      "type": "brand",
+      "label": "AW16 CAMPAIGN",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:film_ft",
+      "type": "brand",
+      "label": "FILM FT",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:frank_ocean",
+      "type": "brand",
+      "label": "FRANK OCEAN",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:aw16",
+      "type": "brand",
+      "label": "AW16",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "source:https://www.032c.com/",
+      "type": "source",
+      "label": "https://www.032c.com/",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.032c.com/"
+      }
+    },
+    {
+      "id": "source:https://www.vogue.com/article/fall-2026-in-designers-own-words",
+      "type": "source",
+      "label": "https://www.vogue.com/article/fall-2026-in-designers-own-words",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.vogue.com/article/fall-2026-in-designers-own-words"
+      }
+    },
+    {
+      "id": "source:https://www.vogue.com/article/what-do-fashion-people-do-all-day-answers-from-the-spring-2026-runways",
+      "type": "source",
+      "label": "https://www.vogue.com/article/what-do-fashion-people-do-all-day-answers-from-the-spring-2026-runways",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.vogue.com/article/what-do-fashion-people-do-all-day-answers-from-the-spring-2026-runways"
+      }
+    },
+    {
+      "id": "source:https://www.theguardian.com/artanddesign/2026/apr/15/va-east-architecture-review-from-ceramics-to-codpieces-this-is-a-honey-coloured-treasure-trove-of-human-ingenuity",
+      "type": "source",
+      "label": "https://www.theguardian.com/artanddesign/2026/apr/15/va-east-architecture-review-from-ceramics-to-codpieces-this-is-a-honey-coloured-treasure-trove-of-human-ingenuity",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.theguardian.com/artanddesign/2026/apr/15/va-east-architecture-review-from-ceramics-to-codpieces-this-is-a-honey-coloured-treasure-trove-of-human-ingenuity"
+      }
+    },
+    {
+      "id": "brand:bst",
+      "type": "brand",
+      "label": "BST",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "source:https://www.vogue.com/article/metropolitan-museum-of-art-costume-art-exhibition",
+      "type": "source",
+      "label": "https://www.vogue.com/article/metropolitan-museum-of-art-costume-art-exhibition",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.vogue.com/article/metropolitan-museum-of-art-costume-art-exhibition"
+      }
+    },
+    {
+      "id": "color:stone",
+      "type": "color",
+      "label": "Stone",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "object:stone",
+      "type": "object",
+      "label": "Stone",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:ahead_of",
+      "type": "brand",
+      "label": "AHEAD OF",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:the_curve",
+      "type": "brand",
+      "label": "THE CURVE",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:ars",
+      "type": "brand",
+      "label": "ARS",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "source:https://www.vogue.com/brands/032c",
+      "type": "source",
+      "label": "https://www.vogue.com/brands/032c",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.vogue.com/brands/032c"
+      }
+    },
+    {
+      "id": "source:https://www.highsnobiety.com/tag/style/",
+      "type": "source",
+      "label": "https://www.highsnobiety.com/tag/style/",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.highsnobiety.com/tag/style/"
+      }
+    },
+    {
+      "id": "source:https://www.nowness.com/topic/fashion",
+      "type": "source",
+      "label": "https://www.nowness.com/topic/fashion",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.nowness.com/topic/fashion"
+      }
+    },
+    {
+      "id": "source:https://www.dazeddigital.com/video",
+      "type": "source",
+      "label": "https://www.dazeddigital.com/video",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.dazeddigital.com/video"
+      }
+    },
+    {
+      "id": "source:https://vimeo.com/channels/staffpicks",
+      "type": "source",
+      "label": "https://vimeo.com/channels/staffpicks",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://vimeo.com/channels/staffpicks"
+      }
+    },
+    {
+      "id": "source:https://www.ssense.com/en-us/editorial",
+      "type": "source",
+      "label": "https://www.ssense.com/en-us/editorial",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.ssense.com/en-us/editorial"
+      }
+    },
+    {
+      "id": "source:https://www.dazeddigital.com/fashion",
+      "type": "source",
+      "label": "https://www.dazeddigital.com/fashion",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.dazeddigital.com/fashion"
+      }
+    },
+    {
+      "id": "source:https://i-d.co/category/fashion/",
+      "type": "source",
+      "label": "https://i-d.co/category/fashion/",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://i-d.co/category/fashion/"
+      }
+    },
+    {
+      "id": "source:https://www.theguardian.com/artanddesign",
+      "type": "source",
+      "label": "https://www.theguardian.com/artanddesign",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.theguardian.com/artanddesign"
+      }
+    },
+    {
+      "id": "source:https://www.vogue.com/fashion-shows/fall-2026-menswear/hermes",
+      "type": "source",
+      "label": "https://www.vogue.com/fashion-shows/fall-2026-menswear/hermes",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.vogue.com/fashion-shows/fall-2026-menswear/hermes"
+      }
+    },
+    {
+      "id": "source:https://www.vogue.com/fashion-shows/fall-2026-menswear/auralee",
+      "type": "source",
+      "label": "https://www.vogue.com/fashion-shows/fall-2026-menswear/auralee",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.vogue.com/fashion-shows/fall-2026-menswear/auralee"
+      }
+    },
+    {
+      "id": "color:camel",
+      "type": "color",
+      "label": "Camel",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "object:nylon",
+      "type": "object",
+      "label": "Nylon",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:sad",
+      "type": "brand",
+      "label": "SAD",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "source:https://www.vogue.com/fashion-shows/fall-2026-menswear/officine-generale",
+      "type": "source",
+      "label": "https://www.vogue.com/fashion-shows/fall-2026-menswear/officine-generale",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.vogue.com/fashion-shows/fall-2026-menswear/officine-generale"
+      }
+    },
+    {
+      "id": "source:https://www.vogue.com/fashion-shows/fall-2026-menswear/our-legacy",
+      "type": "source",
+      "label": "https://www.vogue.com/fashion-shows/fall-2026-menswear/our-legacy",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.vogue.com/fashion-shows/fall-2026-menswear/our-legacy"
+      }
+    },
+    {
+      "id": "color:khaki",
+      "type": "color",
+      "label": "Khaki",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:ol",
+      "type": "brand",
+      "label": "OL",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:lvmh",
+      "type": "brand",
+      "label": "LVMH",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "source:https://www.vogue.com/fashion-shows/fall-2026-menswear/prada",
+      "type": "source",
+      "label": "https://www.vogue.com/fashion-shows/fall-2026-menswear/prada",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.vogue.com/fashion-shows/fall-2026-menswear/prada"
+      }
+    },
+    {
+      "id": "object:canvas",
+      "type": "object",
+      "label": "Canvas",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "object:gabardine",
+      "type": "object",
+      "label": "Gabardine",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "source:https://www.vogue.com/fashion-shows/fall-2026-menswear/ermenegildo-zegna",
+      "type": "source",
+      "label": "https://www.vogue.com/fashion-shows/fall-2026-menswear/ermenegildo-zegna",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.vogue.com/fashion-shows/fall-2026-menswear/ermenegildo-zegna"
+      }
+    },
+    {
+      "id": "brand:ceo",
+      "type": "brand",
+      "label": "CEO",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "source:https://www.are.na/brian-curran/jjjjound-full-archive",
+      "type": "source",
+      "label": "https://www.are.na/brian-curran/jjjjound-full-archive",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.are.na/brian-curran/jjjjound-full-archive"
+      }
+    },
+    {
+      "id": "source:https://www.are.na/lily-clempson-tfz8voo8tzo/editorial-fashion",
+      "type": "source",
+      "label": "https://www.are.na/lily-clempson-tfz8voo8tzo/editorial-fashion",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.are.na/lily-clempson-tfz8voo8tzo/editorial-fashion"
+      }
+    },
+    {
+      "id": "brand:editorial_fashion",
+      "type": "brand",
+      "label": "EDITORIAL FASHION",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "source:https://www.showstudio.com/projects/the_sound_of_clothes",
+      "type": "source",
+      "label": "https://www.showstudio.com/projects/the_sound_of_clothes",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.showstudio.com/projects/the_sound_of_clothes"
+      }
+    },
+    {
+      "id": "source:https://www.showstudio.com/projects/the_sound_of_clothes/fashion-film-prada",
+      "type": "source",
+      "label": "https://www.showstudio.com/projects/the_sound_of_clothes/fashion-film-prada",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.showstudio.com/projects/the_sound_of_clothes/fashion-film-prada"
+      }
+    },
+    {
+      "id": "brand:sstv",
+      "type": "brand",
+      "label": "SSTV",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:npl",
+      "type": "brand",
+      "label": "NPL",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "source:https://www.showstudio.com/projects/the_sound_of_clothes/fashion-film-herm%c3%a8s",
+      "type": "source",
+      "label": "https://www.showstudio.com/projects/the_sound_of_clothes/fashion-film-herm%C3%A8s",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.showstudio.com/projects/the_sound_of_clothes/fashion-film-herm%C3%A8s"
+      }
+    },
+    {
+      "id": "brand:pvc",
+      "type": "brand",
+      "label": "PVC",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "source:https://www.showstudio.com/projects/the_sound_of_clothes/fashion-film-maison-martin-margiela",
+      "type": "source",
+      "label": "https://www.showstudio.com/projects/the_sound_of_clothes/fashion-film-maison-martin-margiela",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.showstudio.com/projects/the_sound_of_clothes/fashion-film-maison-martin-margiela"
+      }
+    },
+    {
+      "id": "color:cream",
+      "type": "color",
+      "label": "Cream",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "source:https://www.showstudio.com/projects/the_sound_of_clothes/fashion-film-undercover",
+      "type": "source",
+      "label": "https://www.showstudio.com/projects/the_sound_of_clothes/fashion-film-undercover",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.showstudio.com/projects/the_sound_of_clothes/fashion-film-undercover"
+      }
+    },
+    {
+      "id": "source:https://www.dazeddigital.com/fashion/article/32829/1/watch-kenzos-dystopian-social-media-parody",
+      "type": "source",
+      "label": "https://www.dazeddigital.com/fashion/article/32829/1/watch-kenzos-dystopian-social-media-parody",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.dazeddigital.com/fashion/article/32829/1/watch-kenzos-dystopian-social-media-parody"
+      }
+    },
+    {
+      "id": "brand:ss17",
+      "type": "brand",
+      "label": "SS17",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:kenzo",
+      "type": "brand",
+      "label": "KENZO",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:sign_up",
+      "type": "brand",
+      "label": "SIGN UP",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "source:https://www.gq.com/story/jjjjound-gq-profile",
+      "type": "source",
+      "label": "https://www.gq.com/story/jjjjound-gq-profile",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.gq.com/story/jjjjound-gq-profile"
+      }
+    },
+    {
+      "id": "brand:gq",
+      "type": "brand",
+      "label": "GQ",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "source:https://www.theguardian.com/artanddesign/2014/feb/13/jonathan-meades-brutalism-a-z",
+      "type": "source",
+      "label": "https://www.theguardian.com/artanddesign/2014/feb/13/jonathan-meades-brutalism-a-z",
+      "properties": {
+        "auto_discovered": true,
+        "source": "crawl_enrichment",
+        "url": "https://www.theguardian.com/artanddesign/2014/feb/13/jonathan-meades-brutalism-a-z"
+      }
+    },
+    {
+      "id": "color:olive",
+      "type": "color",
+      "label": "Olive",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:uig",
+      "type": "brand",
+      "label": "UIG",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:gmt",
+      "type": "brand",
+      "label": "GMT",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:profile_virgil",
+      "type": "brand",
+      "label": "PROFILE VIRGIL",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:abloh_history",
+      "type": "brand",
+      "label": "ABLOH HISTORY",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:born",
+      "type": "brand",
+      "label": "BORN",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:who_was",
+      "type": "brand",
+      "label": "WHO WAS",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
+    },
+    {
+      "id": "brand:ai",
+      "type": "brand",
+      "label": "AI",
+      "properties": {
+        "source": "crawl_enrichment"
+      }
     }
   ],
   "edges": [
@@ -3921,6 +5123,22 @@
       "last_updated": "2026-06-22T07:53:03.170344"
     },
     {
+      "source": "source:032c_magazine",
+      "target": "brand:sgd",
+      "relation": "appears_with",
+      "weight": 0.9,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.537151"
+    },
+    {
+      "source": "source:032c_magazine",
+      "target": "brand:summer_sale",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.537156"
+    },
+    {
       "source": "source:hypebeast_fashion",
       "target": "concept:street",
       "relation": "appears_with",
@@ -4369,6 +5587,70 @@
       "last_updated": "2026-07-09T23:26:35.373665"
     },
     {
+      "source": "source:highsnobiety_style",
+      "target": "color:black",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.537580"
+    },
+    {
+      "source": "source:highsnobiety_style",
+      "target": "color:white",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.537582"
+    },
+    {
+      "source": "source:highsnobiety_style",
+      "target": "object:linen",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.537583"
+    },
+    {
+      "source": "source:highsnobiety_style",
+      "target": "brand:presse",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.537584"
+    },
+    {
+      "source": "source:highsnobiety_style",
+      "target": "brand:exclusive",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.537585"
+    },
+    {
+      "source": "source:highsnobiety_style",
+      "target": "brand:cphfw",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.537586"
+    },
+    {
+      "source": "source:highsnobiety_style",
+      "target": "brand:og",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.537587"
+    },
+    {
+      "source": "source:highsnobiety_style",
+      "target": "brand:rip_rei",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.537589"
+    },
+    {
       "source": "source:showstudio_fashion_film",
       "target": "concept:archive",
       "relation": "appears_with",
@@ -4439,6 +5721,14 @@
       "weight": 1.0,
       "feedback_count": 0,
       "last_updated": "2026-05-26T23:09:37.168102"
+    },
+    {
+      "source": "source:showstudio_fashion_film",
+      "target": "brand:mqueyt",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.537333"
     },
     {
       "source": "source:showstudio_video",
@@ -4601,6 +5891,22 @@
       "last_updated": "2026-06-22T00:27:10.415801"
     },
     {
+      "source": "source:nowness_fashion",
+      "target": "color:slate",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.536891"
+    },
+    {
+      "source": "source:nowness_fashion",
+      "target": "brand:loading",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.536893"
+    },
+    {
       "source": "source:dazed_video",
       "target": "concept:rule:_a_thing_can_be_expensive,_but_it_cannot_flex.",
       "relation": "appears_with",
@@ -4727,6 +6033,38 @@
       "weight": 0.5,
       "feedback_count": 0,
       "last_updated": "2026-07-09T23:26:31.100846"
+    },
+    {
+      "source": "source:dazed_video",
+      "target": "color:white",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.536869"
+    },
+    {
+      "source": "source:dazed_video",
+      "target": "brand:tv",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.536875"
+    },
+    {
+      "source": "source:dazed_video",
+      "target": "brand:ib",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.536871"
+    },
+    {
+      "source": "source:dazed_video",
+      "target": "brand:nyfw_ss25",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.536873"
     },
     {
       "source": "source:vimeo_staff_picks",
@@ -4871,6 +6209,46 @@
       "weight": 1.0,
       "feedback_count": 0,
       "last_updated": "2026-05-26T23:09:37.168288"
+    },
+    {
+      "source": "source:ssense_editorial",
+      "target": "brand:ssense",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.536365"
+    },
+    {
+      "source": "source:ssense_editorial",
+      "target": "brand:isabella_lovestory",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.536367"
+    },
+    {
+      "source": "source:ssense_editorial",
+      "target": "brand:is_coming",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.536368"
+    },
+    {
+      "source": "source:ssense_editorial",
+      "target": "brand:clean",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.536369"
+    },
+    {
+      "source": "source:ssense_editorial",
+      "target": "brand:iii",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.536370"
     },
     {
       "source": "source:dazed_fashion",
@@ -5257,6 +6635,46 @@
       "last_updated": "2026-07-09T23:26:19.012924"
     },
     {
+      "source": "source:dazed_fashion",
+      "target": "brand:whole",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.536609"
+    },
+    {
+      "source": "source:dazed_fashion",
+      "target": "brand:pull",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.536610"
+    },
+    {
+      "source": "source:dazed_fashion",
+      "target": "brand:bear",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.536611"
+    },
+    {
+      "source": "source:dazed_fashion",
+      "target": "brand:aw26",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.536612"
+    },
+    {
+      "source": "source:dazed_fashion",
+      "target": "brand:ss27",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.536613"
+    },
+    {
       "source": "source:i-d_fashion",
       "target": "concept:black_and_white",
       "relation": "appears_with",
@@ -5377,6 +6795,30 @@
       "last_updated": "2026-06-22T07:52:59.382230"
     },
     {
+      "source": "source:i-d_fashion",
+      "target": "color:tan",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.535875"
+    },
+    {
+      "source": "source:i-d_fashion",
+      "target": "brand:tv",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.535881"
+    },
+    {
+      "source": "source:i-d_fashion",
+      "target": "brand:guess",
+      "relation": "appears_with",
+      "weight": 0.75,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.535880"
+    },
+    {
       "source": "source:the_guardian_art_&_design",
       "target": "concept:street_style",
       "relation": "appears_with",
@@ -5484,9 +6926,9 @@
       "source": "source:the_guardian_art_&_design",
       "target": "color:white",
       "relation": "appears_with",
-      "weight": 0.5,
+      "weight": 0.8,
       "feedback_count": 0,
-      "last_updated": "2026-06-22T00:10:18.193665"
+      "last_updated": "2026-07-26T02:08:13.535645"
     },
     {
       "source": "source:the_guardian_art_&_design",
@@ -5847,6 +7289,14 @@
       "weight": 0.5,
       "feedback_count": 0,
       "last_updated": "2026-07-09T23:26:10.084725"
+    },
+    {
+      "source": "source:the_guardian_art_&_design",
+      "target": "color:tan",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.535646"
     },
     {
       "source": "source:vogue_business",
@@ -6385,6 +7835,22 @@
       "last_updated": "2026-06-22T00:26:42.443683"
     },
     {
+      "source": "source:toshio_saeki_—_selected_works_&_essays",
+      "target": "object:silk",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.534096"
+    },
+    {
+      "source": "source:toshio_saeki_—_selected_works_&_essays",
+      "target": "brand:cest",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.534099"
+    },
+    {
       "source": "source:vitsoe_—_dieter_rams_philosophy",
       "target": "brand:vitsœ",
       "relation": "appears_with",
@@ -6487,6 +7953,22 @@
       "weight": 0.5,
       "feedback_count": 0,
       "last_updated": "2026-06-22T00:26:45.285565"
+    },
+    {
+      "source": "source:vitsoe_—_dieter_rams_philosophy",
+      "target": "color:tan",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.534336"
+    },
+    {
+      "source": "source:vitsoe_—_dieter_rams_philosophy",
+      "target": "brand:rw",
+      "relation": "appears_with",
+      "weight": 0.75,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.534339"
     },
     {
       "source": "source:rams_—_gary_hustwit",
@@ -6628,9 +8110,9 @@
       "source": "source:highsnobiety_virgil_abloh",
       "target": "brand:virgil_abloh",
       "relation": "appears_with",
-      "weight": 0.5,
+      "weight": 0.65,
       "feedback_count": 0,
-      "last_updated": "2026-06-22T00:17:41.860524"
+      "last_updated": "2026-07-26T02:08:13.535386"
     },
     {
       "source": "source:highsnobiety_virgil_abloh",
@@ -6777,6 +8259,54 @@
       "last_updated": "2026-07-09T23:26:06.107479"
     },
     {
+      "source": "source:highsnobiety_virgil_abloh",
+      "target": "color:black",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.535382"
+    },
+    {
+      "source": "source:highsnobiety_virgil_abloh",
+      "target": "color:white",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.535384"
+    },
+    {
+      "source": "source:highsnobiety_virgil_abloh",
+      "target": "brand:profile_virgil",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.535388"
+    },
+    {
+      "source": "source:highsnobiety_virgil_abloh",
+      "target": "brand:abloh_history",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.535389"
+    },
+    {
+      "source": "source:highsnobiety_virgil_abloh",
+      "target": "brand:born",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.535391"
+    },
+    {
+      "source": "source:highsnobiety_virgil_abloh",
+      "target": "brand:who_was",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.535393"
+    },
+    {
       "source": "source:vogue_off-white_archive",
       "target": "brand:off-white",
       "relation": "appears_with",
@@ -6921,6 +8451,38 @@
       "last_updated": "2026-07-09T23:26:01.213198"
     },
     {
+      "source": "source:vogue_off-white_archive",
+      "target": "color:black",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.534845"
+    },
+    {
+      "source": "source:vogue_off-white_archive",
+      "target": "color:white",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.534847"
+    },
+    {
+      "source": "source:vogue_off-white_archive",
+      "target": "color:gray",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.534848"
+    },
+    {
+      "source": "source:vogue_off-white_archive",
+      "target": "brand:lvmh",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.534850"
+    },
+    {
       "source": "source:louis_vuitton_runway",
       "target": "brand:louis_vuitton",
       "relation": "appears_with",
@@ -7033,6 +8595,30 @@
       "last_updated": "2026-06-22T00:26:54.414869"
     },
     {
+      "source": "source:louis_vuitton_runway",
+      "target": "color:tan",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.535109"
+    },
+    {
+      "source": "source:louis_vuitton_runway",
+      "target": "object:canvas",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.535111"
+    },
+    {
+      "source": "source:louis_vuitton_runway",
+      "target": "brand:iii",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.535113"
+    },
+    {
       "source": "source:visuelle_—_branding_&_editorial",
       "target": "color:low-saturation",
       "relation": "appears_with",
@@ -7081,6 +8667,54 @@
       "last_updated": "2026-07-09T23:25:43.495630"
     },
     {
+      "source": "source:visuelle_—_branding_&_editorial",
+      "target": "color:tan",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.537939"
+    },
+    {
+      "source": "source:visuelle_—_branding_&_editorial",
+      "target": "brand:omse",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.537940"
+    },
+    {
+      "source": "source:visuelle_—_branding_&_editorial",
+      "target": "brand:hyperfocus",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.537948"
+    },
+    {
+      "source": "source:visuelle_—_branding_&_editorial",
+      "target": "brand:bafta",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.537949"
+    },
+    {
+      "source": "source:visuelle_—_branding_&_editorial",
+      "target": "brand:superultrarare",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.537950"
+    },
+    {
+      "source": "source:visuelle_—_branding_&_editorial",
+      "target": "brand:obys",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.537951"
+    },
+    {
       "source": "source:savee_—_curated_design",
       "target": "brand:andre_do_amaral",
       "relation": "appears_with",
@@ -7127,6 +8761,1054 @@
       "weight": 0.5,
       "feedback_count": 0,
       "last_updated": "2026-07-09T23:25:48.165991"
+    },
+    {
+      "source": "source:savee_—_curated_design",
+      "target": "brand:ai",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.537679"
+    },
+    {
+      "source": "source:brand_magazine",
+      "target": "brand:search",
+      "relation": "appears_with",
+      "weight": 0.6,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.533842"
+    },
+    {
+      "source": "source:brand_magazine",
+      "target": "brand:home_event",
+      "relation": "appears_with",
+      "weight": 0.6,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.533843"
+    },
+    {
+      "source": "source:brand_magazine",
+      "target": "brand:info_press",
+      "relation": "appears_with",
+      "weight": 0.6,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.533844"
+    },
+    {
+      "source": "source:brand_magazine",
+      "target": "brand:latest_shop",
+      "relation": "appears_with",
+      "weight": 0.6,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.533846"
+    },
+    {
+      "source": "source:brand_magazine",
+      "target": "brand:subscribe_contribute",
+      "relation": "appears_with",
+      "weight": 0.6,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.533847"
+    },
+    {
+      "source": "source:same_energy_—_visual_search",
+      "target": "brand:cc",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.518459"
+    },
+    {
+      "source": "source:same_energy_—_visual_search",
+      "target": "brand:by",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.518461"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/spring-2026-menswear",
+      "target": "color:brown",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.521549"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/spring-2026-menswear",
+      "target": "color:tan",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.521551"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/spring-2026-menswear",
+      "target": "object:wood",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.521553"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/fall-2026-menswear/christophe-lemaire",
+      "target": "color:black",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.530513"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/fall-2026-menswear/christophe-lemaire",
+      "target": "color:gray",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.530515"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/fall-2026-menswear/christophe-lemaire",
+      "target": "color:tan",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.530516"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/spring-2026-menswear/christophe-lemaire",
+      "target": "color:gray",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.522060"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/spring-2026-menswear/christophe-lemaire",
+      "target": "color:tan",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.522061"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/spring-2026-menswear/christophe-lemaire",
+      "target": "color:sand",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.522063"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/spring-2026-menswear/christophe-lemaire",
+      "target": "color:sage",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.522065"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/spring-2026-menswear/christophe-lemaire",
+      "target": "object:silk",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.522066"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/spring-2026-menswear/christophe-lemaire",
+      "target": "object:leather",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.522068"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/spring-2026-menswear/courreges",
+      "target": "brand:ac",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.522562"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/spring-2026-menswear/saint-laurent",
+      "target": "color:black",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.522813"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/spring-2026-menswear/saint-laurent",
+      "target": "color:navy",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.522815"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/spring-2026-menswear/saint-laurent",
+      "target": "color:brown",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.522816"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/spring-2026-menswear/saint-laurent",
+      "target": "color:burgundy",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.522818"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/spring-2026-menswear/saint-laurent",
+      "target": "color:rust",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.522820"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/spring-2026-menswear/saint-laurent",
+      "target": "object:silk",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.522821"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/spring-2026-menswear/saint-laurent",
+      "target": "object:leather",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.522822"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/spring-2026-menswear/032c",
+      "target": "color:tan",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.523083"
+    },
+    {
+      "source": "source:https://www.showstudio.com/projects/fashion_film_submissions",
+      "target": "brand:mqueyt",
+      "relation": "appears_with",
+      "weight": 0.6,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.528710"
+    },
+    {
+      "source": "source:https://www.showstudio.com/projects/fashion_film_submissions/fashion-film-showcase-summer-2025",
+      "target": "color:tan",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.523480"
+    },
+    {
+      "source": "source:https://vimeo.com/channels/dazed",
+      "target": "color:sand",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.523814"
+    },
+    {
+      "source": "source:https://vimeo.com/channels/dazed",
+      "target": "brand:ep",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.523816"
+    },
+    {
+      "source": "source:https://vimeo.com/channels/dazed",
+      "target": "brand:dop",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.523818"
+    },
+    {
+      "source": "source:https://vimeo.com/channels/dazed",
+      "target": "brand:ac",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.523819"
+    },
+    {
+      "source": "source:https://vimeo.com/channels/dazed",
+      "target": "brand:diy",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.523821"
+    },
+    {
+      "source": "source:https://vimeo.com/channels/dazed",
+      "target": "brand:maxilla",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.523823"
+    },
+    {
+      "source": "source:https://www.dazeddigital.com/fashion/article/17977/1/the-da-zed-guide-to-fashion-film",
+      "target": "brand:is_for",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.524081"
+    },
+    {
+      "source": "source:https://www.dazeddigital.com/fashion/article/17977/1/the-da-zed-guide-to-fashion-film",
+      "target": "brand:augmented_reality",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.524078"
+    },
+    {
+      "source": "source:https://www.dazeddigital.com/fashion/article/17977/1/the-da-zed-guide-to-fashion-film",
+      "target": "brand:aw10",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.524079"
+    },
+    {
+      "source": "source:https://www.dazeddigital.com/fashion/article/17977/1/the-da-zed-guide-to-fashion-film",
+      "target": "brand:bart_hess",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.524083"
+    },
+    {
+      "source": "source:https://www.dazeddigital.com/fashion/article/34117/1/the-most-spellbinding-fashion-films-of-2016",
+      "target": "brand:calvin_klein",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.524328"
+    },
+    {
+      "source": "source:https://www.dazeddigital.com/fashion/article/34117/1/the-most-spellbinding-fashion-films-of-2016",
+      "target": "brand:aw16_campaign",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.524330"
+    },
+    {
+      "source": "source:https://www.dazeddigital.com/fashion/article/34117/1/the-most-spellbinding-fashion-films-of-2016",
+      "target": "brand:film_ft",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.524332"
+    },
+    {
+      "source": "source:https://www.dazeddigital.com/fashion/article/34117/1/the-most-spellbinding-fashion-films-of-2016",
+      "target": "brand:frank_ocean",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.524334"
+    },
+    {
+      "source": "source:https://www.dazeddigital.com/fashion/article/34117/1/the-most-spellbinding-fashion-films-of-2016",
+      "target": "brand:aw16",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.524336"
+    },
+    {
+      "source": "source:https://www.032c.com/",
+      "target": "brand:sgd",
+      "relation": "appears_with",
+      "weight": 0.9,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.529513"
+    },
+    {
+      "source": "source:https://www.032c.com/",
+      "target": "brand:summer_sale",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.529517"
+    },
+    {
+      "source": "source:https://www.vogue.com/article/fall-2026-in-designers-own-words",
+      "target": "color:slate",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.533802"
+    },
+    {
+      "source": "source:https://www.vogue.com/article/what-do-fashion-people-do-all-day-answers-from-the-spring-2026-runways",
+      "target": "color:sand",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.525151"
+    },
+    {
+      "source": "source:https://www.theguardian.com/artanddesign/2026/apr/15/va-east-architecture-review-from-ceramics-to-codpieces-this-is-a-honey-coloured-treasure-trove-of-human-ingenuity",
+      "target": "brand:bst",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.525424"
+    },
+    {
+      "source": "source:https://www.vogue.com/article/metropolitan-museum-of-art-costume-art-exhibition",
+      "target": "color:tan",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.525678"
+    },
+    {
+      "source": "source:https://www.vogue.com/article/metropolitan-museum-of-art-costume-art-exhibition",
+      "target": "color:stone",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.525681"
+    },
+    {
+      "source": "source:https://www.vogue.com/article/metropolitan-museum-of-art-costume-art-exhibition",
+      "target": "object:stone",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.525683"
+    },
+    {
+      "source": "source:https://www.vogue.com/article/metropolitan-museum-of-art-costume-art-exhibition",
+      "target": "brand:ahead_of",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.525685"
+    },
+    {
+      "source": "source:https://www.vogue.com/article/metropolitan-museum-of-art-costume-art-exhibition",
+      "target": "brand:the_curve",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.525687"
+    },
+    {
+      "source": "source:https://www.vogue.com/article/metropolitan-museum-of-art-costume-art-exhibition",
+      "target": "brand:ars",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.525688"
+    },
+    {
+      "source": "source:https://www.highsnobiety.com/tag/style/",
+      "target": "color:black",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.528517"
+    },
+    {
+      "source": "source:https://www.highsnobiety.com/tag/style/",
+      "target": "color:white",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.528519"
+    },
+    {
+      "source": "source:https://www.highsnobiety.com/tag/style/",
+      "target": "object:linen",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.528520"
+    },
+    {
+      "source": "source:https://www.highsnobiety.com/tag/style/",
+      "target": "brand:presse",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.528521"
+    },
+    {
+      "source": "source:https://www.highsnobiety.com/tag/style/",
+      "target": "brand:exclusive",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.528522"
+    },
+    {
+      "source": "source:https://www.highsnobiety.com/tag/style/",
+      "target": "brand:cphfw",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.528523"
+    },
+    {
+      "source": "source:https://www.highsnobiety.com/tag/style/",
+      "target": "brand:og",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.528524"
+    },
+    {
+      "source": "source:https://www.highsnobiety.com/tag/style/",
+      "target": "brand:rip_rei",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.528525"
+    },
+    {
+      "source": "source:https://www.nowness.com/topic/fashion",
+      "target": "color:slate",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.528737"
+    },
+    {
+      "source": "source:https://www.nowness.com/topic/fashion",
+      "target": "brand:loading",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.528738"
+    },
+    {
+      "source": "source:https://www.dazeddigital.com/video",
+      "target": "color:white",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.528981"
+    },
+    {
+      "source": "source:https://www.dazeddigital.com/video",
+      "target": "brand:tv",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.528986"
+    },
+    {
+      "source": "source:https://www.dazeddigital.com/video",
+      "target": "brand:ib",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.528983"
+    },
+    {
+      "source": "source:https://www.dazeddigital.com/video",
+      "target": "brand:nyfw_ss25",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.528984"
+    },
+    {
+      "source": "source:https://www.ssense.com/en-us/editorial",
+      "target": "brand:ssense",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.529271"
+    },
+    {
+      "source": "source:https://www.ssense.com/en-us/editorial",
+      "target": "brand:isabella_lovestory",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.529273"
+    },
+    {
+      "source": "source:https://www.ssense.com/en-us/editorial",
+      "target": "brand:is_coming",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.529274"
+    },
+    {
+      "source": "source:https://www.ssense.com/en-us/editorial",
+      "target": "brand:clean",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.529275"
+    },
+    {
+      "source": "source:https://www.ssense.com/en-us/editorial",
+      "target": "brand:iii",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.529276"
+    },
+    {
+      "source": "source:https://www.dazeddigital.com/fashion",
+      "target": "brand:whole",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.529758"
+    },
+    {
+      "source": "source:https://www.dazeddigital.com/fashion",
+      "target": "brand:pull",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.529759"
+    },
+    {
+      "source": "source:https://www.dazeddigital.com/fashion",
+      "target": "brand:bear",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.529760"
+    },
+    {
+      "source": "source:https://www.dazeddigital.com/fashion",
+      "target": "brand:aw26",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.529761"
+    },
+    {
+      "source": "source:https://www.dazeddigital.com/fashion",
+      "target": "brand:ss27",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.529762"
+    },
+    {
+      "source": "source:https://i-d.co/category/fashion/",
+      "target": "color:tan",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.530003"
+    },
+    {
+      "source": "source:https://i-d.co/category/fashion/",
+      "target": "brand:tv",
+      "relation": "appears_with",
+      "weight": 1.0,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.530008"
+    },
+    {
+      "source": "source:https://i-d.co/category/fashion/",
+      "target": "brand:guess",
+      "relation": "appears_with",
+      "weight": 0.75,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.530008"
+    },
+    {
+      "source": "source:https://www.theguardian.com/artanddesign",
+      "target": "color:white",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.530259"
+    },
+    {
+      "source": "source:https://www.theguardian.com/artanddesign",
+      "target": "color:tan",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.530260"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/fall-2026-menswear/hermes",
+      "target": "color:black",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.530766"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/fall-2026-menswear/hermes",
+      "target": "object:silk",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.530768"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/fall-2026-menswear/auralee",
+      "target": "color:beige",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.531024"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/fall-2026-menswear/auralee",
+      "target": "color:camel",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.531026"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/fall-2026-menswear/auralee",
+      "target": "object:leather",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.531027"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/fall-2026-menswear/auralee",
+      "target": "object:nylon",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.531029"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/fall-2026-menswear/auralee",
+      "target": "object:cashmere",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.531031"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/fall-2026-menswear/auralee",
+      "target": "brand:sad",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.531033"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/fall-2026-menswear/officine-generale",
+      "target": "color:tan",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.531285"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/fall-2026-menswear/our-legacy",
+      "target": "color:khaki",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.531542"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/fall-2026-menswear/our-legacy",
+      "target": "color:tan",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.531544"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/fall-2026-menswear/our-legacy",
+      "target": "brand:ol",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.531546"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/fall-2026-menswear/our-legacy",
+      "target": "brand:lvmh",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.531548"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/fall-2026-menswear/prada",
+      "target": "color:beige",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.531793"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/fall-2026-menswear/prada",
+      "target": "object:canvas",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.531796"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/fall-2026-menswear/prada",
+      "target": "object:gabardine",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.531797"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/fall-2026-menswear/ermenegildo-zegna",
+      "target": "color:sand",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.532053"
+    },
+    {
+      "source": "source:https://www.vogue.com/fashion-shows/fall-2026-menswear/ermenegildo-zegna",
+      "target": "brand:ceo",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.532055"
+    },
+    {
+      "source": "source:https://www.are.na/lily-clempson-tfz8voo8tzo/editorial-fashion",
+      "target": "brand:editorial_fashion",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.532136"
+    },
+    {
+      "source": "source:https://www.showstudio.com/projects/the_sound_of_clothes/fashion-film-prada",
+      "target": "color:tan",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.532471"
+    },
+    {
+      "source": "source:https://www.showstudio.com/projects/the_sound_of_clothes/fashion-film-prada",
+      "target": "object:wood",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.532473"
+    },
+    {
+      "source": "source:https://www.showstudio.com/projects/the_sound_of_clothes/fashion-film-prada",
+      "target": "brand:sstv",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.532474"
+    },
+    {
+      "source": "source:https://www.showstudio.com/projects/the_sound_of_clothes/fashion-film-prada",
+      "target": "brand:npl",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.532476"
+    },
+    {
+      "source": "source:https://www.showstudio.com/projects/the_sound_of_clothes/fashion-film-herm%c3%a8s",
+      "target": "color:tan",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.532727"
+    },
+    {
+      "source": "source:https://www.showstudio.com/projects/the_sound_of_clothes/fashion-film-herm%c3%a8s",
+      "target": "object:leather",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.532729"
+    },
+    {
+      "source": "source:https://www.showstudio.com/projects/the_sound_of_clothes/fashion-film-herm%c3%a8s",
+      "target": "brand:sstv",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.532730"
+    },
+    {
+      "source": "source:https://www.showstudio.com/projects/the_sound_of_clothes/fashion-film-herm%c3%a8s",
+      "target": "brand:npl",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.532731"
+    },
+    {
+      "source": "source:https://www.showstudio.com/projects/the_sound_of_clothes/fashion-film-herm%c3%a8s",
+      "target": "brand:pvc",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.532733"
+    },
+    {
+      "source": "source:https://www.showstudio.com/projects/the_sound_of_clothes/fashion-film-maison-martin-margiela",
+      "target": "color:cream",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.532823"
+    },
+    {
+      "source": "source:https://www.showstudio.com/projects/the_sound_of_clothes/fashion-film-maison-martin-margiela",
+      "target": "color:tan",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.532825"
+    },
+    {
+      "source": "source:https://www.showstudio.com/projects/the_sound_of_clothes/fashion-film-maison-martin-margiela",
+      "target": "brand:sstv",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.532826"
+    },
+    {
+      "source": "source:https://www.showstudio.com/projects/the_sound_of_clothes/fashion-film-maison-martin-margiela",
+      "target": "brand:npl",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.532828"
+    },
+    {
+      "source": "source:https://www.showstudio.com/projects/the_sound_of_clothes/fashion-film-undercover",
+      "target": "color:tan",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.532927"
+    },
+    {
+      "source": "source:https://www.showstudio.com/projects/the_sound_of_clothes/fashion-film-undercover",
+      "target": "brand:sstv",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.532929"
+    },
+    {
+      "source": "source:https://www.showstudio.com/projects/the_sound_of_clothes/fashion-film-undercover",
+      "target": "brand:npl",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.532930"
+    },
+    {
+      "source": "source:https://www.dazeddigital.com/fashion/article/32829/1/watch-kenzos-dystopian-social-media-parody",
+      "target": "color:brown",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.533187"
+    },
+    {
+      "source": "source:https://www.dazeddigital.com/fashion/article/32829/1/watch-kenzos-dystopian-social-media-parody",
+      "target": "brand:ss17",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.533190"
+    },
+    {
+      "source": "source:https://www.dazeddigital.com/fashion/article/32829/1/watch-kenzos-dystopian-social-media-parody",
+      "target": "brand:kenzo",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.533191"
+    },
+    {
+      "source": "source:https://www.dazeddigital.com/fashion/article/32829/1/watch-kenzos-dystopian-social-media-parody",
+      "target": "brand:sign_up",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.533193"
+    },
+    {
+      "source": "source:https://www.gq.com/story/jjjjound-gq-profile",
+      "target": "brand:gq",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.533452"
+    },
+    {
+      "source": "source:https://www.theguardian.com/artanddesign/2014/feb/13/jonathan-meades-brutalism-a-z",
+      "target": "color:olive",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.533550"
+    },
+    {
+      "source": "source:https://www.theguardian.com/artanddesign/2014/feb/13/jonathan-meades-brutalism-a-z",
+      "target": "color:tan",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.533551"
+    },
+    {
+      "source": "source:https://www.theguardian.com/artanddesign/2014/feb/13/jonathan-meades-brutalism-a-z",
+      "target": "brand:uig",
+      "relation": "appears_with",
+      "weight": 0.44999999999999996,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.533555"
+    },
+    {
+      "source": "source:https://www.theguardian.com/artanddesign/2014/feb/13/jonathan-meades-brutalism-a-z",
+      "target": "brand:tv",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.533556"
+    },
+    {
+      "source": "source:https://www.theguardian.com/artanddesign/2014/feb/13/jonathan-meades-brutalism-a-z",
+      "target": "brand:gmt",
+      "relation": "appears_with",
+      "weight": 0.3,
+      "feedback_count": 0,
+      "last_updated": "2026-07-26T02:08:13.533557"
     }
   ]
 }

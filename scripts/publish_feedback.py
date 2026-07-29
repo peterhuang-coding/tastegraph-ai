@@ -11,9 +11,18 @@ Usage:
 """
 
 import json
+import sys
 import uuid
 from datetime import date, datetime, timedelta, timezone
+from pathlib import Path
 from typing import Optional
+
+# ── Project root ──────────────────────────────────────────────
+# 必须在所有 taste_graph_ai.* import 之前，否则 ModuleNotFoundError。
+# 与 pipeline.py / daemon_scheduler.py 同样的 sys.path 引导习惯。
+BASE_DIR = Path(__file__).resolve().parent.parent
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
 
 import aiosqlite
 

@@ -400,6 +400,14 @@ def main():
         help="Account name to publish to (default: default account)",
     )
 
+    # Draft mode: save to drafts instead of publishing
+    parser.add_argument(
+        "--draft",
+        action="store_true",
+        default=False,
+        help="Save to drafts (暂存离开) instead of publishing. Human publishes later.",
+    )
+
     # CDP port
     parser.add_argument(
         "--host",
@@ -580,17 +588,60 @@ def main():
         print("[pipeline] Preview mode is on, skipping publish click.")
 
     if should_publish:
-        print("[pipeline] Step 5: Clicking publish button...")
-        try:
-            note_link = publisher._click_publish(post_time != None)
-            print("PUBLISH_STATUS: PUBLISHED")
-            if note_link:
-                print(f"[pipeline] Note published at: {note_link}")
-        except CDPError as e:
-            print(f"Error clicking publish: {e}", file=sys.stderr)
-            if downloader:
-                downloader.cleanup()
-            sys.exit(2)
+        if args.draft:
+            # ---- Draft mode: save to drafts, human publishes later ----
+            print("[pipeline] Step 5: Saving to drafts (暂存离开)...")
+            try:
+                draft_result = publisher._click_save_draft()
+                status = draft_result.get("status", "error") if isinstance(draft_result, dict) else "error"
+                message = draft_result.get("message", "") if isinstance(draft_result, dict) else ""
+
+                if status == "draft_saved":
+                    print("DRAFT_STATUS: SAVED")
+                    print(f"[pipeline] ✅ Saved to drafts. Open 小红书 creator center → 草稿箱 to publish.")
+                else:
+                    print(f"DRAFT_STATUS: FAILED ({message})", file=sys.stderr)
+                    if downloader:
+                        downloader.cleanup()
+                    sys.exit(5)
+            except CDPError as e:
+                print(f"Error saving draft: {e}", file=sys.stderr)
+                if downloader:
+                    downloader.cleanup()
+                sys.exit(2)
+        else:
+            # ---- Publish mode: click the red publish button ----
+            print("[pipeline] Step 5: Clicking publish button...")
+            try:
+                pub_result = publisher._click_publish(post_time != None)
+                status = pub_result.get("status", "unknown") if isinstance(pub_result, dict) else "unknown"
+                message = pub_result.get("message", "") if isinstance(pub_result, dict) else str(pub_result)
+
+                if status == "success":
+                    print("PUBLISH_STATUS: PUBLISHED")
+                    note_url = pub_result.get("note_url") if isinstance(pub_result, dict) else None
+                    if note_url:
+                        print(f"[pipeline] Note published at: {note_url}")
+                elif status == "banned":
+                    print(f"PUBLISH_STATUS: BLOCKED ({message})", file=sys.stderr)
+                    if downloader:
+                        downloader.cleanup()
+                    sys.exit(3)
+                elif status == "confirm_needed":
+                    print(f"PUBLISH_STATUS: CONFIRMATION_REQUIRED ({message})")
+                    if downloader:
+                        downloader.cleanup()
+                    sys.exit(4)
+                else:
+                    print(f"PUBLISH_STATUS: UNKNOWN ({message})")
+                    if downloader:
+                        downloader.cleanup()
+                    sys.exit(5)
+            except CDPError as e:
+                print(f"Error clicking publish: {e}", file=sys.stderr)
+                if downloader:
+                    downloader.cleanup()
+                sys.exit(2)
 
     # --- Cleanup ---
     publisher.disconnect()

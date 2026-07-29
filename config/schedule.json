@@ -16,32 +16,30 @@
       ]
     },
     {
-      "name": "crawl_stealth",
-      "script": "scripts/crawl_stealth.py",
-      "schedule": "01:00",
+      "name": "pack_generation",
+      "script": "scripts/generate_publish_packs.py",
+      "schedule": "08:00,20:00",
       "enabled": true,
-      "timeout": 21600,
+      "timeout": 1800,
       "args": [
-        "--duration-hours",
-        "5",
-        "--rate-limit",
-        "150",
-        "--depth",
-        "2"
-      ]
+        "--count",
+        "1"
+      ],
+      "_note": "GENERATION ONLY — 不碰 xhs，7-26 拆自 publish_draft。先要有包，账号恢复再走 live_post。"
     },
     {
-      "name": "publish",
+      "name": "live_post",
       "script": "scripts/publish_scheduler.py",
       "schedule": "08:00,20:00",
       "enabled": false,
-      "_note": "DISABLED — XHS account under community penalty"
+      "_note": "DISABLED — xhs account 封禁。账户恢复前不要 enabled。先手动: python3 scripts/auto_publish.py --draft --all"
     },
     {
       "name": "auto_feedback",
       "script": "scripts/auto_feedback.py",
       "schedule": "09:00",
       "enabled": true,
+      "_note": "DISABLED-UNTIL-ACCOUNT-REC — xhs account 封禁前不要 enabled。等账号恢复再看。",
       "args": [
         "--all"
       ]
