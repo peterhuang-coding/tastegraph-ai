@@ -9,9 +9,10 @@ All DB operations use server's injected connections — no separate DB open.
 
 import math
 import uuid
-from datetime import datetime, timezone
+from collections import defaultdict
+from datetime import datetime, timezone, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from taste_graph_ai.api import schemas as api_schemas
 from taste_graph_ai.api.deps import (
@@ -55,6 +56,66 @@ class WeeklyReportResponse(api_schemas.BaseModel):
     top_themes: list[dict] = []
     suggestions: list[str] = []
     message: str = ""
+
+
+class WeeklySummaryResponse(api_schemas.BaseModel):
+    """Current week 4-KPI snapshot for the weekly dashboard.
+
+    Why a separate endpoint: weekly-report returns aggregate themes + suggestions,
+    not the numeric KPIs the dashboard cards need (publish_count, total_reach,
+    total_interactions, avg_engagement). Keeping summary as a focused 4-number
+    payload lets the UI render KPIs without parsing themes.
+    """
+    week_start: str = ""
+    week_end: str = ""
+    publish_count: int = 0
+    total_reach: int = 0            # proxy: sum(likes) * 8 (DB has no impressions)
+    total_interactions: int = 0     # likes + saves + comments
+    avg_engagement: float = 0.0     # 0-10 score (engagement_rate)
+    reach_is_estimate: bool = True
+    message: str = ""
+
+
+class WeeklyTrendWeek(api_schemas.BaseModel):
+    week_start: str = ""
+    week_label: str = ""           # e.g. "W31"
+    publish_count: int = 0
+    avg_engagement: float = 0.0
+
+
+class WeeklyTrendResponse(api_schemas.BaseModel):
+    """Multi-week trend for bar charts (publish count + avg engagement per week).
+
+    Why separate from weekly-report: report returns only a 7-day window; the
+    dashboard needs N weeks of bucketed data to render sparkline/bar charts.
+    Aggregated in Python to keep SQL portable.
+    """
+    weeks: int = 0
+    series: list[WeeklyTrendWeek] = []
+
+
+class TopPostItem(api_schemas.BaseModel):
+    id: str
+    pack_id: str
+    theme: str = ""
+    published_at: str = ""
+    platform: str = ""
+    post_url: str = ""
+    likes: int = 0
+    saves: int = 0
+    comments: int = 0
+    engagement_rate: float = 0.0
+    total_interactions: int = 0
+
+
+class TopPostsResponse(api_schemas.BaseModel):
+    """Top N posts by engagement score for the dashboard table.
+
+    Why separate from weekly-report: report returns aggregate themes, not
+    individual post rows. Frontend table needs the raw post detail.
+    """
+    limit: int = 0
+    posts: list[TopPostItem] = []
 
 
 class PublishMetricsResponse(api_schemas.BaseModel):
@@ -306,3 +367,169 @@ async def get_weekly_report(
         "suggestions": suggestions,
         "message": "",
     }
+
+
+# ── Weekly dashboard helpers ──────────────────────────────────
+
+def _parse_iso(dt_str: str) -> datetime:
+    """Parse ISO timestamp from publish_history; tolerate trailing Z."""
+    if not dt_str:
+        return datetime.now(timezone.utc)
+    try:
+        if dt_str.endswith("Z"):
+            dt_str = dt_str[:-1] + "+00:00"
+        return datetime.fromisoformat(dt_str)
+    except Exception:
+        return datetime.now(timezone.utc)
+
+
+def _week_start_utc(dt: datetime) -> datetime:
+    """Return Monday 00:00 UTC of dt's week (ISO week)."""
+    dt = dt.astimezone(timezone.utc)
+    monday = dt - timedelta(days=dt.weekday())
+    return monday.replace(hour=0, minute=0, second=0, microsecond=0)
+
+
+@router.get("/weekly-summary", response_model=WeeklySummaryResponse)
+async def get_weekly_summary(
+    publish_repo: PublishHistoryRepository = Depends(get_publish_repo),
+):
+    """本周（周一至今）4 KPI：发布数 / 曝光估算 / 总互动 / 平均互动率。
+
+    Why needed: weekly-report 返回的是 themes+suggestions 聚合，没有当前周的
+    4 个数字 KPI。KPI 卡片需要这些纯数字，避免前端解析 themes。
+
+    Reach 是估算（DB 没有 impressions 字段）= sum(likes) * 8，
+    这是 XHS 公开数据中典型的曝光/点赞比。响应里 reach_is_estimate=True。
+    """
+    recent = await publish_repo.list_recent(500)
+
+    now = datetime.now(timezone.utc)
+    week_start_dt = _week_start_utc(now)
+    week_end_dt = now
+
+    week_records = []
+    for r in recent:
+        published = _parse_iso(r.get("published_at", ""))
+        if published >= week_start_dt:
+            week_records.append(r)
+
+    if not week_records:
+        return {
+            "week_start": week_start_dt.isoformat(),
+            "week_end": week_end_dt.isoformat(),
+            "publish_count": 0,
+            "total_reach": 0,
+            "total_interactions": 0,
+            "avg_engagement": 0.0,
+            "reach_is_estimate": True,
+            "message": "本周暂无发布数据。先去「发布历史」录入本周互动数据。",
+        }
+
+    total_likes = sum(r.get("likes", 0) for r in week_records)
+    total_saves = sum(r.get("saves", 0) for r in week_records)
+    total_comments = sum(r.get("comments", 0) for r in week_records)
+    total_interactions = total_likes + total_saves + total_comments
+
+    # Reach proxy: DB 无 impressions，按 XHS 公开数据曝光/点赞比 ≈ 8x
+    total_reach = total_likes * 8
+
+    scored = [r.get("engagement_rate", 0) for r in week_records if r.get("engagement_rate", 0) > 0]
+    avg_engagement = round(sum(scored) / len(scored), 2) if scored else 0.0
+
+    return {
+        "week_start": week_start_dt.isoformat(),
+        "week_end": week_end_dt.isoformat(),
+        "publish_count": len(week_records),
+        "total_reach": total_reach,
+        "total_interactions": total_interactions,
+        "avg_engagement": avg_engagement,
+        "reach_is_estimate": True,
+        "message": "",
+    }
+
+
+@router.get("/weekly-trend", response_model=WeeklyTrendResponse)
+async def get_weekly_trend(
+    weeks: int = Query(8, ge=1, le=52),
+    publish_repo: PublishHistoryRepository = Depends(get_publish_repo),
+):
+    """过去 N 周（默认 8）的发布数 + 平均互动率时间序列，用于柱状图。
+
+    Why needed: weekly-report 只返回 7 天聚合，没有历史 bucket 数据。
+    柱状图需要按 ISO 周分桶的多周数据。在 Python 层分桶以保证 SQL 兼容性。
+    """
+    now = datetime.now(timezone.utc)
+    this_week_start = _week_start_utc(now)
+    earliest = this_week_start - timedelta(weeks=weeks - 1)
+
+    recent = await publish_repo.list_recent(1000)
+
+    bucket_count: dict[datetime, int] = defaultdict(int)
+    bucket_score_sum: dict[datetime, float] = defaultdict(float)
+    bucket_score_n: dict[datetime, int] = defaultdict(int)
+
+    for r in recent:
+        published = _parse_iso(r.get("published_at", ""))
+        ws = _week_start_utc(published)
+        if ws < earliest or ws > this_week_start:
+            continue
+        bucket_count[ws] += 1
+        score = r.get("engagement_rate", 0) or 0
+        if score > 0:
+            bucket_score_sum[ws] += score
+            bucket_score_n[ws] += 1
+
+    series = []
+    for i in range(weeks):
+        ws = earliest + timedelta(weeks=i)
+        avg_eng = (
+            round(bucket_score_sum[ws] / bucket_score_n[ws], 2)
+            if bucket_score_n[ws] else 0.0
+        )
+        series.append({
+            "week_start": ws.date().isoformat(),
+            "week_label": f"W{ws.isocalendar()[1]}",
+            "publish_count": bucket_count.get(ws, 0),
+            "avg_engagement": avg_eng,
+        })
+
+    return {"weeks": weeks, "series": series}
+
+
+@router.get("/top-posts", response_model=TopPostsResponse)
+async def get_top_posts(
+    limit: int = Query(10, ge=1, le=50),
+    publish_repo: PublishHistoryRepository = Depends(get_publish_repo),
+):
+    """按 engagement_rate 排序的 Top N 帖子详情，用于周报表格。
+
+    Why needed: weekly-report 只返回主题聚合，没有单帖行数据。
+    Top 10 表格需要 pack_id/theme/url/likes/saves/comments 等明细。
+    """
+    recent = await publish_repo.list_recent(500)
+
+    def _score(r: dict) -> float:
+        return r.get("engagement_rate", 0) or 0
+
+    sorted_records = sorted(recent, key=_score, reverse=True)[:limit]
+
+    posts = []
+    for r in sorted_records:
+        posts.append({
+            "id": r.get("id", ""),
+            "pack_id": r.get("pack_id", ""),
+            "theme": r.get("theme", "") or "未命名",
+            "published_at": r.get("published_at", ""),
+            "platform": r.get("platform", "") or "xiaohongshu",
+            "post_url": r.get("post_url", "") or "",
+            "likes": r.get("likes", 0),
+            "saves": r.get("saves", 0),
+            "comments": r.get("comments", 0),
+            "engagement_rate": round(r.get("engagement_rate", 0) or 0, 2),
+            "total_interactions": (
+                r.get("likes", 0) + r.get("saves", 0) + r.get("comments", 0)
+            ),
+        })
+
+    return {"limit": limit, "posts": posts}
