@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "source": "data/daily_packs (36 rows, sampled 5 best exemplars)",
+  "purpose": "Few-shot examples for AI caption/title generation. Inject into voice.build_messages().",
+  "taste_name": "quiet-cool editorial travel lifestyle",
+  "examples": [
+    {
+      "id": "ex-001-cold-fit",
+      "label": "冷感穿搭",
+      "theme": "冷质穿搭",
+      "why_today": "翻阅Helmut Lang 2004春夏档案时发现，硬挺棉与哑光金属扣件比任何流行色都更接近当下的城市质感。",
+      "caption": "Helmut Lang 2004 SS. 未染色的棉质斜纹布夹克。哑光锌合金扣。Reebok Classic Leather. 灰色。无印花。无配饰。",
+      "titles": ["硬挺棉", "哑光扣件", "无色彩清单"]
+    },
+    {
+      "id": "ex-002-gray-still",
+      "label": "灰调静止",
+      "theme": "灰调静止",
+      "why_today": "屏幕上粉色泛滥，需要一点灰色来reset。",
+      "caption": "Jil Sander 灰羊毛。Acne Studios 水泥色甲板鞋。东京，表参道，混凝土墙面。无logo，无表情。",
+      "titles": ["Gray Scale", "No Filter", "冷调"]
+    },
+    {
+      "id": "ex-003-fiber-trace",
+      "label": "纤维痕迹",
+      "theme": "纤维痕迹",
+      "why_today": "衣柜里翻出一件1998年Helmut Lang的棉质衬衫，袖口边缘的磨损比照片更值得看。",
+      "caption": "A.P.C. 蓝染牛仔布. Raffaello Rosselli 的裸露混凝土墙面. Margiela 无标白T. 粗棉布. 线迹间距 2.5mm. 穿了三年的非结构性绗缝.",
+      "titles": ["面料笔记", "针脚", "纹理判读"]
+    },
+    {
+      "id": "ex-004-city-uniform",
+      "label": "城市制服",
+      "theme": "低饱和日常",
+      "why_today": "翻到一张2006年Raf Simons在安特卫普的店铺地板照片，灰色水泥，上面有鞋印。",
+      "caption": "Raf Simons. 安特卫普. 2006. 水泥地板上的鞋印。Acne Studios 亚麻衬衫，Our Legacy 帆布鞋。没有装饰。灰色。",
+      "titles": ["日常构造", "水泥与亚麻", "静止的片段"]
+    },
+    {
+      "id": "ex-005-object-boundary",
+      "label": "物件边界",
+      "theme": "日常物的边界",
+      "why_today": "楼下的工地围栏被雨水冲洗后，露出更清晰的灰色颗粒",
+      "caption": "Uniqlo 的棉质卫衣，边缘起毛。白色石膏板。Kinto 玻璃杯里只剩杯底的水渍。没有 logo，没有颜色。街角便利店收银台的金属表面。2025.01.27.",
+      "titles": ["Daily Grind", "Matte Finish", "Silent Composition"]
+    }
+  ],
+  "selection_notes": [
+    "ex-001: 品牌 + 年份 + 材质 + 否定陈述的经典组合",
+    "ex-002: 短句 + 城市地点 + 双否定结尾（'无logo，无表情'）",
+    "ex-003: 工艺细节（线迹间距 2.5mm）展现档案感",
+    "ex-004: 时间锚点（2006 安特卫普）+ 跨品牌组合",
+    "ex-005: 跨品类混搭（Uniqlo + Kinto）+ 日常物件具体化"
+  ]
+}
