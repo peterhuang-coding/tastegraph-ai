@@ -33,6 +33,11 @@ const App = {
       if (e.key === '3' && e.metaKey) { e.preventDefault(); this.switchTab('graph'); }
       if (e.key === '4' && e.metaKey) { e.preventDefault(); this.switchTab('history'); }
       if (e.key === '5' && e.metaKey) { e.preventDefault(); this.switchTab('curation'); }
+      if (e.key === '6' && e.metaKey) { e.preventDefault(); this.switchTab('health'); }
+      if (e.key === '7' && e.metaKey) { e.preventDefault(); this.switchTab('pipeline'); }
+      if (e.key === '8' && e.metaKey) { e.preventDefault(); this.switchTab('crawler'); }
+      if (e.key === '9' && e.metaKey) { e.preventDefault(); this.switchTab('tasks'); }
+      if (e.key === '0' && e.metaKey) { e.preventDefault(); this.switchTab('weekly'); }
     });
   },
 
@@ -77,6 +82,11 @@ const App = {
     if (activeTab === 'graph') GraphTab.load();
     if (activeTab === 'history') HistoryTab.load();
     if (activeTab === 'curation') CurationTab.load();
+    if (activeTab === 'health') HealthTab.load();
+    if (activeTab === 'pipeline') PipelineTab.load();
+    if (activeTab === 'crawler') CrawlerTab.load();
+    if (activeTab === 'tasks') TasksTab.load();
+    if (activeTab === 'weekly') WeeklyTab.load();
 
     btn.textContent = '⟳ 刷新';
     btn.disabled = false;
@@ -88,6 +98,11 @@ const App = {
     if (tab === 'graph') GraphTab.load();
     if (tab === 'history') HistoryTab.load();
     if (tab === 'curation') CurationTab.load();
+    if (tab === 'health') HealthTab.load();
+    if (tab === 'pipeline') PipelineTab.load();
+    if (tab === 'crawler') CrawlerTab.load();
+    if (tab === 'tasks') TasksTab.load();
+    if (tab === 'weekly') WeeklyTab.load();
   },
 
   async checkHealth() {
