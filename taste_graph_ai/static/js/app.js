@@ -38,6 +38,7 @@ const App = {
       if (e.key === '8' && e.metaKey) { e.preventDefault(); this.switchTab('crawler'); }
       if (e.key === '9' && e.metaKey) { e.preventDefault(); this.switchTab('tasks'); }
       if (e.key === '0' && e.metaKey) { e.preventDefault(); this.switchTab('weekly'); }
+      if (e.key === 'T' && e.metaKey && e.shiftKey) { e.preventDefault(); this.switchTab('trend'); }
     });
   },
 
@@ -87,6 +88,7 @@ const App = {
     if (activeTab === 'crawler') CrawlerTab.load();
     if (activeTab === 'tasks') TasksTab.load();
     if (activeTab === 'weekly') WeeklyTab.load();
+    if (activeTab === 'trend') TrendTab.load();
 
     btn.textContent = '⟳ 刷新';
     btn.disabled = false;
@@ -103,6 +105,7 @@ const App = {
     if (tab === 'crawler') CrawlerTab.load();
     if (tab === 'tasks') TasksTab.load();
     if (tab === 'weekly') WeeklyTab.load();
+    if (tab === 'trend') TrendTab.load();
   },
 
   async checkHealth() {

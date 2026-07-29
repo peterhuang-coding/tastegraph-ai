@@ -33,6 +33,9 @@ DEFAULT_OUTPUT = DATA_DIR / "trend-report-{date}.md"
 # Ensure project root is on sys.path for taste_graph_ai imports
 sys.path.insert(0, str(PROJECT_ROOT))
 
+# voice.build_messages for editorial suggestions (Task 10: 接 voice)
+from taste_graph_ai.services.voice import build_messages as _voice_build_messages  # noqa: E402
+
 
 # ── Data extraction ────────────────────────────────────────────────────
 
@@ -559,6 +562,7 @@ def build_markdown(
     clusters: list[dict],
     ai_report: dict,
     record_count: int,
+    editorial_suggestions: str = "",
 ) -> str:
     """Build the final Markdown report."""
     lines = []
@@ -614,17 +618,14 @@ def build_markdown(
             lines.append(f"- **{k['keyword']}** — 出现 {k['count']} 次，较前半段下降 {abs(k['pct_change'])}%")
     lines.append("")
 
-    # ── Editorial suggestions ──
+    # ── Editorial suggestions (voice-driven, with template fallback) ──
     lines.append("## 编辑建议")
     lines.append("")
-    if ai_report and "editorial_picks" in ai_report and ai_report["editorial_picks"]:
-        for item in ai_report["editorial_picks"]:
-            topic = item.get("topic", "")
-            rationale = item.get("rationale", "")
-            lines.append(f"- **{topic}**")
-            lines.append(f"  {rationale}")
-            lines.append("")
+    if editorial_suggestions and editorial_suggestions.strip():
+        lines.append(editorial_suggestions.strip())
+        lines.append("")
     else:
+        # Defensive fallback (main() always supplies one, so this branch is rare)
         lines.append("（依靠关键词统计：本周值得关注的主题领域已在上方列出，建议结合具体关键词内容策划）")
         lines.append("")
 
@@ -666,6 +667,191 @@ def build_json_report(
         "clusters": clusters[:10],
         "keyword_trends": keyword_trends["all_keywords"][:20],
     }
+
+
+# ── Editorial suggestions via voice (Task 10) ──────────────────────────
+
+def _format_voice_messages_as_prompt(messages: list[dict]) -> str:
+    """Convert OpenAI-style messages (from voice.build_messages) to a single
+    prompt string suitable for AIClient.chat() (which takes a single prompt).
+
+    Preserves role labels so the model sees the conversation structure.
+    Few-shot examples are included so voice is taught by example, not just rules.
+    """
+    parts: list[str] = []
+    for m in messages:
+        role = m.get("role", "user")
+        content = m.get("content", "")
+        if not content:
+            continue
+        # Capitalize role for readability
+        label = {"system": "SYSTEM", "user": "USER", "assistant": "ASSISTANT"}.get(role, role.upper())
+        parts.append(f"[{label}]\n{content}")
+    return "\n\n".join(parts)
+
+
+def _strip_redundant_header(text: str) -> str:
+    """Clean AI-generated editorial text for the '## 编辑建议' section.
+
+    The AI sometimes echoes a full report structure (上升中 / 消退中 / 编辑建议).
+    Since build_markdown renders those other sections from statistical data,
+    we keep only the '## 编辑建议' part if present, else fall back to the full
+    response with the first leading ## header dropped.
+    """
+    lines = text.split("\n")
+
+    # Find the '## 编辑建议' or similar section header line
+    section_markers = ("## 编辑建议", "## 选题", "## 内容方向", "## editorial")
+    start_idx: int | None = None
+    for i, line in enumerate(lines):
+        stripped = line.strip().lower()
+        for marker in section_markers:
+            if stripped == marker.lower() or stripped.startswith(marker.lower()):
+                start_idx = i + 1  # skip the header line itself
+                break
+        if start_idx is not None:
+            break
+
+    if start_idx is not None:
+        # Drop everything before the editorial section
+        return "\n".join(lines[start_idx:]).strip()
+
+    # No matching section: drop just the first leading ## header
+    out: list[str] = []
+    dropped_header = False
+    for line in lines:
+        stripped = line.strip()
+        if not dropped_header and (stripped.startswith("# ") or stripped.startswith("## ")):
+            dropped_header = True
+            continue
+        out.append(line)
+    return "\n".join(out).strip()
+
+
+def _build_template_suggestions(
+    rising: list[dict],
+    fading: list[dict],
+    clusters: list[dict],
+) -> str:
+    """Fallback template for editorial suggestions when AI is unavailable.
+
+    Returns markdown body (no ## header — caller adds that).
+    """
+    parts: list[str] = []
+
+    # Prefer top clusters (richer context)
+    if clusters:
+        for c in clusters[:3]:
+            name = c.get("cluster", "")
+            direction = c.get("direction", "stable")
+            avg = c.get("avg_pct_change", 0)
+            dir_label = {"rising": "上升", "fading": "消退", "stable": "持平"}.get(direction, "持平")
+            arrow = "↑" if direction == "rising" else ("↓" if direction == "fading" else "→")
+            parts.append(f"- **{name} 的本周观察**")
+            parts.append(
+                f"  聚类方向 {dir_label}（{arrow} {avg:+d}%）。"
+                f"基于这一组关键词，可以做一次低饱和、结构化的整理。"
+            )
+            parts.append("")
+    elif rising:
+        for k in rising[:3]:
+            kw = k["keyword"]
+            parts.append(f"- **{kw} 周边素材整理**")
+            parts.append(
+                f"  本周 {kw} 出现频率上升 {k['pct_change']:+d}%，"
+                f"可以作为单点切入的低成本选题方向。"
+            )
+            parts.append("")
+    else:
+        parts.append("（依靠关键词统计：本周值得关注的主题领域已在上方列出，建议结合具体关键词内容策划）")
+        parts.append("")
+
+    # Tail: a fading-driven prompt
+    if fading:
+        first = fading[0]
+        kw = first["keyword"]
+        parts.append(f"- **{kw} 退潮后的余韵**")
+        parts.append(
+            f"  热度在下降，但尚未消失。从「为什么不再常见」的角度切入，"
+            f"写一篇克制的回顾更符合账号调性。"
+        )
+        parts.append("")
+
+    return "\n".join(parts)
+
+
+async def generate_editorial_suggestions_voice(
+    rising: list[dict],
+    fading: list[dict],
+    keyword_trends: dict,
+    clusters: list[dict],
+    days: int,
+) -> str:
+    """Generate editorial suggestions markdown using voice.build_messages + AI.
+
+    Steps:
+        1. Build OpenAI-style messages via voice.build_messages('trend', ...)
+        2. Flatten into one prompt, send to AIClient.chat()
+        3. If AI returns text, clean it (strip duplicated ## header) and return
+        4. On any error or no client, fall back to template
+
+    Returns:
+        Markdown body for the "## 编辑建议" section (no leading header).
+    """
+    # ── 1. Build the user input summarizing the trend data
+    rising_names = [k["keyword"] for k in rising[:8]]
+    fading_names = [k["keyword"] for k in fading[:8]]
+    top_clusters = [c["cluster"] for c in clusters[:5]]
+
+    rising_str = "、".join(rising_names) if rising_names else "（无明显上升）"
+    fading_str = "、".join(fading_names) if fading_names else "（无明显消退）"
+    cluster_str = "、".join(top_clusters) if top_clusters else "（暂无聚类）"
+
+    record_count = keyword_trends.get("total_records", 0)
+    kw_count = keyword_trends.get("total_keywords", 0)
+
+    user_input = (
+        f"本周（过去 {days} 天）的趋势观察：\n"
+        f"  上升中：{rising_str}\n"
+        f"  消退中：{fading_str}\n"
+        f"  主要主题：{cluster_str}\n"
+        f"  数据规模：{record_count} 张图 / {kw_count} 个关键词\n\n"
+        f"请基于这些真实数据，给出本周的「编辑建议」段：\n"
+        f"输出 3-4 条具体的「做什么内容」的指引，每条一行加粗标题 + 一行简短说明。\n"
+        f"只输出「编辑建议」这一段的内容，不要包含「上升中」「消退中」「总编按」等其他段落。"
+    )
+
+    context = {
+        "days": days,
+        "rising_count": len(rising),
+        "fading_count": len(fading),
+        "cluster_count": len(top_clusters),
+        "record_count": record_count,
+    }
+
+    # ── 2. Try AI via voice-prompted path
+    try:
+        messages = _voice_build_messages("trend", user_input, context)
+        prompt = _format_voice_messages_as_prompt(messages)
+    except Exception as exc:
+        print(f"[trend_report] voice.build_messages failed: {exc!r}")
+        return _build_template_suggestions(rising, fading, clusters)
+
+    try:
+        from taste_graph_ai.infrastructure.ai.client import AIClient
+        client = AIClient()
+        try:
+            if client.client:
+                text = await client.chat(prompt, max_tokens=600)
+                if text and text.strip():
+                    return _strip_redundant_header(text.strip())
+        finally:
+            await client.close()
+    except Exception as exc:
+        print(f"[trend_report] voice-driven AI generation failed: {exc!r}")
+
+    # ── 3. Fallback
+    return _build_template_suggestions(rising, fading, clusters)
 
 
 # ── Main ────────────────────────────────────────────────────────────────
@@ -730,9 +916,18 @@ async def main():
 
     # 4. Build report
     print("📝 生成报告...")
+    # 4a. Generate editorial suggestions via voice (Task 10: 接 voice)
+    print("   - 调用 voice.build_messages('trend', ...) + AI 生成编辑建议...")
+    editorial_md = await generate_editorial_suggestions_voice(
+        rising=keyword_trends.get("rising", []),
+        fading=keyword_trends.get("fading", []),
+        keyword_trends=keyword_trends,
+        clusters=clusters,
+        days=args.days,
+    )
     report_md = build_markdown(
         date_str, args.days, keyword_trends, clusters, ai_report,
-        len(keywords),
+        len(keywords), editorial_suggestions=editorial_md,
     )
 
     # 5. Write output

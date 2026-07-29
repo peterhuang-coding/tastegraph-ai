@@ -177,3 +177,69 @@ def _curated_pack_to_response(pack, images):
         created_at=pack.created_at,
         selected_at=pack.selected_at,
     )
+
+
+@router.post("/prefill")
+async def prefill_curation(payload: dict):
+    """
+    手动选图 → AI 预填 theme/title/caption 三个字段。
+
+    payload = {"image_ids": [str x 9], "image_keywords": [str x 9]}
+    返回:   {"theme": str, "title": str, "caption": str, "_error": str(可选)}
+    """
+    image_ids = payload.get("image_ids", []) or []
+    image_keywords = payload.get("image_keywords", []) or []
+
+    if len(image_ids) != 9:
+        raise HTTPException(status_code=400, detail="需要恰好 9 张图")
+
+    # 兜底：image_keywords 缺失时按 image_ids 长度补空串
+    if len(image_keywords) < len(image_ids):
+        image_keywords = list(image_keywords) + [""] * (len(image_ids) - len(image_keywords))
+
+    # 拼接 user_input：9 张图各自关键词 + 综合主题引导
+    keywords_lines = "\n".join(
+        f"  - {kw if kw else '(无关键词)'}" for kw in image_keywords
+    )
+    user_input = (
+        "9 张已选中图片，请综合它们的关键词生成 theme/title/caption 三个字段。\n\n"
+        "9 张图各自关键词:\n"
+        f"{keywords_lines}"
+    )
+
+    context = {
+        "image_count": 9,
+        "sources": "见 taste_graph.json graph nodes",
+        "time": "now",
+    }
+
+    try:
+        from taste_graph_ai.services.voice import build_messages
+        from taste_graph_ai.infrastructure.ai.client import AIClient
+
+        msgs = build_messages("prefill", user_input, context)
+        # msgs[0] = system, msgs[1..N] = few-shot, msgs[-1] = user
+        # chat_json 接受单字符串 prompt，把 messages 拼成 prompt
+        prompt_text = "\n\n".join(
+            f"[{m['role']}]\n{m['content']}" for m in msgs
+        )
+
+        ai = AIClient()
+        try:
+            result = await ai.chat_json(prompt_text, max_tokens=600)
+        finally:
+            await ai.close()
+    except Exception as e:
+        # fallback：返回占位
+        return {
+            "theme": "冷调日常",
+            "title": "9 张图：冷一点的春天",
+            "caption": "（AI 暂不可用，请手动填写）",
+            "_error": str(e),
+        }
+
+    return {
+        "theme": (result.get("theme", "") or "").strip(),
+        "title": (result.get("title", "") or "").strip(),
+        "caption": (result.get("caption", "") or "").strip(),
+    }

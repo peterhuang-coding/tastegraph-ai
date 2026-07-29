@@ -9,6 +9,7 @@ from taste_graph_ai.container import get_container
 from taste_graph_ai.infrastructure.ai.client import AIClient
 from taste_graph_ai.infrastructure.repos.packs import PackRepository
 from taste_graph_ai.infrastructure.db.event_log import EventLog
+from taste_graph_ai.services.voice import build_messages
 
 
 class PackGenerationService:
@@ -120,46 +121,31 @@ class PackGenerationService:
         published_list = ", ".join(published_themes[:50]) if published_themes else "暂无"
         recent_list = ", ".join(recent_themes[:5]) if recent_themes else "暂无"
 
-        prompt = f"""You are the editor of a personal taste archive. Your references: Hidden NY, JJJJound, 032c, ABI (A Barely International), The Society Archive. You are NOT a content creator. You are a visual archivist.
+        # 通过 voice.build_messages() 注入 system prompt + few-shot，
+        # 不再依赖 generator 自己拼多行英文规则。
+        user_input = (
+            "Generate today's moodboard entry.\n"
+            "Return ONLY valid JSON (no markdown, no ```json fences):\n"
+            "{\n"
+            '  "theme": "Chinese theme (2-6 chars, catalog-label style, e.g. 灰.羊毛.物 / 冷调 / 建筑内衬)",\n'
+            '  "why_today": "One short deadpan line, English or Chinese, like \'Cotton study.\' / \'Archive find.\' / \'Dieter Rams.\'",\n'
+            '  "title_options": ["Title 1 (short, catalog-like)", "Title 2", "Title 3"],\n'
+            '  "caption": "30-80 chars museum label style: brands, cities, years, materials, objects separated by periods. No feelings. No weather. No time of day."\n'
+            "}"
+        )
+        context = {
+            "today_keywords": ", ".join(keywords[:10]),
+            "published_themes_do_not_reuse": published_list,
+            "recent_themes_avoid": recent_list,
+            "angle_hint": angle_hint,
+        }
 
-Your caption style is NOT Chinese social media style. It is international moodboard style:
-  — Museum label, not diary entry.
-  — Facts only: brand, year, city, material, object name.
-  — If you MUST write a sentence: deadpan, cultural reference, no adjectives.
-  — Like JJJJound: "Heavy cotton twill. Montreal. 2024."
-  — Like Hidden NY: "RAF SIMONS. AW 1998. Antwerp."
-  — Like ABI: a list of objects with no commentary.
-  — Never explain why something is good. Never describe a feeling.
-  — Never use: light, shadow, mood, vibe, quiet afternoon, soft, beautiful, elegant.
-  — Never use: 氛围, 感觉, 安静, 柔和, 光线, 午后, 美, 高级.
-  — Use periods. Not commas. Not ellipses. Not em dashes.
-  — Max 3 short fragments. Not sentences. Not paragraphs.
+        msgs = build_messages("prefill", user_input, context)
+        # AIClient.chat/chat_json 仅接受单字符串 prompt；把 messages 平展成单一 prompt
+        # （保留 role 标签以便模型看见 system / few-shot 分隔）
+        prompt_text = "\n\n".join(f"[{m['role']}]\n{m['content']}" for m in msgs)
 
-TERRIBLE (never write this):
-  "周一午后的街角，水泥墙面被光线切出柔和的棱角..."
-  "灰色羊毛混纺长大衣。落肩设计。安静的午后..."
-  "今天整理了几件深灰色单品。都是最近很喜欢的..."
-
-GOOD (write like this):
-  "RAF SIMONS. AW 1998. Antwerp."
-  "Cotton twill. Made in Portugal. 420gsm."
-  "灰色。羊毛。没有 logo。"
-  "Lemaire shirt. JJJJound socks. Cold black coffee."
-  "Concrete. Steel. Glass. No decoration."
-  "1999 Helmut Lang backstage. archive.org."
-  "Virgil 用 3% 的改变让整个系统重新呼吸。"  ← only one cultural line per post, if any
-
-Account tone: cold, editorial, archival, low-saturation, city-grey.
-Avoid: cute, influencer, luxury logo, neon, stock photo, pastel, pink, warm, cozy.
-
-Today's image keywords: {', '.join(keywords[:10])}
-Previously published themes (DO NOT REUSE): {published_list}
-Recently generated themes (avoid): {recent_list}
-Angle hint: {angle_hint}
-
-Generate a moodboard entry. Return ONLY valid JSON (no markdown, no ```json):
-{{"theme": "Chinese theme (2-6 chars, like a catalog label. e.g. 灰.羊毛.物 or 冷调 or 建筑内衬)", "why_today": "One short line, English or Chinese, deadpan. Like 'Cotton study.' or 'Archive find.' or 'Dieter Rams.'", "title_options": ["Title 1 (short, catalog-like)", "Title 2", "Title 3"], "caption": "30-80 chars total. Museum label style. Brands. Cities. Years. Materials. Objects. No feelings. No weather. No time of day. Periods between fragments."}}"""
-        return await self.ai.chat_json(prompt, 600)
+        return await self.ai.chat_json(prompt_text, 600)
 
     @staticmethod
     def _polish_caption(text: str) -> str:

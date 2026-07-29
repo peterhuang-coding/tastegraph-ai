@@ -86,13 +86,19 @@ const CurationTab = {
   renderForm() {
     const remaining = 9 - this._selected.size;
     const canSubmit = this._selected.size === 9;
+    const canPrefill = this._selected.size === 9;
     return `
     <div class="curation-form">
       <h3 style="font-size:16px;font-weight:600;margin-bottom:16px">创建策展包</h3>
       <div style="margin-bottom:12px">
         <label style="font-size:12px;color:var(--text-dim)">主题 *</label>
-        <input type="text" id="curation-theme" class="input"
-               placeholder="例如：东京阴天角落、柏林周末早餐" maxlength="50">
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="text" id="curation-theme" class="input" style="flex:1"
+                 placeholder="例如：东京阴天角落、柏林周末早餐" maxlength="50">
+          <button id="curation-prefill-btn" class="btn btn-ghost btn-sm"
+                  ${canPrefill ? '' : 'disabled'}
+                  title="基于已选的 9 张图自动预填主题/标题/文案">✨ AI 预填</button>
+        </div>
       </div>
       <div style="margin-bottom:12px">
         <label style="font-size:12px;color:var(--text-dim)">标题</label>
@@ -149,6 +155,62 @@ const CurationTab = {
         btn.textContent = '创建策展包';
       }
     }
+    // Update AI prefill button
+    const prefillBtn = document.getElementById('curation-prefill-btn');
+    if (prefillBtn) {
+      prefillBtn.disabled = this._selected.size !== 9;
+    }
+  },
+
+  async doPrefill() {
+    if (this._selected.size !== 9) {
+      App.toast('请先选满 9 张图片', 'error');
+      return;
+    }
+    const btn = document.getElementById('curation-prefill-btn');
+    const origText = btn?.textContent;
+    if (btn) { btn.disabled = true; btn.textContent = 'AI 预填中...'; }
+    App.toast('AI 预填中...', 'success');
+
+    try {
+      // 收集 9 个 image_id + 9 个 keywords（兜底从 src 截取）
+      const image_ids = Array.from(this._selected);
+      const byId = new Map(this._images.map(i => [i.image_id, i]));
+      const image_keywords = image_ids.map(id => {
+        const img = byId.get(id);
+        if (img && Array.isArray(img.keywords) && img.keywords.length) {
+          return img.keywords.slice(0, 10).join(', ');
+        }
+        // 兜底：用 src/filename 最后一段
+        const src = (img?.image_url || img?.url || id || '').toString();
+        const last = src.split('/').filter(Boolean).pop() || id;
+        return last.replace(/\.[a-z0-9]+$/i, '').replace(/[-_]+/g, ' ');
+      });
+
+      const result = await API.post('/api/v1/curation/prefill', {
+        image_ids,
+        image_keywords,
+      });
+
+      const themeInput = document.getElementById('curation-theme');
+      const titleInput = document.getElementById('curation-title');
+      const captionInput = document.getElementById('curation-caption');
+
+      if (themeInput && result.theme) themeInput.value = result.theme;
+      if (titleInput && result.title) titleInput.value = result.title;
+      if (captionInput && result.caption) captionInput.value = result.caption;
+
+      this.updateUI();
+      if (result._error) {
+        App.toast(`AI 预填已用占位（${result._error}）`, 'error');
+      } else {
+        App.toast('预填完成，可编辑', 'success');
+      }
+    } catch(e) {
+      App.toast(`预填失败: ${e.message}`, 'error');
+    } finally {
+      if (btn) { btn.disabled = this._selected.size !== 9; btn.textContent = origText || '✨ AI 预填'; }
+    }
   },
 
   async goPage(page) {
@@ -171,6 +233,11 @@ const CurationTab = {
     const themeInput = document.getElementById('curation-theme');
     if (themeInput) {
       themeInput.addEventListener('input', () => this.updateUI());
+    }
+
+    const prefillBtn = document.getElementById('curation-prefill-btn');
+    if (prefillBtn) {
+      prefillBtn.addEventListener('click', () => this.doPrefill());
     }
 
     const submitBtn = document.getElementById('curation-submit-btn');
@@ -266,7 +333,7 @@ const CurationTab = {
       App.toast(`发布失败: ${e.message}`, 'error');
     }
     if (btn) { btn.textContent = '一键发布小红书'; btn.disabled = false; }
-  },,
+  },
 
   async loadFailures() {
     try {
