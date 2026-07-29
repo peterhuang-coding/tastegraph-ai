@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "purpose": "Seed sources for taste-first link packs. These are starting points, not fixed rules.",
   "lookbook_images": [
     {
@@ -275,6 +275,204 @@
       "name": "Creative Boom",
       "url": "https://www.creativeboom.com/",
       "why": "Art, design, visual culture inspiration"
+    }
+  ],
+  "trending_social": [
+    {
+      "name": "Are.na",
+      "url": "https://www.are.na/",
+      "why": "Visual discovery community — channels like 'menswear', 'streetwear', 'editorial moodboards'. Curated, slow, no algorithm. Replaces blocked Reddit for visual community research."
+    },
+    {
+      "name": "Zhihu — Streetstyle / Fashion Questions",
+      "url": "https://www.zhihu.com/",
+      "why": "Chinese Q&A community (Reddit-equivalent). Long-form discussions on street style, brand history, design philosophy. Useful for taste-trend narrative sourcing in 中文."
+    },
+    {
+      "name": "Bilibili — Fashion Documentary Channels",
+      "url": "https://www.bilibili.com/",
+      "why": "Chinese video community. Long-form fashion documentaries, brand retrospectives, archive footage. Replaces blocked TikTok for fast visual trend sampling."
+    },
+    {
+      "name": "Xiaohongshu (小红书) — Fashion Notes",
+      "url": "https://www.xiaohongshu.com/",
+      "why": "Chinese social commerce. Real-user outfit posts, capsule wardrobe builds, NOIR/minimalist/lemaire aesthetic moodboards. Strong source for 真实穿搭 references."
+    },
+    {
+      "name": "Weibo — Hypebeast China",
+      "url": "https://www.weibo.com/",
+      "why": "Chinese social feed. Real-time 潮流 drop news, celebrity street style, designer reactions. Filtered accounts (Hypebeast China, NOWRE official) yield curated visual feed."
+    },
+    {
+      "name": "Voice of Fashion",
+      "url": "https://www.thevoiceoffashion.com/",
+      "why": "India's leading independent fashion-culture magazine. Newsletter + articles. Strong on craft, material, archive references — closer to 032c tone than Hypebeast."
+    },
+    {
+      "name": "FUDGE Japan",
+      "url": "https://fudge.jp/",
+      "why": "Tokyo-based editorial magazine. London / Paris street style captures, menswear, neutral palette. Strongly matches the quiet/JJJJound-adjacent mood."
+    },
+    {
+      "name": "InsideHook",
+      "url": "https://www.insidehook.com/",
+      "why": "Daily men's lifestyle newsletter. Editorial taste filter on restaurants, fashion, gear, travel. Useful for curated taste references outside the hype cycle."
+    },
+    {
+      "name": "Highsnobiety — Sneakers",
+      "url": "https://www.highsnobiety.com/sneakers/",
+      "why": "Sneaker-specific vertical of Highsnobiety. Strong on JJJJound / New Balance / Salomon / vintage runner drops. Editorial taste filter avoids generic hype."
+    },
+    {
+      "name": "AnOther Magazine",
+      "url": "https://www.anothermag.com/",
+      "why": "Dazed's high-fashion sibling. Editorial, art, photography, gender-fluid styling. Useful for stronger conceptual references and portraiture."
+    },
+    {
+      "name": "10 Magazine",
+      "url": "https://www.10magazine.com/",
+      "why": "Independent print/digital fashion magazine. Strong on emerging womenswear, designer interviews, runway. Art direction skews minimal/refined."
+    },
+    {
+      "name": "System Magazine",
+      "url": "https://www.system-magazine.com/",
+      "why": "Bi-annual print magazine, strong on fashion-system analysis, designer interviews, set design. Quiet, intellectual, no banner-feed energy."
+    },
+    {
+      "name": "Print Magazine",
+      "url": "https://www.printmag.com/",
+      "why": "Design / typography / visual culture. Editorial sources on editorial design, packaging, and brand systems. Useful for graphic / print references."
+    },
+    {
+      "name": "Fashion Beans",
+      "url": "https://www.fashionbeans.com/",
+      "why": "Men's style how-to + trend reporting. Useful for spot-checking mainstream taste baselines (what's 'normal' vs what's quiet/refined)."
+    },
+    {
+      "name": "Are.na Blog",
+      "url": "https://www.are.na/blog",
+      "why": "Are.na's editorial blog — designer interviews, channel deep dives, community sparks. Strong visual / research angle for moodboard taste."
+    },
+    {
+      "name": "Popbee",
+      "url": "https://www.popbee.com/",
+      "why": "Hong Kong / pan-Asian fashion + lifestyle outlet. Editorial street style, designer coverage, K-pop / C-pop outfit breakdowns. Bilingual mix."
+    },
+    {
+      "name": "Mensuno HK",
+      "url": "https://www.mensuno.hk/",
+      "why": "Hong Kong men's style magazine. Asian streetwear, watches, grooming, lifestyle. Useful for HK/JP menswear cross-references."
+    },
+    {
+      "name": "NOWRE",
+      "url": "https://nowre.com/",
+      "why": "Leading 中文 fashion潮流 media. Covers 国潮 / 日潮 / 美潮, designer drops, brand culture. Long-form than Hypebeast China, more editorial."
+    },
+    {
+      "name": "Hypebeast China",
+      "url": "https://hypebeast.cn/",
+      "url_en_fallback": "https://hypebeast.com/",
+      "why": "中文 Hypebeast edition. 高频 drop news, sneaker intel, designer interviews. Use taste filter — dedupe against Hypebeast.com."
+    },
+    {
+      "name": "GQ China",
+      "url": "https://www.gq.com.cn/",
+      "why": "Chinese edition of GQ. Long-form 时尚 / 文化 / 生活方式 features. Strong editorial photography and Chinese celebrity styling for cross-reference."
+    },
+    {
+      "name": "GQ Taiwan",
+      "url": "https://www.gq.com.tw/",
+      "why": "Taiwan GQ. Editorially distinct from China edition — strong on JP/TW menswear, design, food culture. Useful Asian menswear cross-reference."
+    },
+    {
+      "name": "Hypebae",
+      "url": "https://hypebae.com/",
+      "why": "Hypebeast's womenswear / youth-culture sibling. Strong on streetwear, beauty, art, gender-fluid editorial. Editorial filter keeps it from the influencer-feed."
+    },
+    {
+      "name": "NYLON Magazine",
+      "url": "https://www.nylon.com/",
+      "why": "Pop-culture + fashion + music magazine. New York / London editorial lens. Useful for youth-culture / scene references and emerging designer features."
+    },
+    {
+      "name": "Paper Magazine",
+      "url": "https://www.papermag.com/",
+      "why": "Independent print+digital magazine. Art, fashion, music, pop culture. Strong on avant-garde editorial photography and underground scene coverage."
+    },
+    {
+      "name": "It's Nice That",
+      "url": "https://www.itsnicethat.com/",
+      "why": "Independent design / art / visual culture publication. Strong on emerging designers, illustration, photography, editorial design. Quiet / refined visual baseline."
+    },
+    {
+      "name": "Japanese Fashion Archive",
+      "url": "https://japanesefashionarchive.com/",
+      "why": "Archive of Japanese avant-garde designers (Comme, Yohji, Issey, Kansai, Christopher Nemeth). Useful for archive / piece-history references."
+    },
+    {
+      "name": "Complex",
+      "url": "https://www.complex.com/",
+      "why": "Pop culture + streetwear + sneaker outlet. Strong on streetwear history, drops, cultural commentary. Use taste filter to skip hype-only content."
+    },
+    {
+      "name": "Sneaker Freaker",
+      "url": "https://www.sneakerfreaker.com/",
+      "why": "Independent print sneaker magazine. Long-form shoe culture history, designer interviews (incl. JJJJound), vintage runner references."
+    },
+    {
+      "name": "End Clothing — Journal",
+      "url": "https://www.endclothing.com/",
+      "why": "Premium menswear retailer with strong editorial 'Journal' section. Brand stories, designer interviews, lookbook editorial. Quiet luxury / streetwear crossover."
+    },
+    {
+      "name": "Dover Street Market",
+      "url": "https://www.doverstreetmarket.com/",
+      "why": "Comme des Garçons multi-brand concept store. Editorial product pages, seasonal capsules, designer collaborations. Strongest single feed for avant-garde streetwear."
+    },
+    {
+      "name": "Sneakersnstuff",
+      "url": "https://www.sneakersnstuff.com/",
+      "why": "Stockholm sneaker boutique with strong editorial (news, interviews). Nordic taste filter — quieter than most US sneaker feeds."
+    },
+    {
+      "name": "Matchesfashion",
+      "url": "https://www.matchesfashion.com/",
+      "why": "Luxury / contemporary retailer with editorial 'The Journal'. Designer interviews, mood-driven lookbooks, travel features. Useful for elevated menswear references."
+    },
+    {
+      "name": "Gentle Monster",
+      "url": "https://www.gentlemonster.com/",
+      "why": "Korean eyewear brand with strong editorial / campaign aesthetic. Avant-garde visual identity, K-fashion references, conceptual store design."
+    },
+    {
+      "name": "Acne Studios",
+      "url": "https://www.acnestudios.com/",
+      "why": "Stockholm design brand. Editorial lookbooks, seasonal typographic / photographic identity. Strong reference for quiet / Nordic / minimalist taste."
+    },
+    {
+      "name": "Dezeen",
+      "url": "https://www.dezeen.com/",
+      "why": "Leading architecture / design magazine. Useful for design-week coverage, retail interiors, brand visual-system references, and crossover design/fashion."
+    },
+    {
+      "name": "Designboom",
+      "url": "https://www.designboom.com/",
+      "why": "Independent design magazine. Strong on emerging designers, industrial design, fashion-design crossover. Editorial taste filter on global design-week coverage."
+    },
+    {
+      "name": "Smooth Magazine",
+      "url": "https://www.smoothmagazine.com/",
+      "why": "Independent fashion & culture magazine. Visual-led, strong on emerging designers and editorial photography. Quiet-channel alternative to Hypebae."
+    },
+    {
+      "name": "Numero Tokyo",
+      "url": "https://numero.jp/",
+      "why": "Japanese edition of Numero. Strong editorial photography, fashion-editorial + JP street style + art direction. Concept-led issues."
+    },
+    {
+      "name": "W Magazine",
+      "url": "https://www.wmagazine.com/",
+      "why": "High-fashion American magazine. Editorial-grade celebrity / fashion editorials, designer features. Visual quality baseline for editorial references."
     }
   ]
 }
