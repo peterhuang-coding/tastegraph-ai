@@ -1,7 +1,13 @@
 #!/bin/bash
 # 一键打开 TasteGraph AI 总控制台
 # 用法：bash scripts/launch_dashboard.sh
-# 作用：1) 检查并启动 server (8787)  2) 打开 10 个 tab 到浏览器
+# 作用：1) 安全检查 2) 检查并启动 server (8787) 3) 打开 11 个 tab 到浏览器
+#
+# 安全契约（2026-07-29）:
+#   - 本脚本**只**启动 FastAPI web server（控制台）
+#   - **不**启动任何 daemon_scheduler / publish_scheduler
+#   - **不**检查或复活 ~/Library/LaunchAgents 下的 plist
+#   - plist 一律手动管理，避免误触 XHS 自动发布导致账号封禁
 
 set -e
 
@@ -18,7 +24,24 @@ TABS=(
   "crawler"
   "tasks"
   "weekly"
+  "trend"
 )
+
+# ── 0) 安全检查 ──────────────────────────────────────────
+echo "▶ 安全检查..."
+if ls /Users/peter_mini/Library/LaunchAgents/com.user.tastegraph.*.plist 2>/dev/null | head -1 | grep -q plist; then
+  echo "⚠️  检测到 ~/Library/LaunchAgents 下还有 tastegraph plist（建议删）:"
+  ls /Users/peter_mini/Library/LaunchAgents/com.user.tastegraph.*.plist 2>/dev/null
+  echo "   本脚本不会复活这些 plist，但建议手动: rm ~/Library/LaunchAgents/com.user.tastegraph.*.plist"
+fi
+if launchctl list 2>/dev/null | grep -qi tastegraph; then
+  echo "⚠️  launchctl 里有 tastegraph 任务在跑:"
+  launchctl list 2>/dev/null | grep -i tastegraph
+fi
+if ps -ef | grep -E "(daemon_scheduler|publish_scheduler|auto_publish)" | grep -v grep | grep -v claude | grep -q .; then
+  echo "⚠️  发现后台 tastegraph 进程在跑（不致命，但建议查）:"
+  ps -ef | grep -E "(daemon_scheduler|publish_scheduler|auto_publish)" | grep -v grep | grep -v claude
+fi
 
 # ── 1) 检查 server ─────────────────────────────────────────
 is_listening() {

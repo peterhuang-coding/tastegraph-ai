@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
 
 from taste_graph_ai.api import schemas
 from taste_graph_ai.api.deps import (
@@ -182,6 +182,7 @@ class CDPPublishRequest(BaseModel):
 @router.post("/cdp-publish", response_model=schemas.PipelineResult)
 async def trigger_cdp_publish(
     body: CDPPublishRequest,
+    request: Request,
     pack_repo: PackRepository = Depends(get_pack_repo),
     event_log: EventLog = Depends(get_event_log),
 ):
@@ -190,7 +191,33 @@ async def trigger_cdp_publish(
     Two modes:
     1. Provide pack_id — loads title/content/images from the pack in DB.
     2. Provide title/content/image_paths directly (for manual / curated packs).
+
+    SAFETY (2026-07-29): If config/schedule.json has _publish_disabled=true,
+    this endpoint refuses with 403 unless caller sends header:
+        X-Publish-Override: I-UNDERSTAND-RISK
+    Defense against accidental API calls / old scripts / leftover cron.
     """
+    # ── safety gate ─────────────────────────────────────────
+    import json
+    from pathlib import Path as _Path
+    schedule_file = _Path(__file__).resolve().parents[3] / "config" / "schedule.json"
+    if schedule_file.exists():
+        try:
+            cfg = json.loads(schedule_file.read_text())
+            if cfg.get("_publish_disabled") is True:
+                override = request.headers.get("X-Publish-Override", "")
+                if override != "I-UNDERSTAND-RISK":
+                    reason = cfg.get("_publish_disabled_reason", "publishing disabled")
+                    raise HTTPException(
+                        status_code=403,
+                        detail=f"XHS publish blocked: {reason}. "
+                               f"To override, send header X-Publish-Override: I-UNDERSTAND-RISK",
+                    )
+        except HTTPException:
+            raise
+        except Exception:
+            pass
+
     from taste_graph_ai.cdp_adapter import publish_via_cdp, is_chrome_ready
 
     if not is_chrome_ready():

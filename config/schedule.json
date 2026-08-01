@@ -1,4 +1,8 @@
 {
+  "_publish_disabled": true,
+  "_publish_disabled_reason": "XHS account under community penalty. ALL XHS-touching tasks disabled until account recovery. Re-enable requires manual verification.",
+  "_publish_disabled_at": "2026-07-29",
+  "_publish_disabled_by": "老板 (手动全面关停所有 XHS 自动化)",
   "tasks": [
     {
       "name": "crawl",
@@ -38,8 +42,8 @@
       "name": "auto_feedback",
       "script": "scripts/auto_feedback.py",
       "schedule": "09:00",
-      "enabled": true,
-      "_note": "DISABLED-UNTIL-ACCOUNT-REC — xhs account 封禁前不要 enabled。等账号恢复再看。",
+      "enabled": false,
+      "_note": "强制 disabled 2026-07-29 — xhs account 封禁。等账号恢复且 publish_disabled 解除后再考虑。",
       "args": [
         "--all"
       ]

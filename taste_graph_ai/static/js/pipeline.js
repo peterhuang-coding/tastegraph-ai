@@ -55,14 +55,15 @@ const PipelineTab = {
       key: 'cdp-publish',
       name: 'CDP 发布',
       icon: '📤',
-      desc: '调用 Chrome 远程调试协议（需 Chrome 9222 端口运行）发布到小红书。',
+      desc: '调用 Chrome 远程调试协议（需 Chrome 9222 端口运行）发布到小红书。⚠ 2026-07-29 老板已关闭全部 XHS 自动发布，本按钮需手动确认账号未封才解锁。',
       endpoint: '/api/v1/pipeline/cdp-publish',
       body: {},  // filled in at click time (pack_id prompt)
       duration: '1-2 分钟',
       danger: 'danger',
-      confirm: 'CDP 发布会操控真实 Chrome 浏览器执行发布操作。受账号封禁影响，请确认账号状态。\n\n继续？',
-      // special: requires pack_id field
+      confirm: '⚠ CDP 发布会操控真实 Chrome 执行真实发布操作。\n\n· 小红书账号当前处于封禁状态\n· 此操作可能导致再次封号或永久封号\n· 自动发布 launchd plist 已全部删除\n\n如确需手动发布，请继续；如不确定，请点取消。\n\n继续？',
+      // special: requires pack_id + hard confirm with typed phrase
       needsPackId: true,
+      needsHardConfirm: '确认发布',  // user must type this exact phrase
     },
   ],
 
@@ -200,6 +201,22 @@ const PipelineTab = {
       const packId = prompt('输入要发布的 pack_id（留空将发送空请求并返回错误）：', '');
       if (packId === null) return;  // cancelled
       body = { pack_id: packId.trim() };
+    }
+
+    // Hard confirm for danger pipelines: require user to type exact phrase
+    // (defense against accidental click / 误触)
+    if (p.needsHardConfirm) {
+      const typed = prompt(
+        `🛑 终极确认\n\n` +
+        `这是不可逆操作。此操作会向真实账号发布内容。\n\n` +
+        `请在下方**完整输入** "${p.needsHardConfirm}" 以确认（区分大小写）：`,
+        ''
+      );
+      if (typed === null) return;  // cancelled
+      if (typed.trim() !== p.needsHardConfirm) {
+        App.toast(`已取消：输入 "${typed.trim()}" ≠ "${p.needsHardConfirm}"`, 'error');
+        return;
+      }
     }
 
     const confirmed = confirm(p.confirm);
