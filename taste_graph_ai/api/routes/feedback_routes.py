@@ -533,3 +533,297 @@ async def get_top_posts(
         })
 
     return {"limit": limit, "posts": posts}
+
+class SourceCurateRequest(api_schemas.BaseModel):
+    source_id: str
+    label: str  # 想去 | 想深挖 | 已去过 | 跳过 | 不对味
+
+class SourceCurateResponse(api_schemas.BaseModel):
+    ok: bool
+    source_id: str
+    label: str
+    graph_adjusted: bool = False
+    message: str = ""
+
+_LABEL_EFFECTS = {
+    "想去":    {"review": True,  "boost":  1.0, "msg": "已加进下次 crawl 优先队列"},
+    "想深挖":  {"review": True,  "boost":  2.0, "msg": "已标记 deep-crawl 候选"},
+    "已去过":  {"review": True,  "boost":  0.0, "msg": "记下了，下次简报会跳过"},
+    "跳过":    {"review": True,  "boost":  0.0, "msg": "已跳过"},
+    "不对味":  {"review": False, "boost": -3.0, "msg": "源权重降低；连续 3 次不对味会自动 reject"},
+}
+
+
+@router.post("/curate-source", response_model=SourceCurateResponse)
+async def curate_source(req: SourceCurateRequest):
+    import aiosqlite
+    from taste_graph_ai.config import DB_FILE
+    from taste_graph_ai.container import get_container
+    from taste_graph_ai.domain.enums import NodeType
+
+    effect = _LABEL_EFFECTS.get(req.label)
+    if effect is None:
+        raise HTTPException(status_code=400, detail=f"unknown label: {req.label}")
+
+    now = datetime.now(timezone.utc).isoformat()
+    fid = uuid.uuid4().hex[:12]
+    db = await aiosqlite.connect(str(DB_FILE), timeout=10)
+    try:
+        await db.execute(
+            "INSERT INTO feedback_log (id, target_type, target_id, label, note, created_at) "
+            "VALUES (?, ?, ?, ?, ?, ?)",
+            (fid, "source", req.source_id, req.label, "", now),
+        )
+        if effect["review"]:
+            await db.execute(
+                "UPDATE sources SET reviewed_at = ? WHERE id = ?",
+                (now, req.source_id),
+            )
+        await db.commit()
+    finally:
+        await db.close()
+
+    graph_adjusted = False
+    graph_target_id = None
+    if effect["boost"] != 0:
+        # Look up source URL from DB to match graph node (DB IDs ≠ graph IDs)
+        source_url = None
+        source_name = None
+        try:
+            db_lookup = await aiosqlite.connect(str(DB_FILE), timeout=10)
+            cur = await db_lookup.execute("SELECT url, name FROM sources WHERE id = ?", (req.source_id,))
+            row = await cur.fetchone()
+            await db_lookup.close()
+            if row:
+                source_url, source_name = row[0], row[1]
+        except Exception:
+            pass
+
+        try:
+            container = get_container()
+            graph = container.taste_graph
+
+            # Try to find existing graph node
+            candidates = [req.source_id, f"source:{req.source_id}"]
+            if source_url:
+                candidates.append(source_url)
+            sid = next((c for c in candidates if c in graph.graph), None)
+            if sid is None and source_url:
+                for nid, data in graph.graph.nodes(data=True):
+                    props = data.get("properties", {}) or {}
+                    if props.get("url") == source_url:
+                        sid = nid
+                        break
+
+            # If still not found, ADD the source node to graph (organic growth)
+            if sid is None and source_url:
+                from taste_graph_ai.domain.enums import NodeType
+                new_id = f"source:{req.source_id}"
+                graph.add_node(
+                    label=source_name or source_url[:60],
+                    node_type=NodeType.SOURCE,
+                    node_id=new_id,
+                    url=source_url,
+                    source="user_curated",
+                    curated_at=now,
+                )
+                sid = new_id
+
+            if sid and sid in graph.graph:
+                neighbor_concepts = [
+                    n for n in graph.graph.successors(sid)
+                    if graph.graph.nodes[n].get("type") == NodeType.CONCEPT
+                ]
+                for cid in neighbor_concepts:
+                    if graph.graph.has_edge(sid, cid):
+                        data = graph.graph[sid][cid]
+                        old_w = data.get("weight", 1.0)
+                        new_w = max(0.05, old_w + effect["boost"] * 0.1)
+                        graph.graph[sid][cid]["weight"] = new_w
+                graph.save()
+                graph_adjusted = True
+        except Exception as e:
+            print(f"[curate-source] graph adjust failed: {e}")
+
+    return SourceCurateResponse(
+        ok=True,
+        source_id=req.source_id,
+        label=req.label,
+        graph_adjusted=graph_adjusted,
+        message=effect["msg"],
+    )
+
+
+class TodayCountResponse(api_schemas.BaseModel):
+    count: int
+
+@router.get("/today-count", response_model=TodayCountResponse)
+async def today_feedback_count():
+    """今日 feedback_log 计数 — 给 home 页面显示"""
+    import aiosqlite
+    from taste_graph_ai.config import DB_FILE
+    db = await aiosqlite.connect(str(DB_FILE), timeout=10)
+    try:
+        cur = await db.execute(
+            "SELECT count(*) FROM feedback_log WHERE date(created_at) = date('now')"
+        )
+        row = await cur.fetchone()
+        return TodayCountResponse(count=row[0] if row else 0)
+    finally:
+        await db.close()
+
+
+class SpotcheckImage(api_schemas.BaseModel):
+    image_id: str
+    url: str
+    page_url: str
+    local_path: str
+    keywords: list[str] = []
+    source_name: str = ""
+
+class SpotcheckResponse(api_schemas.BaseModel):
+    total_unreviewed: int = 0
+    images: list[SpotcheckImage] = []
+
+@router.get("/spotcheck", response_model=SpotcheckResponse)
+async def get_spotcheck(count: int = 6):
+    """抽检：从未审过的图片里随机抽 count 张。
+
+    "审过" 定义：feedback_log 里 target_type='image' 出现过这个 id。
+    来源：images 表里 local_path 真实存在的全部图片，按 id hash 随机抽。
+    """
+    import aiosqlite
+    import random as rng
+    from taste_graph_ai.config import DB_FILE
+    db = await aiosqlite.connect(str(DB_FILE), timeout=10)
+    try:
+        cur = await db.execute(
+            "SELECT i.id, i.url, i.page_url, i.local_path, i.keywords_json, "
+            "COALESCE(s.name, '') "
+            "FROM images i LEFT JOIN sources s ON i.source_id = s.id "
+            "WHERE i.local_path IS NOT NULL AND i.local_path != '' "
+            "ORDER BY i.id"
+        )
+        rows = await cur.fetchall()
+        reviewed_cur = await db.execute(
+            "SELECT DISTINCT target_id FROM feedback_log WHERE target_type = 'image'"
+        )
+        reviewed = {r[0] for r in await reviewed_cur.fetchall()}
+        all_images = []
+        for r in rows:
+            img_id = r[0]
+            if img_id in reviewed: continue
+            import json as _json
+            try:
+                kw = _json.loads(r[4] or "[]")
+            except Exception:
+                kw = []
+            all_images.append(SpotcheckImage(
+                image_id=img_id, url=r[1] or "", page_url=r[2] or "",
+                local_path=r[3] or "", keywords=kw, source_name=r[5] or "",
+            ))
+        rng.shuffle(all_images)
+        return SpotcheckResponse(
+            total_unreviewed=len(all_images),
+            images=all_images[:count],
+        )
+    finally:
+        await db.close()
+
+
+class CurateImageRequest(api_schemas.BaseModel):
+    image_id: str
+    label: str  # 留 | 弃 | 精 | 对味 | 不对味
+
+class CurateImageResponse(api_schemas.BaseModel):
+    ok: bool
+    image_id: str
+    label: str
+    graph_adjusted: bool = False
+    message: str = ""
+
+
+_IMG_LABEL_EFFECTS = {
+    "留":     {"boost": 0.5,  "msg": "保留，下次相似图加权"},
+    "精":     {"boost": 2.0,  "msg": "精品，concept 强加权"},
+    "对味":   {"boost": 1.0,  "msg": "对味，concept 权重 +1"},
+    "不对味": {"boost": -2.0, "msg": "不对味，concept 权重 -2"},
+    "弃":     {"boost": -1.0, "msg": "弃用，source 降权"},
+}
+
+
+@router.post("/curate-image", response_model=CurateImageResponse)
+async def curate_image(req: CurateImageRequest):
+    """对单张抽检图给反馈：留/精/对味/不对味/弃 → 调图谱权重。"""
+    import aiosqlite
+    from taste_graph_ai.config import DB_FILE
+    from taste_graph_ai.container import get_container
+    from taste_graph_ai.domain.enums import NodeType
+
+    effect = _IMG_LABEL_EFFECTS.get(req.label)
+    if effect is None:
+        raise HTTPException(status_code=400, detail=f"unknown label: {req.label}")
+
+    now = datetime.now(timezone.utc).isoformat()
+    fid = uuid.uuid4().hex[:12]
+    db = await aiosqlite.connect(str(DB_FILE), timeout=10)
+    try:
+        await db.execute(
+            "INSERT INTO feedback_log (id, target_type, target_id, label, note, created_at) "
+            "VALUES (?, ?, ?, ?, ?, ?)",
+            (fid, "image", req.image_id, req.label, "", now),
+        )
+        await db.commit()
+    finally:
+        await db.close()
+
+    graph_adjusted = False
+    if effect["boost"] != 0:
+        try:
+            container = get_container()
+            graph = container.taste_graph
+            # 通过 image.source_id 找到 source node，再调它连接的 concept
+            db2 = await aiosqlite.connect(str(DB_FILE), timeout=10)
+            cur = await db2.execute("SELECT source_id, keywords_json FROM images WHERE id = ?", (req.image_id,))
+            row = await cur.fetchone()
+            await db2.close()
+
+            touched = 0
+            if row:
+                source_id = row[0]
+                if source_id:
+                    src_node_id = f"source:{source_id}"
+                    if src_node_id in graph.graph:
+                        for cid in graph.graph.successors(src_node_id):
+                            if graph.graph.nodes[cid].get("type") == NodeType.CONCEPT:
+                                if graph.graph.has_edge(src_node_id, cid):
+                                    d = graph.graph[src_node_id][cid]
+                                    d["weight"] = max(0.05, d.get("weight", 1.0) + effect["boost"] * 0.1)
+                                    touched += 1
+                # 也从 keywords 找 concept 节点直接加权
+                try:
+                    kws = json.loads(row[1] or "[]")
+                except Exception:
+                    kws = []
+                for kw in kws[:5]:
+                    cid = f"concept:{kw}"
+                    if cid in graph.graph:
+                        # 找 concept 节点的所有入边邻居，调权
+                        for src in graph.graph.predecessors(cid):
+                            if graph.graph.has_edge(src, cid):
+                                d = graph.graph[src][cid]
+                                d["weight"] = max(0.05, d.get("weight", 1.0) + effect["boost"] * 0.05)
+                                touched += 1
+            if touched > 0:
+                graph.save()
+                graph_adjusted = True
+        except Exception as e:
+            print(f"[curate-image] graph adjust failed: {e}")
+
+    return CurateImageResponse(
+        ok=True,
+        image_id=req.image_id,
+        label=req.label,
+        graph_adjusted=graph_adjusted,
+        message=effect["msg"],
+    )

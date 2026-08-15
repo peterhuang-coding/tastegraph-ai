@@ -19,39 +19,43 @@
   </header>
 
   <nav class="tab-nav">
-    <button class="tab-btn active" data-tab="sources">发现源审核 <span id="sources-badge" class="badge hidden">0</span></button>
-    <button class="tab-btn" data-tab="daily">今日推荐</button>
-    <button class="tab-btn" data-tab="graph">品味图谱</button>
-    <button class="tab-btn" data-tab="history">发布历史</button>
-    <button class="tab-btn" data-tab="curation">手动选图</button>
-    <button class="tab-btn" data-tab="health">🩺 健康</button>
-    <button class="tab-btn" data-tab="pipeline">⚙️ Pipeline</button>
-    <button class="tab-btn" data-tab="crawler">🕷 爬虫</button>
-    <button class="tab-btn" data-tab="tasks">📋 任务</button>
+    <button class="tab-btn active" data-tab="home">☀️ 今日</button>
+    <button class="tab-btn admin-tab hidden" data-tab="sources">发现源审核 <span id="sources-badge" class="badge hidden">0</span></button>
+    <button class="tab-btn admin-tab hidden" data-tab="daily">今日推荐</button>
+    <button class="tab-btn admin-tab hidden" data-tab="graph">品味图谱</button>
+    <button class="tab-btn admin-tab hidden" data-tab="history">发布历史</button>
+    <button class="tab-btn admin-tab hidden" data-tab="curation">手动选图</button>
+    <button class="tab-btn admin-tab hidden" data-tab="health">🩺 健康</button>
+    <button class="tab-btn admin-tab hidden" data-tab="pipeline">⚙️ Pipeline</button>
+    <button class="tab-btn admin-tab hidden" data-tab="crawler">🕷 爬虫</button>
+    <button class="tab-btn admin-tab hidden" data-tab="tasks">📋 任务</button>
     <button class="tab-btn" data-tab="weekly">📊 反馈周报</button>
-    <button class="tab-btn" data-tab="trend">🔥 潮流</button>
+    <button id="admin-toggle" class="tab-btn admin-toggle" title="显示/隐藏系统 tab">⚙️ 系统</button>
+    <button class="tab-btn admin-tab hidden" data-tab="trend">🔥 潮流</button>
   </nav>
 
   <div class="task-bar" id="task-bar"></div>
 
   <main class="content">
-    <section id="tab-sources" class="tab-panel active"></section>
-    <section id="tab-daily" class="tab-panel"></section>
-    <section id="tab-graph" class="tab-panel"></section>
-    <section id="tab-history" class="tab-panel"></section>
-    <section id="tab-curation" class="tab-panel"></section>
-    <section id="tab-health" class="tab-panel"></section>
-    <section id="tab-pipeline" class="tab-panel"></section>
-    <section id="tab-crawler" class="tab-panel"></section>
-    <section id="tab-tasks" class="tab-panel"></section>
+    <section id="tab-home" class="tab-panel active"></section>
+    <section id="tab-sources" class="tab-panel admin-panel hidden"></section>
+    <section id="tab-daily" class="tab-panel admin-panel hidden"></section>
+    <section id="tab-graph" class="tab-panel admin-panel hidden"></section>
+    <section id="tab-history" class="tab-panel admin-panel hidden"></section>
+    <section id="tab-curation" class="tab-panel admin-panel hidden"></section>
+    <section id="tab-health" class="tab-panel admin-panel hidden"></section>
+    <section id="tab-pipeline" class="tab-panel admin-panel hidden"></section>
+    <section id="tab-crawler" class="tab-panel admin-panel hidden"></section>
+    <section id="tab-tasks" class="tab-panel admin-panel hidden"></section>
     <section id="tab-weekly" class="tab-panel"></section>
-    <section id="tab-trend" class="tab-panel"></section>
+    <section id="tab-trend" class="tab-panel admin-panel hidden"></section>
   </main>
 
   <div id="toast-container"></div>
   <div id="image-modal-overlay" class="modal-overlay" style="display:none"></div>
 </div>
 
+<script src="/js/home.js?v=2"></script>
 <script src="/js/app.js?v=5"></script>
 <script src="/js/sources.js?v=3"></script>
 <script src="/js/daily.js?v=3"></script>
@@ -65,5 +69,17 @@
 <script src="/js/weekly.js?v=1"></script>
 <script src="/js/trend.js?v=1"></script>
 <script>App.init();</script>
+<style>
+.tab-btn.admin-tab.hidden, .tab-panel.admin-panel.hidden { display: none !important; }
+.tab-btn.admin-toggle { margin-left: auto; opacity: 0.6; font-size: 12px; padding: 4px 10px; }
+.tab-btn.admin-toggle:hover { opacity: 1; }
+</style>
+<script>
+document.getElementById('admin-toggle')?.addEventListener('click', () => {
+  const all = document.querySelectorAll('.admin-tab, .admin-panel');
+  const anyVisible = [...all].some(el => !el.classList.contains('hidden'));
+  all.forEach(el => el.classList.toggle('hidden', anyVisible));
+});
+</script>
 </body>
 </html>
