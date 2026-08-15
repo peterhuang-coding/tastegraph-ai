@@ -20,6 +20,14 @@
       ]
     },
     {
+      "name": "daily_source_brief",
+      "script": "scripts/daily_source_brief.py",
+      "schedule": "09:30",
+      "enabled": true,
+      "timeout": 60,
+      "_note": "生成每日信息源简报（SOURCES.html），按 reviewed_at 排序推 8 个 approved 源给用户看"
+    },
+    {
       "name": "pack_generation",
       "script": "scripts/generate_publish_packs.py",
       "schedule": "08:00,20:00",
