@@ -1,6 +1,14 @@
-# Moodboard: Hidden NY x JJJJound
+# moodboard.
 
-这个文件夹用来沉淀你的小红书账号视觉方向，目标不是完全模仿，而是提炼一种更适合你内容的气质：
+> **A personal visual sampler.** 52 sources. 9 images per pack. One editor.
+>
+> 项目身份见 [`VISION.md`](./VISION.md)。本 README 是设计源头参考 —— Hidden NY × JJJJound 风格指南,采样系统的审美锚点。
+
+---
+
+## 源 Moodboard: Hidden NY x JJJJound
+
+这个文件夹用来沉淀你的小红书账号视觉方向,目标不是完全模仿,而是提炼一种更适合你内容的气质:
 
 - 克制
 - 干净

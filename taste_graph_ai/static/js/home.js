@@ -28,16 +28,16 @@ const HomeTab = {
     let html = `
     <div class="home-header" style="margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid var(--border)">
       <h2 style="margin:0 0 4px;font-size:20px">${greeting}</h2>
-      <div style="font-size:13px;color:var(--text-muted)">${today} · 2 件事你可以做（3 分钟搞定）</div>
+      <div style="font-size:13px;color:var(--text-muted)">${today} · 今日采样 · 3 分钟搞定</div>
     </div>
 
     ${unreviewed > 0 ? `
     <div class="home-section" style="margin-bottom:32px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-        <h3 style="margin:0;font-size:16px">📸 抽检 <span style="font-size:13px;color:var(--accent);font-weight:normal">${unreviewed} 张未审</span></h3>
+        <h3 style="margin:0;font-size:16px">📸 抽样 <span style="font-size:13px;color:var(--accent);font-weight:normal">${unreviewed} 张待取舍</span></h3>
         <button class="btn btn-sm btn-ghost" onclick="HomeTab._reload()">🔄 换一批</button>
       </div>
-      <p style="font-size:13px;color:var(--text-muted);margin:0 0 16px">随机抽 ${spotImages.length} 张 · 每张点一下分类 · 反馈直接进图谱</p>
+      <p style="font-size:13px;color:var(--text-muted);margin:0 0 16px">随机抽 ${spotImages.length} 张 · ✓ 对味 / ⭐ 精 / ⏭ 弃 · 取舍回流到图谱</p>
       <div id="home-spotcheck" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px"></div>
     </div>
     ` : ''}
@@ -51,8 +51,8 @@ const HomeTab = {
 
     ${packCount > 0 ? `
     <div class="home-section" style="margin-top:32px">
-      <h3 style="margin:0 0 12px;font-size:16px">📦 今日推荐方案（已 AI 选过）</h3>
-      <p style="font-size:13px;color:var(--text-muted);margin:0 0 12px">AI 选了 ${packCount} 组 · 这是精筛后的</p>
+      <h3 style="margin:0 0 12px;font-size:16px">📦 今日采样 · ${packCount} 组精筛</h3>
+      <p style="font-size:13px;color:var(--text-muted);margin:0 0 12px">从采样池精选 · 每组 9 张 · voice 已统一</p>
       <div id="home-packs"></div>
     </div>
     ` : ''}
@@ -137,11 +137,11 @@ const HomeTab = {
     return `
     <a href="/SOURCES.html" class="home-card" style="text-decoration:none;color:inherit;display:block;padding:18px 20px;background:var(--card-bg);border:1px solid var(--border);border-radius:8px;box-shadow:var(--card-shadow);transition:all 0.15s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-        <span style="font-size:13px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em">📡 信息源</span>
+        <span style="font-size:13px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em">📡 采样池</span>
         <span style="font-size:18px">→</span>
       </div>
-      <div style="font-size:24px;font-weight:600;margin-bottom:4px">${pending} <span style="font-size:14px;color:var(--text-muted);font-weight:normal">待你过目</span></div>
-      <div style="font-size:12px;color:var(--text-muted)">${approved} 个已加入清单 · ${hasWork ? '<span style="color:var(--accent)">点开浏览</span>' : '今天没新源'}</div>
+      <div style="font-size:24px;font-weight:600;margin-bottom:4px">${pending} <span style="font-size:14px;color:var(--text-muted);font-weight:normal">待你浏览</span></div>
+      <div style="font-size:12px;color:var(--text-muted)">${approved} 个源已入选 · ${hasWork ? '<span style="color:var(--accent)">点开浏览</span>' : '今天没新源'}</div>
     </a>`;
   },
 
@@ -150,11 +150,11 @@ const HomeTab = {
     return `
     <div style="padding:18px 20px;background:var(--card-bg);border:1px solid var(--border);border-radius:8px;box-shadow:var(--card-shadow)">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-        <span style="font-size:13px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em">📦 推荐方案</span>
-        <span style="font-size:11px;color:${hasWork ? 'var(--accent)' : 'var(--text-muted)'}">${hasWork ? '今日可发' : '无'}</span>
+        <span style="font-size:13px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em">📦 今日采样</span>
+        <span style="font-size:11px;color:${hasWork ? 'var(--accent)' : 'var(--text-muted)'}">${hasWork ? '已精筛' : '无'}</span>
       </div>
-      <div style="font-size:24px;font-weight:600;margin-bottom:4px">${count} <span style="font-size:14px;color:var(--text-muted);font-weight:normal">组方案</span></div>
-      <div style="font-size:12px;color:var(--text-muted)">${hasWork ? '<span style="color:var(--accent)">下方可直接审</span>' : 'pipeline 跑完后会出现'}</div>
+      <div style="font-size:24px;font-weight:600;margin-bottom:4px">${count} <span style="font-size:14px;color:var(--text-muted);font-weight:normal">组 · 每组 9 张</span></div>
+      <div style="font-size:12px;color:var(--text-muted)">${hasWork ? '<span style="color:var(--accent)">下方可直接审</span>' : '采样跑完后会出现'}</div>
     </div>`;
   },
 
@@ -163,11 +163,11 @@ const HomeTab = {
     return `
     <div style="padding:18px 20px;background:var(--card-bg);border:1px solid var(--border);border-radius:8px;box-shadow:var(--card-shadow)">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-        <span style="font-size:13px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em">💬 今日反馈</span>
-        <span style="font-size:11px;color:var(--text-muted)">对味 / 不对味</span>
+        <span style="font-size:13px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em">💬 今日取舍</span>
+        <span style="font-size:11px;color:var(--text-muted)">对味 / 精 / 弃</span>
       </div>
       <div style="font-size:24px;font-weight:600;margin-bottom:4px">${count} <span style="font-size:14px;color:var(--text-muted);font-weight:normal">次</span></div>
-      <div style="font-size:12px;color:var(--text-muted)">进图谱调权重</div>
+      <div style="font-size:12px;color:var(--text-muted)">取舍回流到图谱权重</div>
     </div>`;
   },
 
@@ -179,7 +179,7 @@ const HomeTab = {
     return `
     <div style="padding:18px 20px;background:var(--card-bg);border:1px solid var(--border);border-radius:8px;box-shadow:var(--card-shadow)">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-        <span style="font-size:13px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em">📊 本周数据</span>
+        <span style="font-size:13px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em">📊 本周采样</span>
         <span style="font-size:11px;color:${hasData ? 'var(--green)' : 'var(--text-muted)'}">${hasData ? '已发布' : '未发布'}</span>
       </div>
       <div style="font-size:24px;font-weight:600;margin-bottom:4px">${pub} <span style="font-size:14px;color:var(--text-muted);font-weight:normal">篇</span></div>
