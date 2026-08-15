@@ -231,6 +231,9 @@ def load_seeds() -> list[dict]:
     items.extend(_load_link_packs())
     items.extend(_load_db())
     items.extend(_load_date_folders())
+    # Mark all seeds so the cycle loop can bypass dedup (seeds always refresh)
+    for it in items:
+        it["_seed"] = True
     return items
 
 def load_discovery_queue() -> list[dict]:
@@ -482,6 +485,10 @@ def main() -> int:
         fresh = []
         dups = 0
         for item in all_items:
+            # Seeds always refresh — only child links (discovered) get dedup'd
+            if item.get("_seed"):
+                fresh.append(item)
+                continue
             k = _dkey(item)
             if k in processed_keys:
                 dups += 1
