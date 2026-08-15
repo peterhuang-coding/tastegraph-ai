@@ -34,6 +34,33 @@ RUNS_DIR = PROJECT_ROOT / "runs"
 SHARED_DEDUP_FILE = RUNS_DIR / "shared_dedup.json"
 DISCOVERY_QUEUE_FILE = RUNS_DIR / "discovery_queue.json"
 
+# ── Source quality control ──────────────────────────────────
+# Domains that are noise / off-brand for the editorial/brutalist aesthetic.
+# Historical IKEA pollution alone was 53% of all crawled URLs — never let
+# that happen again. Hard-skip in fetch_page().
+SKIP_DOMAINS = {
+    "www.ikea.com", "ikea.com",
+    "www.taobao.com", "taobao.com",
+    "www.tmall.com", "tmall.com",
+    "www.jd.com", "jd.com",
+    "www.amazon.com", "amazon.com",
+    "www.ebay.com", "ebay.com",
+    "www.aliexpress.com", "aliexpress.com",
+    "www.pinterest.com", "pinterest.com",  # 80% bot-blocked + low editorial
+    "www.facebook.com", "facebook.com",
+    "www.instagram.com", "instagram.com",
+    "www.twitter.com", "twitter.com", "x.com",
+    "www.tiktok.com", "tiktok.com",
+    "www.reddit.com", "reddit.com",
+}
+
+# Domains that are on-brand but lower priority — only fetch if budget allows.
+LOW_PRIORITY_DOMAINS = {
+    "www.muji.com.cn", "muji.com.cn",  # OK but not editorial
+    "www.zhihu.com", "zhihu.com",  # text-heavy
+    "www.bilibili.com", "bilibili.com",  # video, mostly text-only pages
+}
+
 # ── User-Agent pool ──────────────────────────────────────────
 
 _UAS = [
@@ -245,11 +272,27 @@ def save_dedup(keys: set[str], stats: dict):
 
 # ── Page fetcher ─────────────────────────────────────────────
 
+def _is_skipped_domain(domain: str) -> bool:
+    """True if domain (or any parent domain) is in SKIP_DOMAINS."""
+    if domain in SKIP_DOMAINS:
+        return True
+    # Match subdomains: news.ikea.com → ikea.com
+    parts = domain.split(".")
+    for i in range(len(parts)):
+        parent = ".".join(parts[i:])
+        if parent in SKIP_DOMAINS:
+            return True
+    return False
+
+
 def fetch_page(url: str) -> dict:
     """Fetch page metadata + extract child links for deep discovery."""
     if not url or not url.startswith("http"):
         return {}
     domain = urlparse(url).netloc
+    # Hard skip off-brand domains (IKEA, e-commerce, social)
+    if _is_skipped_domain(domain):
+        return {"_error": f"skip_domain:{domain}"}
 
     try:
         c = _get_http()
@@ -291,13 +334,44 @@ def fetch_page(url: str) -> dict:
         ma = soup.find("meta", attrs={"name":"author"})
         if ma and ma.get("content"): result["author"] = ma["content"][:200]
 
-        # Alt texts
+        # Alt texts (kept for cheap quality signal — limit 5)
         alts = []
         for img in soup.find_all("img"):
             a = (img.get("alt") or "").strip()
             if a and 2 < len(a) < 100: alts.append(a)
             if len(alts) >= 5: break
         result["alt_texts"] = alts
+
+        # Image URLs (full extraction — capped at 20 per page to avoid bloat)
+        # Capture src + alt + width hint so downstream CLIP/select can score.
+        images = []
+        seen_src = set()
+        img_skip_ext = (".svg", ".ico", ".gif", "data:image")
+        for img in soup.find_all("img"):
+            src = (img.get("src") or img.get("data-src") or img.get("data-lazy-src") or "").strip()
+            if not src: continue
+            # Normalize relative URLs
+            if src.startswith("//"):
+                src = "https:" + src
+            elif src.startswith("/"):
+                src = urljoin(url, src)
+            if not src.startswith("http"): continue
+            if any(src.lower().endswith(ext) for ext in img_skip_ext): continue
+            # Filter tiny icons (1x1 trackers, etc.)
+            w = img.get("width") or ""
+            try:
+                if w and int(str(w).rstrip("px")) < 80: continue
+            except: pass
+            if src in seen_src: continue
+            seen_src.add(src)
+            images.append({
+                "src": src[:500],
+                "alt": (img.get("alt") or "").strip()[:200],
+                "width": str(w)[:20],
+            })
+            if len(images) >= 20: break
+        result["images"] = images
+        result["image_count"] = len(images)
 
         # Child links (deep discovery)
         child_links = []
@@ -430,6 +504,7 @@ def main() -> int:
         # Process
         cycle_ok = 0
         cycle_fail = 0
+        cycle_skip = 0
         cycle_discovered = 0
         batch = []
 
@@ -462,6 +537,7 @@ def main() -> int:
                 "status": "consolidated", "error": "",
                 "page_title": "", "page_description": "", "og_image": "",
                 "page_author": "", "page_image_count": 0, "page_text_length": 0,
+                "image_urls": [], "alt_texts": [],
             }
 
             if url and url.startswith("http"):
@@ -469,14 +545,22 @@ def main() -> int:
                 if meta.get("_error"):
                     record["status"] = "fetch_error"
                     record["error"] = meta["_error"]
-                    cycle_fail += 1
+                    # skip_domain errors are intentional, not failures
+                    if meta["_error"].startswith("skip_domain:"):
+                        record["status"] = "skipped"
+                        cycle_skip += 1
+                    else:
+                        cycle_fail += 1
                 else:
                     record["page_title"] = meta.get("title", "")
                     record["page_description"] = meta.get("description", "")
                     record["og_image"] = meta.get("og_image", "")
                     record["page_author"] = meta.get("author", "")
-                    record["page_image_count"] = len(meta.get("alt_texts", []))
+                    record["page_image_count"] = meta.get("image_count", 0)
                     record["page_text_length"] = len(meta.get("visible_text", ""))
+                    # New: full image URL array (was: only alt_texts)
+                    record["image_urls"] = [im["src"] for im in meta.get("images", [])]
+                    record["alt_texts"] = meta.get("alt_texts", [])
                     if meta.get("visible_text") and not record.get("why"):
                         record["why"] = meta["visible_text"][:300]
                     if meta.get("title") and not record["title"]:
@@ -503,12 +587,12 @@ def main() -> int:
                 save_dedup(processed_keys, stats)
 
             # Status
-            if (cycle_ok + cycle_fail) % 15 == 0 and (cycle_ok + cycle_fail) > 0:
+            if (cycle_ok + cycle_fail + cycle_skip) % 15 == 0 and (cycle_ok + cycle_fail + cycle_skip) > 0:
                 elapsed = time.time() - cycle_start
                 rate_val = (cycle_ok + cycle_fail) / elapsed if elapsed > 0 else 0
-                eta = (len(fresh) - cycle_ok - cycle_fail) / rate_val / 60 if rate_val > 0 else 0
-                print(f"[cycle {cycle}] {cycle_ok+cycle_fail}/{len(fresh)} | "
-                      f"ok:{cycle_ok} err:{cycle_fail} discovered:{cycle_discovered} | "
+                eta = (len(fresh) - cycle_ok - cycle_fail - cycle_skip) / rate_val / 60 if rate_val > 0 else 0
+                print(f"[cycle {cycle}] {cycle_ok+cycle_fail+cycle_skip}/{len(fresh)} | "
+                      f"ok:{cycle_ok} err:{cycle_fail} skip:{cycle_skip} discovered:{cycle_discovered} | "
                       f"{rate_val:.1f}/s ETA {eta:.0f}min | {rate.stats()}")
 
         # Flush final batch
@@ -519,6 +603,7 @@ def main() -> int:
 
         stats["fetched"] = stats.get("fetched", 0) + cycle_ok
         stats["fetch_error"] = stats.get("fetch_error", 0) + cycle_fail
+        stats["skipped"] = stats.get("skipped", 0) + cycle_skip
         stats["discovered"] = stats.get("discovered", 0) + cycle_discovered
         stats["total_processed"] = len(processed_keys)
         stats["cycles"] = cycle
@@ -527,7 +612,7 @@ def main() -> int:
         save_discovery_queue(discovery_queue)
 
         elapsed = time.time() - cycle_start
-        print(f"[cycle {cycle}] Done {elapsed:.0f}s — {cycle_ok} ok, {cycle_fail} fail, "
+        print(f"[cycle {cycle}] Done {elapsed:.0f}s — {cycle_ok} ok, {cycle_fail} fail, {cycle_skip} skip, "
               f"{cycle_discovered} new links queued | Total: {stats['fetched']} fetched, "
               f"{stats['discovered']} discovered | {rate.stats()}")
 
