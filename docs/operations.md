@@ -1,276 +1,252 @@
-# TasteGraph AI — 操作手册
+# moodboard. — 操作手册
 
-> 品味知识图谱 + 小红书内容管道。从爬取、选图、生成文案到自动发布，全流程覆盖。
-
----
-
-## 目录
-
-1. [快速开始](#1-快速开始)
-2. [日常操作](#2-日常操作)
-3. [数据维护](#3-数据维护)
-4. [所有脚本一览](#4-所有脚本一览)
-5. [故障排除](#5-故障排除)
-6. [目录结构](#6-目录结构)
+> **个人视觉采样系统**。52 sources · 9 images per pack · One editor.
+> 项目身份见 [`VISION.md`](../VISION.md)。
 
 ---
 
 ## 1. 快速开始
 
-### 1.1 前提条件
-
-- **Google Chrome**（macOS 已安装，Windows/Linux 需自行安装）
-- **Python 3.12+**
-- **pip 依赖**（首次运行需安装）：
+### 1.1 启动 dashboard
 
 ```bash
-pip3 install httpx beautifulsoup4 aiosqlite uvicorn
-pip3 install playwright
-python3 -m playwright install chromium
+bash scripts/launch_dashboard.sh
+# 浏览器打开 http://localhost:8787
 ```
 
-### 1.2 首次登录
+> ⚠️ 此脚本**只**启动 web server。**不**启动 daemon,**不**复活任何 plist,XHS 自动发布永久封停。
 
-自动发布需要先登录小红书创作者中心，通过扫码保存登录态。
+### 1.2 启动一次 24h crawl
 
 ```bash
-bash start.sh login
+bash scripts/run_24h_crawl.sh [rate]    # 默认 200 req/h × 24h
 ```
 
-### 1.3 第一篇发布
+后台跑,日志写 `runs/crawl_24h_<ts>.log`,PID 写 `runs/crawl_24h.pid`。
+
+### 1.3 监控运行中
 
 ```bash
-# 全流程一键运行
-bash start.sh                       # 爬取1小时 + 选图 + 生成 + 启动审稿服务
-
-# 或分步运行
-bash start.sh publish --count 3     # 只生成发布包
-bash start.sh serve                 # 启动审稿工作台
-bash start.sh auto-pub              # 自动发布
+bash scripts/crawl_status.sh            # 单屏状态
+tail -f runs/crawl_24h_<ts>.log         # 实时日志
+python3 scripts/audit_crawl.py          # 质量审计
 ```
 
 ---
 
-## 2. 日常操作
+## 2. 日常操作(3 分钟/天)
 
-### 2.1 登录/检查登录
+打开 **Home tab**,做这 3 件事:
 
+### 2.1 抽样 6 张图(1 分钟)— **最重要**
+Home 上「📸 抽样 · N 张待取舍」 → 每张点一下:
+- **✓ 对味** — 进图谱权重 ↑
+- **⭐ 精** — 进精选池,优先 pack
+- **⏭ 弃** — 减权重,以后不推荐
+
+> 这 6 次点击是 moodboard. 的**唯一人工信号**,决定采样池漂移方向。
+
+### 2.2 采样池(1 分钟)
+Home 上「📡 采样池 · N 个待你浏览」 → 点开 `SOURCES.html`:
+- **8 个 approved 源** — 按 reviewed_at 排序,最久没看的优先
+- **4 个 newly discovered** — 决定加 / 弃
+
+如果 `SOURCES.html` 没更新,手动跑:
 ```bash
-bash start.sh login                          # 扫码登录
-python3 scripts/auto_publish.py --check-login  # 检查登录状态
+python3 scripts/daily_source_brief.py
 ```
 
-### 2.2 手动发布一篇
-
-```bash
-bash start.sh publish --count 1              # 生成 1 篇
-bash start.sh serve                          # 审稿
-python3 scripts/auto_publish.py --post-dir posts/2026-07-11/post-001  # 发布
-```
-
-### 2.3 生成发布包但不发布
-
-```bash
-bash start.sh publish --count 6
-python3 scripts/pipeline.py --publish-only --count 5 --date 2026-07-10
-```
-
-### 2.4 启动定时发布
-
-```bash
-bash start.sh scheduler                      # 守护进程（08:00/20:00）
-bash start.sh scheduler --run-now            # 立即执行一次
-bash start.sh scheduler --dry-run            # 预览
-bash start.sh scheduler --once               # 只执行下一次
-```
-
-### 2.5 启动审稿工作台
-
-```bash
-bash start.sh serve
-# 或 python3 scripts/queue_server.py
-# 浏览器访问 http://localhost:8765
-```
-
-### 2.6 查看发布效果周报
-
-```bash
-bash start.sh feedback
-python3 scripts/publish_feedback.py report
-```
+### 2.3 今日采样 pack(1 分钟)
+Home 下方「📦 今日采样 · N 组精筛」:
+- 扫 3 个 9 图 pack 是否对味
+- 不对味:点 curation tab 手动换图
+- 对味:留在 `daily_packs` 备用
 
 ---
 
-## 3. 数据维护
+## 3. 周期操作(按需,不是每天)
 
-### 3.1 回抓互动数据
-
+### 3.1 24h 长跑启动
 ```bash
-python3 scripts/auto_feedback.py             # 回抓超过 24h 的
-python3 scripts/auto_feedback.py --dry-run   # 预览不录入
-python3 scripts/auto_feedback.py --all       # 回抓所有未回抓的
-python3 scripts/auto_feedback.py --days 48   # 回抓 48h 前的
+# 起 (后台 nohup)
+bash scripts/run_24h_crawl.sh 200
+
+# 停
+kill $(cat runs/crawl_24h.pid)
+
+# 看
+bash scripts/crawl_status.sh
+python3 scripts/audit_crawl.py
 ```
 
-### 3.2 数据备份
+**触发时机**:
+- 老板手动决定:每 3-7 天一次
+- 或 schedule.json 标记 03:00 BJT(实际**不自动跑**,因为 daemon 8/1 已删)
 
+### 3.2 每周一:feedback 周报
 ```bash
-python3 scripts/backup.py                    # 备份（保留最近 7 个版本）
-python3 scripts/backup.py --dry-run          # 预览
-python3 scripts/backup.py --keep 14          # 保留 14 个版本
+# 自动? 不会 — daemon 已删
+# 手动跑:
+python3 scripts/weekly.py    # 或对应脚本
 ```
 
-### 3.3 数据清理
+看 Home 上「📊 本周采样」卡片 + weekly tab。
 
-```bash
-python3 scripts/cleanup_stale_data.py                # 清理 30 天未用图片
-python3 scripts/cleanup_stale_data.py --dry-run      # 预览
-python3 scripts/cleanup_stale_data.py --days 60      # 60 天阈值
-python3 scripts/cleanup_stale_data.py --skip-logs    # 跳过日志轮转
-```
+### 3.3 trend 信号(随时)
+按 **⌘+Shift+T** 打开潮流 tab。340+ 关键词的 rising / fading。
 
-### 3.4 统一调度器
-
-```bash
-python3 scripts/daemon_scheduler.py                  # 启动守护进程
-python3 scripts/daemon_scheduler.py --run-all        # 立即执行所有任务
-python3 scripts/daemon_scheduler.py --run backup     # 立即执行指定任务
-```
+### 3.4 品味图谱 drill-down
+点导航栏「⚙️ 系统」→ 「品味图谱」。Cytoscape 可视化,节点 1223 / 边 2017。
 
 ---
 
 ## 4. 所有脚本一览
 
-### 4.1 核心管道
+### 4.1 采样(主动)
+| 脚本 | 用途 |
+|---|---|
+| `scripts/run_24h_crawl.sh` | 24h 不间断后台爬 |
+| `scripts/crawl_loop_6h.py` | 单次循环爬取(被前者调用) |
+| `scripts/audit_crawl.py` | 爬取质量审计(IKEA 类污染检测) |
+| `scripts/crawl_status.sh` | 单屏状态快照 |
 
-| 脚本 | 一句话说明 |
-|------|-----------|
-| `scripts/pipeline.py` | 全流程管道：爬取 → 选图 → 生成 → 启动服务 |
-| `scripts/generate_publish_packs.py` | 从已爬取图片中选 Top-N 并生成发布包 |
-| `scripts/queue_server.py` | 启动本地 QUEUE 审稿服务（端口 8765） |
-| `scripts/auto_publish.py` | 自动发布到小红书（需先登录） |
-| `scripts/publish_scheduler.py` | 定时发布守护进程 |
-| `scripts/publish_playwright.py` | Playwright 方案发布（CDP 备用方案） |
+### 4.2 采样池(被动,定时)
+| 脚本 | 用途 |
+|---|---|
+| `scripts/daily_source_brief.py` | 生成 `SOURCES.html`(8 approved + 4 new) |
 
-### 4.2 爬虫
+### 4.3 取舍(人工)
+| 脚本 | 用途 |
+|---|---|
+| Home tab 抽样 | ✓对味 / ⭐精 / ⏭弃 |
+| Home tab 今日采样 | 浏览 AI 精筛 pack |
+| curation tab | 手动换图 / 调 pack |
 
-| 脚本 | 一句话说明 |
-|------|-----------|
-| `scripts/crawl_loop_6h.py` | 多源爬虫循环 |
-| `scripts/run_xhs_12h_pipeline.py` | 12 小时内容整合管道 |
-| `scripts/moodboard_fetch.py` | 从 Are.na 抓取 moodboard 图片 |
+### 4.4 调度
+| 脚本 | 用途 |
+|---|---|
+| `config/schedule.json` | 任务定义(**daemon 已删,实际不自动跑**) |
+| `scripts/launch_dashboard.sh` | 启动 web server + 11 tab |
 
-### 4.3 反馈/调权
+### 4.5 历史/已封存(不要用)
+| 脚本 | 状态 |
+|---|---|
+| `scripts/auto_publish.py` | 🚫 XHS 自动发布已封停(`I-UNDERSTAND-RISK` header 才解) |
+| `scripts/publish_scheduler.py` | 🚫 schedule.json `live_post` 永久 disabled |
+| `scripts/auto_feedback.py` | 🚫 `auto_feedback` 永久 disabled |
+| `xhs_publisher/*` | 🚫 XHS 整套技术栈封存 |
 
-| 脚本 | 一句话说明 |
-|------|-----------|
-| `scripts/publish_feedback.py` | 发布效果周报 + 互动数据录入 |
-| `scripts/auto_feedback.py` | 自动回抓小红书帖子互动数据 |
-| `scripts/taste_feedback.py` | 更新 taste memory 偏好/规避关键词 |
+---
 
-### 4.4 数据维护
+## 5. 关键约束(必读)
 
-| 脚本 | 一句话说明 |
-|------|-----------|
-| `scripts/backup.py` | 备份核心数据文件 |
-| `scripts/cleanup_stale_data.py` | 清理过期图片 + 日志轮转 |
-| `scripts/daemon_scheduler.py` | 统一调度器管理所有定时任务 |
-| `scripts/source_dashboard.py` | 生成信息源看板 HTML |
+### 🔴 XHS 自动发布永久封停
+- 7/29 老板账号又被封,根因是后台自动化点击 / 上传
+- `config/schedule.json` 顶层 `_publish_disabled: true`
+- 所有 XHS-touching 任务(发布 / 回抓)enabled=false
+- 后端 `/cdp-publish` 默认 403,需要 `I-UNDERSTAND-RISK` header 才能手动 override
+- UI 双确认(精确输入"确认发布"才能触发)
 
-### 4.5 start.sh 模式一览
+### 🟡 调度脱钩
+- 8/1 起无 launchd daemon
+- `schedule.json` 写 6 个 enabled 任务,但**实际不会自动跑**
+- 所有任务必须手动触发(或重新起 daemon,见 §6.4)
 
+### 🟢 SKIP_DOMAINS(源质量控制)
+- 硬跳过 IKEA / Taobao / Tmall / Amazon / eBay / AliExpress / Pinterest / Instagram / TikTok / Reddit / Facebook / Twitter
+- 反 IKEA 53% 污染(8/8 任务 #24 修复)
+
+---
+
+## 6. 故障排除
+
+### 6.1 Dashboard 打不开
 ```bash
-bash start.sh                          # 全流程
-bash start.sh publish --count 6        # 只生成发布包
-bash start.sh serve                    # 只启动审稿服务
-bash start.sh feedback                 # 查看周报
-bash start.sh crawl                    # 只运行爬取
-bash start.sh auto-pub                 # 生成 + 自动发布
-bash start.sh login                    # 扫码登录
-bash start.sh scheduler                # 启动定时调度
+lsof -iTCP:8787 -sTCP:LISTEN -P -n    # 检查 server
+bash scripts/launch_dashboard.sh      # 启动
+```
+
+### 6.2 24h crawl 没启动 / 立刻挂
+```bash
+cat runs/crawl_24h_<ts>.log           # 看错误
+python3 scripts/audit_crawl.py        # 看上一轮质量
+# 常见: 7890 proxy 死,7897 活
+NO_PROXY=localhost,127.0.0.1 curl ... # 本地调用要加 NO_PROXY
+```
+
+### 6.3 图谱 tab 看不到
+点导航栏最右边「⚙️ 系统」按钮展开 admin tab(图谱 / 趋势 / 爬虫等都在内)。
+
+### 6.4 想恢复自动调度
+```bash
+# 写一个新 launchd plist,只挂非 XHS 任务(纯爬虫 / 备份 / trend_report)
+# 见 config/schedule.json 的 enabled=true 任务清单
+# 注意:crawl / daily_source_brief / pack_generation / backup / cleanup / trend_report
+```
+
+### 6.5 Git push 失败 7890 proxy 死
+```bash
+# 全局配置 7890 已死,用 7897 override:
+git -c http.proxy=http://127.0.0.1:7897 \
+    -c https.proxy=http://127.0.0.1:7897 \
+    push origin main
 ```
 
 ---
 
-## 5. 故障排除
-
-### 5.1 CDP 连接失败
-
-**现象**：`Could not connect to Chrome at http://127.0.0.1:9222`
-
-**解决**：
-```bash
-# 以调试模式启动 Chrome
-/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome \
-  --remote-debugging-port=9222 --user-data-dir=/tmp/chrome-debug &
-# 验证连接
-curl http://127.0.0.1:9222/json/version
-```
-
-### 5.2 Chrome 端口占用
-
-**解决**：
-```bash
-lsof -i :9222
-kill -9 $(lsof -ti :9222)
-```
-
-### 5.3 登录过期
-
-**解决**：`bash start.sh login` 重新扫码
-
-### 5.4 发布失败
-
-| 原因 | 解决 |
-|------|------|
-| 未登录 | `bash start.sh login` |
-| 选择器失效 | `python3 scripts/check_selectors.py` 检查 |
-| 风控限制 | 增加 `--min-interval` 和 `--timing-jitter` |
-
-### 5.5 爬虫没有新内容
-
-**解决**：检查 `link_sources.json` 配置，增加爬取时长 `bash start.sh crawl --crawl-hours 2`
-
----
-
-## 6. 目录结构
+## 7. 目录结构(精简)
 
 ```
-.
-├── start.sh                       # 一键启动入口
-├── scripts/                       # 可执行脚本（20+）
-├── taste_graph_ai/                # 核心库（Python 包）
-├── xhs_publisher/                 # 小红书发布模块
-├── data/                          # 数据文件（图谱、DB、图片）
-├── posts/                         # 生成的发布包
-├── config/                        # 配置文件
-├── docs/                          # 文档
-├── link_sources.json              # 信息源配置（27 个源）
-└── taste_memory.json              # 品味偏好记忆
+moodboard-hidden-ny-jjjjound/
+├── VISION.md                # 项目身份 — 必读
+├── README.md                # 系统简介 + 源 moodboard 设计参考
+├── docs/
+│   ├── voice.md             # voice 系统(taste_ip_system)
+│   └── operations.md        # 本文件
+├── research/aesthetic-os/   # 19 份 research(MIGRATION.md 有说明)
+├── scripts/
+│   ├── run_24h_crawl.sh     # 24h 长跑
+│   ├── audit_crawl.py       # 质量审计
+│   ├── crawl_status.sh      # 状态快照
+│   ├── daily_source_brief.py
+│   ├── crawl_loop_6h.py     # 单次爬取循环
+│   └── launch_dashboard.sh  # 启 web server
+├── taste_graph_ai/
+│   ├── api/routes/          # FastAPI 路由(graph / daily / sources ...)
+│   └── static/              # Dashboard 前端(11 tab)
+├── data/                    # 运行时数据(图谱 / DB / events.log)
+├── posts/                   # daily packs 输出
+├── runs/                    # crawl 输出 + 24h pid/log
+└── config/
+    ├── schedule.json        # 任务定义
+    └── link_sources.json    # 52 源
 ```
 
 ---
 
-## 附录：常用命令速查
+## 附录:常用命令速查
 
 ```bash
-# 首次
-pip3 install httpx beautifulsoup4 aiosqlite uvicorn playwright
-python3 -m playwright install chromium
-bash start.sh login
+# 启动
+bash scripts/launch_dashboard.sh       # web 控制台
+bash scripts/run_24h_crawl.sh 200      # 24h 后台爬
 
-# 每日
-bash start.sh publish --count 3
-bash start.sh serve
-python3 scripts/auto_publish.py --all
+# 监控
+bash scripts/crawl_status.sh           # 单屏状态
+python3 scripts/audit_crawl.py         # 质量审计
+tail -f runs/crawl_24h_<ts>.log        # 实时日志
 
-# 全天候
-bash start.sh scheduler
+# 每日(Home tab 内 3 分钟)
+# - 抽样 6 张图 → ✓对味/⭐精/⏭弃
+# - 浏览 SOURCES.html
+# - 扫一眼今日采样 pack
 
-# 复盘
-bash start.sh feedback
-
-# 维护
-python3 scripts/backup.py
-python3 scripts/cleanup_stale_data.py --dry-run
+# 周期
+python3 scripts/daily_source_brief.py  # 生成 SOURCES.html(需手动)
+python3 scripts/backup.py              # 备份
+python3 scripts/cleanup_stale_data.py  # 清理 30 天未用
 ```
+
+---
+
+**最后更新**:2026-08-15(moodboard. 身份重塑,与 VISION.md 同步)
