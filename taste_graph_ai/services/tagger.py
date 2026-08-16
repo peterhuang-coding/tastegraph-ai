@@ -185,6 +185,7 @@ Hard rules:
 - why 一句话,中文 ≤30 字,必中至少 1 个具体视觉词(颜色/材质/构图/光线/比例/排版)
 - tags 3-5 个,优先从 FeedbackLabel 池挑,允许少量自由词
 - style_label 2-6 字
+- style_label 保持 Hidden NY / JJJJound 调性,不要"可爱/萌/酷炫/网红/绝美/高级感"类词
 - score 0-1(0.85+ 是绝对对味,< 0.4 是弃)
 - 只返回 JSON,不要 markdown:
 {{"tags":["标签1","标签2"],"style_label":"隐藏 NY","score":0.82,"why":"灰色水泥质感配侧光,留白比例克制"}}

@@ -131,6 +131,8 @@ const HomeTab = {
     `;
 
     container.innerHTML = html;
+    // 把 dailyData 存到 this 上,供 _bindAiTag 取 theme_hint
+    this.dailyData = dailyData;
     this._bindActions();
     this._bindPackOpen();
     this._bindPackAct();
@@ -488,10 +490,16 @@ const HomeTab = {
       }
 
       try {
+        // 从 home.js 现有 dailyData state 里拿 active pack 的 theme_hint,
+        // 拿不到用 'Hidden NY 都市感' 兜底
+        const dailyPacks = (this.dailyData && this.dailyData.packs) || [];
+        const activePack = dailyPacks.find(p => p.id === this._activePackId) || dailyPacks[0];
+        const theme_hint = activePack?.theme || 'Hidden NY 都市感';
+
         const res = await fetch('/api/v1/tagger/spotcheck', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ images: paths, theme_hint: '' }),
+          body: JSON.stringify({ images: paths, theme_hint }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`);
