@@ -200,7 +200,11 @@ class FeedbackService:
         label,
         note: str,
     ) -> str:
-        """Use AI to explain why this image evokes the matched concepts."""
+        """Use AI to explain why this image evokes the matched concepts.
+
+        L3 优化:hard 强制命中至少 1 个具体视觉词(颜色/材质/构图/光线/比例/排版)。
+        Hard rules:不准说 "feels right"/"很对味"/"不错"/"good";文案 ≤30 字中文。
+        """
         top = ", ".join([c for c, _ in matched_concepts[:5]])
         label_text = label.value if hasattr(label, 'value') else str(label)
         try:
@@ -214,12 +218,30 @@ User's optional note: {note or 'N/A'}
 Account taste: quiet, editorial, low-saturation, Hidden NY / JJJJound style.
 Taste rules: good things don't shout; can be weird but not cheap; minimal but not empty.
 
-Write ONE sentence (Chinese, under 30 chars) explaining what SPECIFIC visual quality triggered this rating.
-Focus on concrete elements: color palette, texture, composition, mood, lighting, proportion.
-Be specific — don't say "feels right", say "灰色水泥质感和留白比例刚好". Do NOT repeat the rating label."""
+Hard rules(必读,违反视为失败):
+- 必中至少 1 个具体视觉词,不允许"feels right"类空话
+- 不准说:"feels right"、"很对味"、"不错"、"good"、"对味"
+- 文案 ≤30 字中文,1 句话
+
+允许的视觉词表(从中挑至少 1 个命中):
+- 颜色:灰 / 白 / 黑 / 米 / 冷调 / 暖调 / 低饱和 / 莫兰迪
+- 材质:水泥 / 羊毛 / 棉 / 亚麻 / 金属 / 玻璃 / 木 / 哑光
+- 构图:留白 / 居中 / 三分 / 对称 / 边缘切割
+- 光线:阴天 / 室内自然光 / 侧光 / 逆光 / 暗调
+- 比例:瘦长 / 方正 / 微小 / 夸张
+- 排版:无衬线 / 西文 / 标点节制 / 对齐
+
+只输出中文 reason(≤30 字,1 句话),不要 markdown、不要引号、不要解释。
+例:"灰色水泥质感配侧光,留白比例克制" """
             result = await ai.chat(prompt, 100)
             await ai.close()
-            return result.strip()[:100] if result else ""
+            text = (result or "").strip().strip('"').strip('「').strip('」').strip()
+            # 二级清洗:硬拦截空话短语
+            empty_phrases = ["feels right", "很对味", "不错", "good", "ok", "对味"]
+            low = text.lower()
+            if any(low == p or low.startswith(p + "，") or low.startswith(p + ",") for p in empty_phrases):
+                return ""
+            return text[:60]
         except Exception:
             return ""
 
