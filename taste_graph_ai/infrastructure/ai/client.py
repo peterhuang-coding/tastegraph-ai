@@ -122,16 +122,26 @@ class AIClient:
     async def chat_json(self, prompt: str, max_tokens: int = 500) -> dict:
         """Send a prompt, parse response as JSON. Never raises."""
         text = await self.chat(prompt, max_tokens)
+        return self._parse_json_response(text)
+
+    def _parse_json_response(self, text: Optional[str]) -> dict:
+        """共享 JSON 解析:处理 markdown fence + Seed-Evolving 风格转义字符串。"""
         if not text:
             return {}
-        # Strip markdown code fences
         text = text.strip()
         if text.startswith("```"):
             text = text.split("\n", 1)[-1]
             if text.endswith("```"):
                 text = text[:-3]
         try:
-            return json.loads(text)
+            parsed = json.loads(text)
+            # Seed-Evolving 等模型可能把 JSON 包成转义字符串("{\"tags\":...}")
+            if isinstance(parsed, str):
+                try:
+                    parsed = json.loads(parsed)
+                except json.JSONDecodeError:
+                    pass
+            return parsed if isinstance(parsed, dict) else {}
         except json.JSONDecodeError:
             self._log_error(
                 "json_parse_failed",
@@ -151,9 +161,10 @@ class AIClient:
             self._log_error("vision_no_ark", "vision_json 需要 ARK provider(ARK_API_KEY env)")
             return {}
         try:
-            return await self._retry(
+            text = await self._retry(
                 lambda: self._ark_vision(prompt, image_b64, mime, max_tokens)
             )
+            return self._parse_json_response(text)
         except AIClientError as exc:
             self._log_error("vision_persistent_failure", str(exc))
         except Exception as exc:
