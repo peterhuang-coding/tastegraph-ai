@@ -1,0 +1,42 @@
+[
+  {
+    "label": "vogue.com.menswear",
+    "url": "https://www.vogue.com/fashion-shows/menswear",
+    "status": 404,
+    "bytes": 792381,
+    "preview": "",
+    "final_url": "https://www.vogue.com/fashion-shows/menswear"
+  },
+  {
+    "label": "vogue.lemaire",
+    "url": "https://www.vogue.com/fashion-shows/designer/lemaire",
+    "status": 404,
+    "bytes": 745583,
+    "preview": "",
+    "final_url": "https://www.vogue.com/fashion-shows/designer/lemaire"
+  },
+  {
+    "label": "vogue.032c",
+    "url": "https://www.vogue.com/fashion-shows/designer/032c",
+    "status": 200,
+    "bytes": 773319,
+    "preview": "<!DOCTYPE html><html lang=\"en-US\" dir=\"ltr\"><head><title>032c News, Collections, Fashion Shows, Fashion Week Reviews, and More | Vogue</title><meta charSet=\"utf-8\"/><meta content=\"IE=edge\" http-equiv=",
+    "final_url": "https://www.vogue.com/fashion-shows/designer/032c"
+  },
+  {
+    "label": "hypebeast.fashion",
+    "url": "https://hypebeast.com/fashion",
+    "status": 202,
+    "bytes": 2239,
+    "preview": "",
+    "final_url": "https://hypebeast.com/fashion"
+  },
+  {
+    "label": "voguebusiness",
+    "url": "https://www.voguebusiness.com/",
+    "status": 403,
+    "bytes": 520,
+    "preview": "",
+    "final_url": "https://www.voguebusiness.com/"
+  }
+]

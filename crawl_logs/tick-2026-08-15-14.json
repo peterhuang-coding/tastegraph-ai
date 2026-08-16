@@ -1,0 +1,75 @@
+{
+  "started_at": "2026-08-15T14:44:07.620723+08:00",
+  "elapsed_total_ms": 28761,
+  "n_targets": 5,
+  "n_healthy": 0,
+  "n_with_signal": 5,
+  "records": [
+    {
+      "label": "hypebeast",
+      "url": "https://hypebeast.com/fashion",
+      "ts_iso": "2026-08-15T14:44:08.273582+08:00",
+      "ok": true,
+      "status": 202,
+      "elapsed_ms": 6050,
+      "bytes": 275433,
+      "blocked_signal": [
+        "http_202"
+      ],
+      "note": ""
+    },
+    {
+      "label": "grailed",
+      "url": "https://www.grailed.com/",
+      "ts_iso": "2026-08-15T14:44:15.442330+08:00",
+      "ok": true,
+      "status": 200,
+      "elapsed_ms": 7388,
+      "bytes": 547208,
+      "blocked_signal": [
+        "captcha"
+      ],
+      "note": ""
+    },
+    {
+      "label": "therealreal",
+      "url": "https://www.therealreal.com/",
+      "ts_iso": "2026-08-15T14:44:24.023369+08:00",
+      "ok": false,
+      "status": 403,
+      "elapsed_ms": 5678,
+      "bytes": 9820,
+      "blocked_signal": [
+        "captcha",
+        "http_403"
+      ],
+      "note": ""
+    },
+    {
+      "label": "duckduckgo_ebay_search",
+      "url": "https://html.duckduckgo.com/html/?q=site%3Aebay.com+snkrdunk+jordan+1",
+      "ts_iso": "2026-08-15T14:44:30.737391+08:00",
+      "ok": false,
+      "status": 403,
+      "elapsed_ms": 1469,
+      "bytes": 273,
+      "blocked_signal": [
+        "http_403"
+      ],
+      "note": ""
+    },
+    {
+      "label": "wiki_marketplace",
+      "url": "https://en.wikipedia.org/wiki/Online_marketplace",
+      "ts_iso": "2026-08-15T14:44:33.235526+08:00",
+      "ok": true,
+      "status": 200,
+      "elapsed_ms": 1991,
+      "bytes": 473337,
+      "blocked_signal": [
+        "captcha"
+      ],
+      "note": ""
+    }
+  ]
+}
