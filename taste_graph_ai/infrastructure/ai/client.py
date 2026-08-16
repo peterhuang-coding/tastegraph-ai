@@ -1,6 +1,7 @@
 """Unified AI client with provider auto-detection, retry, and error resilience.
 
-Supports DeepSeek (primary) and Claude (fallback). All public methods now:
+Supports Ark (primary, OpenAI-compatible + vision), DeepSeek (text) and Claude (fallback).
+All public methods now:
 - Log errors with provider/model/status context instead of silently swallowing
 - Retry with exponential backoff (max 3 attempts)
 - Return safe defaults on persistent failure (never crash the caller)
@@ -8,6 +9,7 @@ Supports DeepSeek (primary) and Claude (fallback). All public methods now:
 Usage:
     ai = AIClient()
     result = await ai.chat("prompt")
+    img_result = await ai.vision_json("describe", image_b64)
     await ai.close()
 """
 
@@ -19,6 +21,12 @@ from typing import Optional
 import httpx
 
 # ── Provider configs ──────────────────────────────────────────
+
+# Ark (Volcengine Doubao) — OpenAI-compatible + vision support.
+# Reads ARK_API_KEY env var. Higher priority than DeepSeek/Claude.
+ARK_BASE = "https://ark.cn-beijing.volces.com/api/v3"
+ARK_KEY = os.environ.get("ARK_API_KEY", "")
+ARK_MODEL = os.environ.get("ARK_MODEL", "doubao-seed-evolving-latest-version")
 
 DEEPSEEK_BASE = "https://api.deepseek.com/v1"
 DEEPSEEK_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
@@ -56,7 +64,18 @@ class AIClient:
         self.model: str = ""
         self._error_count: dict[str, int] = {}  # track errors by type
 
-        if DEEPSEEK_KEY:
+        if ARK_KEY:
+            self.provider = "ark"
+            self.model = ARK_MODEL
+            self.client = httpx.AsyncClient(
+                base_url=ARK_BASE,
+                headers={
+                    "Authorization": f"Bearer {ARK_KEY}",
+                    "Content-Type": "application/json",
+                },
+                timeout=120,  # Ark vision 比文本慢, 给 2 分钟
+            )
+        elif DEEPSEEK_KEY:
             self.provider = "deepseek"
             self.model = DEEPSEEK_MODEL
             self.client = httpx.AsyncClient(
@@ -88,7 +107,9 @@ class AIClient:
             self._log_error("no_client", "AI client not configured (no API key)")
             return ""
         try:
-            if self.provider == "deepseek":
+            if self.provider == "ark":
+                return await self._retry(lambda: self._ark_chat(prompt, max_tokens))
+            elif self.provider == "deepseek":
                 return await self._retry(lambda: self._deepseek_chat(prompt, max_tokens))
             elif self.provider == "claude":
                 return await self._retry(lambda: self._claude_chat(prompt, max_tokens))
@@ -117,6 +138,27 @@ class AIClient:
                 f"Could not parse JSON from response (first 200 chars): {text[:200]}",
             )
             return {}
+
+    async def vision_json(
+        self,
+        prompt: str,
+        image_b64: str,
+        mime: str = "image/jpeg",
+        max_tokens: int = 500,
+    ) -> dict:
+        """Vision 调用(走 Ark OpenAI 兼容 endpoint)。失败返回 {}。"""
+        if not self.client or self.provider != "ark":
+            self._log_error("vision_no_ark", "vision_json 需要 ARK provider(ARK_API_KEY env)")
+            return {}
+        try:
+            return await self._retry(
+                lambda: self._ark_vision(prompt, image_b64, mime, max_tokens)
+            )
+        except AIClientError as exc:
+            self._log_error("vision_persistent_failure", str(exc))
+        except Exception as exc:
+            self._log_error("vision_unexpected", str(exc)[:200])
+        return {}
 
     async def evaluate_source(
         self, url: str, name: str, description: str = ""
@@ -276,6 +318,40 @@ Return ONLY valid JSON:
             self.provider, r.status_code,
             f"API error: {r.text[:200]}",
         )
+
+    async def _ark_chat(self, prompt: str, max_tokens: int) -> str:
+        r = await self.client.post("/chat/completions", json={
+            "model": self.model,
+            "max_tokens": max_tokens,
+            "messages": [{"role": "user", "content": prompt}],
+        })
+        if r.status_code == 200:
+            return r.json()["choices"][0]["message"]["content"]
+        if r.status_code in RETRYABLE_STATUSES:
+            raise Exception(f"Retryable: HTTP {r.status_code}")
+        if r.status_code in (401, 403):
+            raise AIClientError(self.provider, r.status_code, "Auth failed — check ARK_API_KEY")
+        raise AIClientError(self.provider, r.status_code, f"API error: {r.text[:200]}")
+
+    async def _ark_vision(self, prompt: str, image_b64: str, mime: str, max_tokens: int) -> str:
+        r = await self.client.post("/chat/completions", json={
+            "model": self.model,
+            "max_tokens": max_tokens,
+            "messages": [{
+                "role": "user",
+                "content": [
+                    {"type": "image_url", "image_url": {"url": f"data:{mime};base64,{image_b64}"}},
+                    {"type": "text", "text": prompt},
+                ],
+            }],
+        })
+        if r.status_code == 200:
+            return r.json()["choices"][0]["message"]["content"]
+        if r.status_code in RETRYABLE_STATUSES:
+            raise Exception(f"Retryable: HTTP {r.status_code}")
+        if r.status_code in (401, 403):
+            raise AIClientError(self.provider, r.status_code, "Auth failed")
+        raise AIClientError(self.provider, r.status_code, f"API error: {r.text[:200]}")
 
     async def _claude_chat(self, prompt: str, max_tokens: int) -> str:
         r = await self.client.post("/messages", json={

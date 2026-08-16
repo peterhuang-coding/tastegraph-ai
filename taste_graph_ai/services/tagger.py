@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 from pathlib import Path
 from typing import Optional
 
@@ -42,6 +43,16 @@ STYLE_LABEL_POOL = [
 def _feedback_label_values() -> list[str]:
     """FeedbackLabel enum 的中文 values,给 LLM 当候选标签池。"""
     return [lbl.value for lbl in FeedbackLabel]
+
+
+def _read_image_b64(path) -> tuple[str, str]:
+    """返回 (base64_str, mime), 文件不存在返回 ('', '')."""
+    p = Path(path)
+    if not p.exists():
+        return ("", "")
+    suffix = p.suffix.lower()
+    mime = "image/jpeg" if suffix in (".jpg", ".jpeg") else "image/png"
+    return (base64.b64encode(p.read_bytes()).decode(), mime)
 
 
 class ImageTaggerService:
@@ -138,19 +149,34 @@ class ImageTaggerService:
             return 0.5  # CLIP 不可用时的中性 fallback
 
     async def _llm_tag(self, path_obj: Path, theme_hint: str) -> dict:
-        """调 Vision LLM 出 tags / style_label / why / score。"""
+        """调 Vision LLM 出 tags / style_label / why / score。
+
+        Ark 可用时走 vision(图真给模型看),
+        否则 fallback text-only + 文件名/尺寸提示(向后兼容)。
+        """
         try:
             ai = self._get_ai()
             prompt = self._build_prompt(theme_hint)
-            # Vision:把图片 base64 进 prompt(MVP:用 text-only prompt + 文件名/尺寸提示)
-            # 真正的 Vision upload 留给后面 MCP 联调再做,先把 text 通道跑通
-            hint = (
-                f"Image file: {path_obj.name}\n"
-                f"Size: {self._file_size_kb(path_obj)} KB\n"
-                f"Theme hint: {theme_hint or 'auto-detect'}"
-            )
-            full = f"{prompt}\n\n{hint}"
-            result = await ai.chat_json(full, max_tokens=350)
+            result = {}
+
+            # Ark 可用 -> 走 vision (图真给模型看)
+            if ai.provider == "ark":
+                img_b64, mime = _read_image_b64(path_obj)
+                if img_b64:
+                    result = await ai.vision_json(prompt, img_b64, mime, max_tokens=350)
+                else:
+                    # 文件缺失 fallback text-only
+                    hint = f"\n\nImage file: {path_obj.name}, Size: {self._file_size_kb(path_obj)} KB"
+                    result = await ai.chat_json(prompt + hint, max_tokens=350)
+            else:
+                # Fallback: 纯文本 + 文件名/尺寸提示 (原逻辑)
+                hint = (
+                    f"\n\nImage file: {path_obj.name}\n"
+                    f"Size: {self._file_size_kb(path_obj)} KB\n"
+                    f"Theme hint: {theme_hint or 'auto-detect'}"
+                )
+                result = await ai.chat_json(prompt + hint, max_tokens=350)
+
             await ai.close()
             return result if isinstance(result, dict) else {}
         except Exception:
