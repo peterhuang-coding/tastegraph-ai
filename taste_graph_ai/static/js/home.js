@@ -681,8 +681,9 @@ const HomeTab = {
     const grid = document.getElementById('cand-grid');
     if (!grid) return;
     grid.innerHTML = this._candidates.map((c, idx) => {
-      const fname = (c.local_path || '').split('/').pop() || '';
-      const imgSrc = fname ? `/images/${fname}` : (c.image_url || '');
+      // Many crawled files have .jpg ext but contain webp/png/mp4 bytes.
+      // Use the by-id route which sniffs actual MIME and serves the right type.
+      const imgSrc = `/api/v1/daily/image/${encodeURIComponent(c.id)}`;
       const kw = (c.keywords || []).slice(0, 2).join(' ') || '—';
       const picked = this._pickedIds.has(c.id);
       return `

@@ -67,8 +67,41 @@ async def get_file_pack_image(date_str: str, pack_id: str):
     return FileResponse(image_path)
 
 
+@router.get("/image/{image_id}")
+async def get_image_by_id(image_id: str):
+    """Serve an image by DB id, sniffing real MIME for files with wrong extension.
+
+    Many crawled files have .jpg ext but contain webp/png/mp4 bytes.
+    We read up to 16 bytes, map magic → Content-Type, and stream the file.
+    """
+    from taste_graph_ai.config import DB_FILE
+    import sqlite3 as _sql
+
+    with _sql.connect(str(DB_FILE)) as con:
+        row = con.execute(
+            "SELECT local_path FROM images WHERE id=?", (image_id,)
+        ).fetchone()
+    if not row or not row[0]:
+        raise HTTPException(status_code=404, detail="Image not found in DB")
+    p = Path(row[0])
+    if not p.exists():
+        raise HTTPException(status_code=404, detail=f"File missing: {row[0]}")
+    with open(p, "rb") as f:
+        head = f.read(16)
+    mime = "application/octet-stream"
+    if head.startswith(b"\xff\xd8"):
+        mime = "image/jpeg"
+    elif head.startswith(b"\x89PNG"):
+        mime = "image/png"
+    elif head.startswith(b"RIFF") and b"WEBP" in head[:12]:
+        mime = "image/webp"
+    elif head.startswith(b"GIF8"):
+        mime = "image/gif"
+    return FileResponse(str(p), media_type=mime)
+
+
 @router.get("/candidates")
-async def get_candidates(date_str: str = ""):
+async def get_candidates(date_str: str = ""):  # noqa: F811
     """Return today's 100 manual-post candidates.
 
     Reads from data/today_candidates_{date}.json (built offline by
@@ -90,7 +123,7 @@ async def get_candidates(date_str: str = ""):
     return _json.loads(json_path.read_text(encoding="utf-8"))
 
 
-@router.post("/candidates/select")
+@router.post("/candidates/select")  # noqa: F811
 async def select_candidates(body: dict):
     """Persist user's selection of 30 candidates for clustering.
 
