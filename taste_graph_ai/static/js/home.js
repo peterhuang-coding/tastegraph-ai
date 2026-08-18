@@ -6,27 +6,30 @@ const HomeTab = {
     const container = document.getElementById('tab-home');
     App.renderLoading(container);
     try {
-      const [srcStats, pendingSources, dailyData, weeklySum, feedbackCount, spotcheck] = await Promise.all([
+      const [srcStats, pendingSources, dailyData, weeklySum, feedbackCount, spotcheck, candidates] = await Promise.all([
         API.get('/api/v1/sources/stats').catch(() => ({pending:0, approved:0, rejected:0})),
         API.get('/api/v1/sources/pending?limit=10').catch(() => []),
         API.get('/api/v1/daily/today').catch(() => ({packs:[]})),
         API.get('/api/v1/feedback/weekly-summary').catch(() => ({publish_count:0, total_reach:0, total_interactions:0})),
         API.get('/api/v1/feedback/today-count').catch(() => ({count:0})),
         API.get('/api/v1/feedback/spotcheck?count=20').catch(() => ({total_unreviewed:0, images:[]})),
+        API.get(`/api/v1/daily/candidates?date_str=${new Date().toISOString().slice(0,10)}`).catch(() => null),
       ]);
-      this.render(container, { srcStats, pendingSources, dailyData, weeklySum, feedbackCount, spotcheck });
+      this.render(container, { srcStats, pendingSources, dailyData, weeklySum, feedbackCount, spotcheck, candidates });
     } catch(e) {
       container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">⚠️</div><p>加载失败: ${e.message}</p></div>`;
     }
   },
 
-  render(container, { srcStats, pendingSources, dailyData, weeklySum, feedbackCount, spotcheck }) {
+  render(container, { srcStats, pendingSources, dailyData, weeklySum, feedbackCount, spotcheck, candidates }) {
     const today = new Date().toISOString().slice(0,10);
     const packCount = (dailyData.packs || []).length;
     const spotImages = (spotcheck.images || []);
     const unreviewed = spotcheck.total_unreviewed || 0;
     const sources = pendingSources || [];
     const sourceCount = srcStats.pending || sources.length;
+    const cands = (candidates && candidates.candidates) || [];
+    const candCount = cands.length;
 
     const html = `
     <div class="home-header" style="margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid var(--border)">
@@ -73,6 +76,29 @@ const HomeTab = {
           </div>`
       }
       <div id="home-ai-tag-status" style="margin-top:8px;font-size:11px;color:var(--text-muted);min-height:16px;font-family:var(--font-mono)"></div>
+    </section>
+
+    <!-- ②⁺ 今日发布候选池 (100 张) -->
+    <section class="home-block" style="margin-bottom:24px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <h3 style="margin:0;font-size:16px;display:flex;align-items:center;gap:8px">
+          <span style="color:var(--accent);font-weight:700">②⁺</span>
+          今日发布候选 · <span style="color:var(--text-muted);font-weight:normal;font-size:13px">${candCount} 张,勾出 <strong id="cand-pick-count" style="color:var(--accent-bright)">0</strong>/30</span>
+        </h3>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button id="cand-clear" style="background:transparent;border:1px solid var(--border);color:var(--text-muted);padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;font-family:inherit">清空</button>
+          <button id="cand-pick-all-top" style="background:transparent;border:1px solid var(--border);color:var(--text-muted);padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;font-family:inherit">前 30 一键</button>
+          <button id="cand-next" disabled style="background:var(--accent);border:0;color:white;padding:6px 14px;border-radius:4px;cursor:not-allowed;font-size:12px;font-family:inherit;font-weight:600;opacity:0.4">下一步:聚成 3 series →</button>
+        </div>
+      </div>
+      ${candCount > 0
+        ? `<p style="font-size:12px;color:var(--text-muted);margin:0 0 12px">手动发布流程 (a) 勾 30 张 → (b) 系统 CLIP 聚 3 series → (c) 每 series 挑 5 张 → (d) 生成主题+文案 → (e) 拖图+粘文发 XHS</p>
+           <div id="cand-grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px"></div>`
+        : `<div style="padding:18px;text-align:center;background:var(--bg-card);border:1px dashed var(--border);border-radius:8px">
+            <div style="color:var(--text-muted);font-size:13px">今日候选池未生成</div>
+            <div style="color:var(--text-dim);font-size:11px;margin-top:4px">跑 <code>python3 scripts/pick_100_candidates.py</code> 生成 today_candidates_${today}.json</div>
+          </div>`
+      }
     </section>
 
     <!-- ③ 筛选文案 5-6 个 pack -->
@@ -133,11 +159,14 @@ const HomeTab = {
     container.innerHTML = html;
     // 把 dailyData 存到 this 上,供 _bindAiTag 取 theme_hint
     this.dailyData = dailyData;
+    this._candidates = cands;
+    this._pickedIds = new Set();
     this._bindActions();
     this._bindPackOpen();
     this._bindPackAct();
     this._bindAiTag();
     this._bindPublishPilot();
+    this._bindCandidates();
 
     if (spotImages.length > 0) {
       this._renderSpotcheck(spotImages);
@@ -563,7 +592,132 @@ const HomeTab = {
     });
   },
 
-  // ── I2: 视频号 Pilot 入口 ─────────────────────────────────────
+  // ── ②⁺ 候选池勾选 ────────────────────────────────────────────────
+  _bindCandidates() {
+    const grid = document.getElementById('cand-grid');
+    if (!grid || !this._candidates || this._candidates.length === 0) return;
+
+    this._renderCandidates();
+
+    // Toggle on card click (avoid checkbox click double-fire)
+    grid.querySelectorAll('.cand-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        // Don't toggle if user clicked the link/button area explicitly
+        const id = card.dataset.id;
+        if (this._pickedIds.has(id)) {
+          this._pickedIds.delete(id);
+          card.classList.remove('cand-picked');
+        } else {
+          if (this._pickedIds.size >= 30) {
+            this._toast(`⚠️ 已选满 30 张,先去掉几张再勾`, 'error');
+            return;
+          }
+          this._pickedIds.add(id);
+          card.classList.add('cand-picked');
+        }
+        this._updatePickUI();
+      });
+    });
+
+    // 清空
+    const clearBtn = document.getElementById('cand-clear');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => {
+        this._pickedIds.clear();
+        grid.querySelectorAll('.cand-picked').forEach(c => c.classList.remove('cand-picked'));
+        this._updatePickUI();
+      });
+    }
+
+    // 一键前 30
+    const topBtn = document.getElementById('cand-pick-all-top');
+    if (topBtn) {
+      topBtn.addEventListener('click', () => {
+        this._pickedIds.clear();
+        this._candidates.slice(0, 30).forEach(c => this._pickedIds.add(c.id));
+        grid.querySelectorAll('.cand-card').forEach(c => {
+          if (this._pickedIds.has(c.dataset.id)) c.classList.add('cand-picked');
+          else c.classList.remove('cand-picked');
+        });
+        this._updatePickUI();
+      });
+    }
+
+    // 下一步
+    const nextBtn = document.getElementById('cand-next');
+    if (nextBtn) {
+      nextBtn.addEventListener('click', async () => {
+        if (this._pickedIds.size !== 30) {
+          this._toast(`⚠️ 当前 ${this._pickedIds.size} 张,需要正好 30 张`, 'error');
+          return;
+        }
+        nextBtn.disabled = true;
+        nextBtn.style.opacity = '0.5';
+        nextBtn.textContent = '提交中 …';
+        try {
+          const res = await fetch('/api/v1/daily/candidates/select', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              date: new Date().toISOString().slice(0, 10),
+              image_ids: Array.from(this._pickedIds),
+            }),
+          });
+          const d = await res.json();
+          if (!res.ok) throw new Error(d.detail || `HTTP ${res.status}`);
+          this._toast(`✅ 已选 ${d.saved} 张 · 下一步聚类`, 'success');
+          nextBtn.textContent = '✅ 已提交';
+        } catch (e) {
+          this._toast(`❌ ${e.message}`, 'error');
+          nextBtn.disabled = false;
+          nextBtn.style.opacity = '1';
+          nextBtn.textContent = '下一步:聚成 3 series →';
+        }
+      });
+    }
+  },
+
+  _renderCandidates() {
+    const grid = document.getElementById('cand-grid');
+    if (!grid) return;
+    grid.innerHTML = this._candidates.map((c, idx) => {
+      const fname = (c.local_path || '').split('/').pop() || '';
+      const imgSrc = fname ? `/images/${fname}` : (c.image_url || '');
+      const kw = (c.keywords || []).slice(0, 2).join(' ') || '—';
+      const picked = this._pickedIds.has(c.id);
+      return `
+        <div class="cand-card${picked ? ' cand-picked' : ''}" data-id="${App.esc(c.id)}" title="${App.esc(c.source_name)} · ${App.esc(kw)}"
+             style="position:relative;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;overflow:hidden;cursor:pointer;${picked ? 'border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)' : ''}">
+          <div style="aspect-ratio:1;background:var(--bg)">
+            <img src="${App.esc(imgSrc)}" alt="" loading="lazy"
+                 style="width:100%;height:100%;object-fit:cover;display:block"
+                 onerror="this.parentElement.innerHTML='<div style=padding:24px;text-align:center;color:var(--text-dim);font-size:10px>图加载失败</div>'">
+          </div>
+          <div style="padding:4px 6px;font-size:9px;color:var(--text-muted);line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+            #${idx + 1} · ${App.esc((c.source_name || '?').slice(0, 18))}
+          </div>
+          <div style="position:absolute;top:4px;left:4px;background:rgba(0,0,0,0.65);color:white;padding:1px 6px;border-radius:3px;font-size:10px;font-family:var(--font-mono)">
+            ${picked ? '✓' : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+  },
+
+  _updatePickUI() {
+    const n = this._pickedIds.size;
+    const cnt = document.getElementById('cand-pick-count');
+    if (cnt) cnt.textContent = String(n);
+    const nextBtn = document.getElementById('cand-next');
+    if (nextBtn) {
+      const ok = n === 30;
+      nextBtn.disabled = !ok;
+      nextBtn.style.cursor = ok ? 'pointer' : 'not-allowed';
+      nextBtn.style.opacity = ok ? '1' : '0.4';
+      nextBtn.textContent = ok ? '下一步:聚成 3 series →' : `下一步:聚成 3 series (${n}/30) →`;
+    }
+  },
+
   _bindPublishPilot() {
     const btn = document.getElementById('home-publish-pilot');
     const box = document.getElementById('home-publish-status');

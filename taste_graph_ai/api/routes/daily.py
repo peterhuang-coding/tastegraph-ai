@@ -1,7 +1,9 @@
 import uuid
 from datetime import date, datetime, timezone
+from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import FileResponse
 
 from taste_graph_ai.api import schemas
 from taste_graph_ai.api.deps import (
@@ -26,6 +28,10 @@ from taste_graph_ai.services.feedback import FeedbackService
 
 router = APIRouter(prefix="/api/v1/daily", tags=["daily"])
 
+# Project root: .../taste_graph_ai/api/routes/daily.py → 4 levels up
+BASE_DIR = Path(__file__).resolve().parents[3]
+POSTS_DIR = BASE_DIR / "posts"
+
 
 @router.get("/today", response_model=schemas.DailyTodayResponse)
 async def get_today(
@@ -41,10 +47,149 @@ async def get_today(
         images = await pack_repo.get_pack_images(p.id)
         pack_responses.append(_pack_to_response(p, images))
 
+    # Fallback: if SQLite has no packs for today, scan posts/{today}/post-*/
+    # (generate_publish_packs.py writes to filesystem, not DB)
+    if not pack_responses:
+        pack_responses = _load_packs_from_filesystem(today)
+
     return schemas.DailyTodayResponse(
         packs=pack_responses,
         tasks=[_task_to_response(t) for t in tasks],
     )
+
+
+@router.get("/file-pack/{date_str}/{pack_id}/image")
+async def get_file_pack_image(date_str: str, pack_id: str):
+    """Serve image.jpg for file-based packs (posts/{date}/{pack_id}/image.jpg)."""
+    image_path = POSTS_DIR / date_str / pack_id / "image.jpg"
+    if not image_path.exists():
+        raise HTTPException(status_code=404, detail="Pack image not found")
+    return FileResponse(image_path)
+
+
+@router.get("/candidates")
+async def get_candidates(date_str: str = ""):
+    """Return today's 100 manual-post candidates.
+
+    Reads from data/today_candidates_{date}.json (built offline by
+    pick_100_candidates.py from the historical pool). The home page
+    renders these as a checkbox grid; user picks 30 → server clusters
+    via CLIP → 3 series × 10 → user picks 5/series → 15 to publish.
+
+    Falls back to today's date if date_str is empty.
+    """
+    from taste_graph_ai.config import DATA_DIR
+    target = date_str or date.today().isoformat()
+    json_path = DATA_DIR / f"today_candidates_{target}.json"
+    if not json_path.exists():
+        raise HTTPException(
+            status_code=404,
+            detail=f"No candidates JSON for {target} (expected {json_path})",
+        )
+    import json as _json
+    return _json.loads(json_path.read_text(encoding="utf-8"))
+
+
+@router.post("/candidates/select")
+async def select_candidates(body: dict):
+    """Persist user's selection of 30 candidates for clustering.
+
+    Body: {"date": "2026-08-18", "image_ids": [...]}
+    Writes data/today_selection_{date}.json — used by the next step
+    (CLIP clustering → 3 series × 10).
+    """
+    from taste_graph_ai.config import DATA_DIR
+    target = body.get("date") or date.today().isoformat()
+    image_ids = body.get("image_ids") or []
+    if not isinstance(image_ids, list) or not image_ids:
+        raise HTTPException(status_code=400, detail="image_ids must be a non-empty list")
+    if len(image_ids) > 100:
+        raise HTTPException(status_code=400, detail="Too many candidates selected (max 100)")
+    payload = {
+        "date": target,
+        "selected_at": datetime.now(timezone.utc).isoformat(),
+        "image_ids": image_ids,
+        "count": len(image_ids),
+    }
+    out_path = DATA_DIR / f"today_selection_{target}.json"
+    out_path.write_text(
+        __import__("json").dumps(payload, indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    return {"status": "ok", "saved": len(image_ids), "path": str(out_path)}
+
+
+def _load_packs_from_filesystem(today: str) -> list[schemas.DailyPackResponse]:
+    """Synthesize DailyPackResponse from posts/{today}/post-*/ directory layout.
+
+    This is the fallback when generate_publish_packs.py wrote to filesystem
+    instead of SQLite. Each pack directory has:
+        title.txt / body.txt / pillar.txt / score.txt / hashtags.txt / image.jpg
+    """
+    day_dir = POSTS_DIR / today
+    if not day_dir.exists() or not day_dir.is_dir():
+        return []
+
+    pack_dirs = sorted(
+        [d for d in day_dir.iterdir() if d.is_dir() and d.name.startswith("post-")]
+    )
+    if not pack_dirs:
+        return []
+
+    responses = []
+    for pack_dir in pack_dirs:
+        def _read(name: str, _p: Path = pack_dir) -> str:
+            target = day_dir / _p.name / name
+            return target.read_text().strip() if target.exists() else ""
+
+        title = _read("title.txt")
+        body = _read("body.txt")
+        pillar = _read("pillar.txt")
+        try:
+            score = float(_read("score.txt") or 0.0)
+        except ValueError:
+            score = 0.0
+        hashtags = _read("hashtags.txt")
+
+        image_path = pack_dir / "image.jpg"
+        stat = image_path.stat() if image_path.exists() else None
+        created_at = (
+            datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc).isoformat()
+            if stat else datetime.now(timezone.utc).isoformat()
+        )
+
+        img_dict = {
+            "image_id": f"{pack_dir.name}-image",
+            "position": 0,
+            "user_action": "",
+            "url": "",
+            "page_url": "",
+            "local_path": str(image_path),
+            "image_url": f"/api/v1/daily/file-pack/{today}/{pack_dir.name}/image",
+            "keywords": [],
+            "source_name": pillar or "今日采样",
+        }
+
+        try:
+            pack_resp = schemas.DailyPackResponse(
+                id=pack_dir.name,
+                date=today,
+                theme=pillar or "",
+                why_today="",
+                title_options=[title] if title else [],
+                caption=body + (f"\n\n{hashtags}" if hashtags else ""),
+                taste_score=score,
+                status="draft",
+                images=[schemas.PackImageResponse(**img_dict)],
+                created_at=created_at,
+                selected_at=None,
+            )
+            responses.append(pack_resp)
+        except Exception:
+            # If schema validation fails, skip this pack rather than 500 the whole list
+            continue
+
+    return responses
 
 
 @router.get("/{pack_id}", response_model=schemas.DailyPackResponse)
