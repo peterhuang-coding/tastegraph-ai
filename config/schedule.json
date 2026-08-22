@@ -35,9 +35,11 @@
       "timeout": 1800,
       "args": [
         "--count",
+        "1",
+        "--pack-size",
         "9"
       ],
-      "_note": "候选流 GENERATION ONLY — 不碰 xhs。产出 posts/<date>/QUEUE.html 供人工挑选（编辑品牌路线：人挑 9 图 + 写观点 + 手动发）。"
+      "_note": "候选流 GENERATION ONLY — 不碰 xhs。每班产出一包 9 图候选（posts/<date>/pack-001/），QUEUE.html 审图，人写观点手动发。"
     },
     {
       "name": "live_post",

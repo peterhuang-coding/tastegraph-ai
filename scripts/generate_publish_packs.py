@@ -60,8 +60,12 @@ TASTE_CONCEPTS = [
 ]
 
 
-async def generate(date_str: str = None, count: int = 5, skip_queue: bool = False) -> Path:
-    """Generate publish packs for the given date."""
+async def generate(date_str: str = None, count: int = 5, skip_queue: bool = False, pack_size: int = 1) -> Path:
+    """Generate publish packs for the given date.
+
+    pack_size=1 时与旧版一致（每目录单图）；pack_size>1 时一个 pack 目录装 N 张图
+    （image-01..NN），供人工审一包 9 图直接发。
+    """
     if date_str is None:
         date_str = date_type.today().isoformat()
 
@@ -87,9 +91,10 @@ async def generate(date_str: str = None, count: int = 5, skip_queue: bool = Fals
     source_names: dict[str, str] = {s.id: s.name for s in all_sources}
 
     # Get recent images that are SELECTED (already used in packs) or PENDING
-    candidates = await image_repo.list_by_status(ImageStatus.SELECTED, limit=100)
-    if len(candidates) < count:
-        pending = await image_repo.list_by_status(ImageStatus.PENDING, limit=200)
+    target_total = count * pack_size
+    candidates = await image_repo.list_by_status(ImageStatus.SELECTED, limit=max(100, target_total))
+    if len(candidates) < target_total:
+        pending = await image_repo.list_by_status(ImageStatus.PENDING, limit=max(200, target_total))
         candidates.extend(pending)
 
     if not candidates:
@@ -209,7 +214,7 @@ async def generate(date_str: str = None, count: int = 5, skip_queue: bool = Fals
     used_sources: set[str] = set()
     used_pillars: set[str] = set()
     runway_count = 0
-    max_runway = max(count // 2, 2)  # at most half can be runway
+    max_runway = max(target_total // 2, 2)  # at most half can be runway
 
     for score, img, is_runway in scored:
         src = img.source_id or ""
@@ -227,59 +232,75 @@ async def generate(date_str: str = None, count: int = 5, skip_queue: bool = Fals
         if is_runway:
             runway_count += 1
 
-        if len(picked) >= count:
+        if len(picked) >= target_total:
             break
 
     # If we didn't get enough, relax runway cap
-    if len(picked) < count:
+    if len(picked) < target_total:
         for score, img, is_runway in scored:
             src = img.source_id or ""
             if src in used_sources:
                 continue
             picked.append((score, img))
             used_sources.add(src)
-            if len(picked) >= count:
+            if len(picked) >= target_total:
                 break
 
-    # Generate post folders
+    # Generate post/pack folders
+    groups = [picked[i:i + pack_size] for i in range(0, len(picked), pack_size)][:count]
     post_dirs = []
-    for i, (score, img) in enumerate(picked):
-        post_num = f"post-{i + 1:03d}"
-        post_dir = batch_dir / post_num
+    for gi, group in enumerate(groups):
+        if not group:
+            continue
+        dir_num = f"pack-{gi + 1:03d}" if pack_size > 1 else f"post-{gi + 1:03d}"
+        post_dir = batch_dir / dir_num
         post_dir.mkdir(parents=True, exist_ok=True)
 
-        # Copy image
-        src_path = Path(img.local_path)
-        ext = src_path.suffix or ".jpg"
-        dest_path = post_dir / f"image{ext}"
-        shutil.copy2(src_path, dest_path)
+        metas = []
+        for i, (score, img) in enumerate(group):
+            # Copy image
+            src_path = Path(img.local_path)
+            ext = src_path.suffix or ".jpg"
+            dest_path = post_dir / (f"image-{i + 1:02d}{ext}" if pack_size > 1 else f"image{ext}")
+            shutil.copy2(src_path, dest_path)
 
-        # Generate metadata
-        src_name = source_names.get(img.source_id or "", "")
-        keywords = _clean_keywords(list(img.keywords))
-        # Fallback: CLIP auto-tag if no useful keywords
-        if not keywords and img.local_path:
-            keywords = _clip_auto_tag(img.local_path, clip_svc)
-            img.keywords = keywords
+            # Generate metadata
+            src_name = source_names.get(img.source_id or "", "")
+            keywords = _clean_keywords(list(img.keywords))
+            # Fallback: CLIP auto-tag if no useful keywords
+            if not keywords and img.local_path:
+                keywords = _clip_auto_tag(img.local_path, clip_svc)
+                img.keywords = keywords
 
-        # Detect pillar for this image
-        pillar = _detect_image_pillar(img, src_name, clip_svc)
+            # Detect pillar for this image
+            pillar = _detect_image_pillar(img, src_name, clip_svc)
 
-        title, body, hashtags = _generate_post_metadata(img, score, src_name, keywords, pillar)
+            title, body, hashtags = _generate_post_metadata(img, score, src_name, keywords, pillar)
+            metas.append((score, title, body, hashtags, pillar, src_name))
 
-        # Write files
+        # Pack-level metadata: 首图为封面文案，正文为逐图一句话叙事
+        avg_score = sum(m[0] for m in metas) / len(metas)
+        title = metas[0][1]
+        body = "\n".join(f"{i + 1:02d} {m[1]} — {m[5]}" for i, m in enumerate(metas))
+        hashtags = metas[0][3]
+        pillars = [m[4] for m in metas]
+        pillar = max(set(pillars), key=pillars.count)
+
         (post_dir / "title.txt").write_text(title, encoding="utf-8")
         (post_dir / "body.txt").write_text(body, encoding="utf-8")
         (post_dir / "hashtags.txt").write_text(hashtags, encoding="utf-8")
-        (post_dir / "score.txt").write_text(f"{score:.2f}", encoding="utf-8")
+        (post_dir / "score.txt").write_text(f"{avg_score:.2f}", encoding="utf-8")
         (post_dir / "pillar.txt").write_text(pillar, encoding="utf-8")
 
         # Checklist
-        checklist = f"""# Post {post_num} — Publish Checklist
+        img_note = (
+            "（一包 9 图：Finder 打开目录全选拖入）" if pack_size > 1 else "图片方向正确（竖版优先）"
+        )
+        checklist = f"""# {dir_num} — Publish Checklist
 
-- [ ] 图片方向正确（竖版优先）
+- [ ] {img_note}
 - [ ] 标题无误：「{title}」
-- [ ] 正文无误
+- [ ] 正文无误（人写观点替换机器叙事）
 - [ ] 话题标签完整
 - [ ] 位置/地点是否需要
 - [ ] @用户是否需要
@@ -288,7 +309,7 @@ async def generate(date_str: str = None, count: int = 5, skip_queue: bool = Fals
         (post_dir / "publish-checklist.md").write_text(checklist, encoding="utf-8")
 
         post_dirs.append(post_dir)
-        print(f"  {post_num}: {title} (score={score:.2f})")
+        print(f"  {dir_num}: {title} ({len(group)} images, avg score={avg_score:.2f})")
 
     # Generate QUEUE.html overview (skip in auto mode)
     if not skip_queue:
@@ -642,10 +663,12 @@ def _generate_queue_html(batch_dir: Path, post_dirs: list[Path], date_str: str):
             pillar = (post_dir / "pillar.txt").read_text(encoding="utf-8").strip()
         pillar_counts[pillar] = pillar_counts.get(pillar, 0) + 1
 
-        img_file = list(post_dir.glob("image.*"))
-        img_abs = str(img_file[0]) if img_file else ""
-        img_rel = str(img_file[0].relative_to(batch_dir)) if img_file else ""
+        img_files = sorted(post_dir.glob("image*"))
+        img_abs = str(img_files[0]) if img_files else ""
+        img_rel = str(img_files[0].relative_to(batch_dir)) if img_files else ""
         post_id = post_dir.name
+        is_pack = len(img_files) > 1
+        open_target = str(post_dir) if is_pack else img_abs
 
         pillar_label = PILLAR_LABELS.get(pillar, "📔")
 
@@ -655,16 +678,16 @@ def _generate_queue_html(batch_dir: Path, post_dirs: list[Path], date_str: str):
       <div class="card-num">#{i+1}<br><span class="pillar-tag">{pillar_label}</span></div>
       <img src="{img_rel}" class="card-img"
            data-abs="{img_abs}"
-           ondblclick="openInPreview('{img_abs}')"
-           title="双击在 Preview 中打开 → 拖到小红书">
+           ondblclick="openInPreview('{open_target}')"
+           title="{'双击打开目录 → 全选 9 图拖到小红书' if is_pack else '双击在 Preview 中打开 → 拖到小红书'}">
       <div class="card-body">
         <div class="card-title" contenteditable="true" data-file="{post_dir}/title.txt" data-post="{post_id}">{title}</div>
         <div class="card-text" contenteditable="true" data-file="{post_dir}/body.txt" data-post="{post_id}">{body}</div>
         <div class="card-tags" contenteditable="true" data-file="{post_dir}/hashtags.txt" data-post="{post_id}">{hashtags}</div>
-        <div class="card-meta">Score: {score} · Pillar: {pillar}</div>
+        <div class="card-meta">Score: {score} · Pillar: {pillar}{' · ' + str(len(img_files)) + ' 图' if is_pack else ''}</div>
       </div>
       <div class="card-actions">
-        <button onclick="openInPreview('{img_abs}', this)" title="在 Preview 中打开 → 拖进小红书">🖼 打开</button>
+        <button onclick="openInPreview('{open_target}', this)" title="在 Preview 中打开 → 拖进小红书">🖼 打开</button>
         <button onclick="copyImage('{img_abs}', this)" title="复制图片到剪贴板 → Cmd+V 到小红书">📋 图片</button>
         <button onclick="copyAll('{post_id}')" title="复制标题+正文+标签">📝 文案</button>
         <button onclick="saveEdits('{post_id}')" title="保存编辑到文件">💾 保存</button>
@@ -1095,11 +1118,12 @@ function toast(msg) {{
 def main():
     parser = argparse.ArgumentParser(description="生成小红书发布包")
     parser.add_argument("--date", default=date_type.today().isoformat(), help="日期 (YYYY-MM-DD)")
-    parser.add_argument("--count", type=int, default=5, help="生成几篇")
+    parser.add_argument("--count", type=int, default=5, help="生成几篇/几包")
+    parser.add_argument("--pack-size", type=int, default=1, help="每包图片数（9 = 一包 9 图候选）")
     parser.add_argument("--skip-queue", action="store_true", help="不生成 QUEUE.html（自动模式）")
     args = parser.parse_args()
 
-    asyncio.run(generate(date_str=args.date, count=args.count, skip_queue=args.skip_queue))
+    asyncio.run(generate(date_str=args.date, count=args.count, skip_queue=args.skip_queue, pack_size=args.pack_size))
 
 
 if __name__ == "__main__":
