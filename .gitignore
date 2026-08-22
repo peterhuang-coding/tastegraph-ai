@@ -40,3 +40,6 @@ scripts/__pycache__/
 # Pipeline runs (generated output)
 runs/
 posts/
+
+# Weekly healthcheck reports (runtime, regenerated)
+data/source-healthcheck-*
