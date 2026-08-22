@@ -43,3 +43,6 @@ posts/
 
 # Weekly healthcheck reports (runtime, regenerated)
 data/source-healthcheck-*
+
+# Publish log (local engagement tracking)
+data/publish_log.json

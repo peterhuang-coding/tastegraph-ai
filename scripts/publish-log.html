@@ -1,0 +1,96 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>发布登记 — moodboard.</title>
+<style>
+  :root { --bg:#f6f4f1; --card:#fff; --ink:#2b2a28; --mut:#99948c; --line:#e5e0d8; --accent:#c9b8a3; }
+  body { margin:0; font-family:-apple-system,"PingFang SC",sans-serif; background:var(--bg); color:var(--ink); }
+  .wrap { max-width:860px; margin:0 auto; padding:28px 20px 60px; }
+  h1 { font-size:20px; font-weight:600; margin:0 0 4px; }
+  .sub { color:var(--mut); font-size:13px; margin-bottom:20px; }
+  .form { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:16px; display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; margin-bottom:24px; }
+  .field { display:flex; flex-direction:column; gap:4px; font-size:12px; color:var(--mut); }
+  input { border:1px solid var(--line); border-radius:4px; padding:7px 9px; font-size:13px; background:#fff; color:var(--ink); }
+  input:focus { outline:none; border-color:var(--accent); }
+  button { border:1px solid var(--line); background:#fff; border-radius:4px; padding:8px 14px; font-size:13px; cursor:pointer; }
+  button.primary { background:var(--ink); color:#fff; border-color:var(--ink); }
+  table { width:100%; border-collapse:collapse; background:var(--card); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  th,td { text-align:left; padding:9px 10px; font-size:13px; border-bottom:1px solid var(--line); }
+  th { font-weight:500; color:var(--mut); font-size:11px; letter-spacing:.04em; }
+  td.num input { width:52px; }
+  td .del { color:#b84a3a; cursor:pointer; font-size:11px; }
+  .sum { margin-top:12px; font-size:12px; color:var(--mut); }
+  a { color:#666; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#1c1b19; --card:#26241f; --ink:#e8e4dc; --mut:#8a857c; --line:#3a362f; --accent:#8a7a68; }
+    input { background:#1c1b19; color:#e8e4dc; }
+    button { background:#26241f; }
+  }
+</style>
+<div class="wrap">
+  <h1>📓 发布登记</h1>
+  <div class="sub">发完笔记后花 30 秒登记；24h/48h 回填互动数据 → 4 周验收自动汇总。纯本地，不碰 XHS。← <a href="/">回工作台</a></div>
+
+  <div class="form">
+    <div class="field">发布包路径<input id="f-pack" placeholder="posts/2026-08-24/pack-001" style="width:230px"></div>
+    <div class="field">发布时间<input id="f-time" type="datetime-local" style="width:200px"></div>
+    <div class="field">笔记链接<input id="f-link" placeholder="小红书笔记 URL（可选）" style="width:260px"></div>
+    <div class="field">备注<input id="f-note" placeholder="选题/临时想法" style="width:180px"></div>
+    <button class="primary" onclick="addEntry()">＋ 登记</button>
+  </div>
+
+  <table id="tbl">
+    <thead><tr>
+      <th>发布包</th><th>时间</th><th>24h 赞/藏/评</th><th>48h 赞/藏/评</th><th>链接</th><th></th>
+    </tr></thead>
+    <tbody></tbody>
+  </table>
+  <div class="sum" id="sum"></div>
+</div>
+
+<script>
+const tbl = document.getElementById('tbl').querySelector('tbody');
+
+function esc(s){ return String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+async function load(){
+  const r = await fetch('/publish-entries');
+  const d = await r.json();
+  render(d.entries || []);
+}
+
+function render(entries){
+  tbl.innerHTML = entries.map(e => `
+    <tr data-id="${esc(e.id)}">
+      <td>${esc(e.pack)}${e.note ? '<br><span style="color:var(--mut);font-size:11px">' + esc(e.note) + '</span>' : ''}</td>
+      <td>${esc(e.published_at || '')}</td>
+      <td class="num"><input value="${esc(e.l24||'')}" placeholder="赞" onchange="upd('${esc(e.id)}','l24',this.value)"><input value="${esc(e.s24||'')}" placeholder="藏" onchange="upd('${esc(e.id)}','s24',this.value)"><input value="${esc(e.c24||'')}" placeholder="评" onchange="upd('${esc(e.id)}','c24',this.value)"></td>
+      <td class="num"><input value="${esc(e.l48||'')}" placeholder="赞" onchange="upd('${esc(e.id)}','l48',this.value)"><input value="${esc(e.s48||'')}" placeholder="藏" onchange="upd('${esc(e.id)}','s48',this.value)"><input value="${esc(e.c48||'')}" placeholder="评" onchange="upd('${esc(e.id)}','c48',this.value)"></td>
+      <td>${e.link ? `<a href="${esc(e.link)}" target="_blank">打开</a>` : '—'}</td>
+      <td><span class="del" onclick="del('${esc(e.id)}')">删除</span></td>
+    </tr>`).join('');
+
+  const weekAgo = Date.now() - 7*86400e3;
+  const wk = entries.filter(e => { const t = new Date(e.published_at||0).getTime(); return t && t > weekAgo; });
+  const likes = wk.reduce((a,e) => a + Number(e.l48 || e.l24 || 0), 0);
+  document.getElementById('sum').innerText = `本周发布 ${wk.length} 篇 · 48h 累计赞 ${likes} · 累计登记 ${entries.length} 篇`;
+}
+
+async function post(payload){
+  const r = await fetch('/publish-entries', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+  const d = await r.json();
+  render(d.entries || []);
+}
+
+function addEntry(){
+  const pack = document.getElementById('f-pack').value.trim();
+  const time = document.getElementById('f-time').value;
+  if(!pack){ alert('填一下发布包路径'); return; }
+  post({ pack, published_at: time.replace('T',' ') || new Date().toLocaleString('sv-SE').slice(0,16).replace('T',' '), link: document.getElementById('f-link').value.trim(), note: document.getElementById('f-note').value.trim() });
+  ['f-pack','f-link','f-note'].forEach(id => document.getElementById(id).value = '');
+}
+function upd(id, key, val){ post({ id, [key]: val }); }
+function del(id){ if(confirm('删除这条登记？')) post({ delete: id }); }
+
+document.getElementById('f-time').value = new Date().toLocaleString('sv-SE').slice(0,16);
+load();
+</script>

@@ -88,7 +88,7 @@ async def generate(date_str: str = None, count: int = 5, skip_queue: bool = Fals
 
     # Build source name lookup from DB (not graph — different IDs)
     all_sources = await source_repo.list_all()
-    source_names: dict[str, str] = {s.id: s.name for s in all_sources}
+    source_name_lookup = _build_source_lookup(all_sources)
 
     # Get recent images that are SELECTED (already used in packs) or PENDING
     target_total = count * pack_size
@@ -169,7 +169,7 @@ async def generate(date_str: str = None, count: int = 5, skip_queue: bool = Fals
             score += 0.15
 
         # ── Diversity bonus: non-runway source boost ──
-        src_name = source_names.get(img.source_id or "", "").lower()
+        src_name = source_name_lookup(img.source_id or "", getattr(img, "page_url", "") or "").lower()
         src_id = img.source_id or ""
 
         # Non-runway source diversity bonus (15% max)
@@ -258,14 +258,14 @@ async def generate(date_str: str = None, count: int = 5, skip_queue: bool = Fals
 
         metas = []
         for i, (score, img) in enumerate(group):
-            # Copy image
+            # Copy image (3:4 竖版裁切，小红书标准)
             src_path = Path(img.local_path)
             ext = src_path.suffix or ".jpg"
             dest_path = post_dir / (f"image-{i + 1:02d}{ext}" if pack_size > 1 else f"image{ext}")
-            shutil.copy2(src_path, dest_path)
+            _prepare_image(src_path, dest_path)
 
             # Generate metadata
-            src_name = source_names.get(img.source_id or "", "")
+            src_name = source_name_lookup(img.source_id or "", getattr(img, "page_url", "") or "")
             keywords = _clean_keywords(list(img.keywords))
             # Fallback: CLIP auto-tag if no useful keywords
             if not keywords and img.local_path:
@@ -292,7 +292,14 @@ async def generate(date_str: str = None, count: int = 5, skip_queue: bool = Fals
         (post_dir / "score.txt").write_text(f"{avg_score:.2f}", encoding="utf-8")
         (post_dir / "pillar.txt").write_text(pillar, encoding="utf-8")
 
+        # 观点草稿（机器起草，人改写后才可发）
+        opinion_draft = _generate_opinion_draft(
+            [m[1] for m in metas], [m[5] for m in metas], pillar
+        )
+        (post_dir / "opinion_draft.txt").write_text(opinion_draft, encoding="utf-8")
+
         # Checklist
+        post_time = PILLAR_POST_TIMES.get(pillar, "20:00–22:00")
         img_note = (
             "（一包 9 图：Finder 打开目录全选拖入）" if pack_size > 1 else "图片方向正确（竖版优先）"
         )
@@ -300,11 +307,12 @@ async def generate(date_str: str = None, count: int = 5, skip_queue: bool = Fals
 
 - [ ] {img_note}
 - [ ] 标题无误：「{title}」
-- [ ] 正文无误（人写观点替换机器叙事）
+- [ ] 正文 = 观点草稿改写版（机器叙事已另存 body.txt，发布用 opinion_draft.txt 改写）
 - [ ] 话题标签完整
+- [ ] 发布时间建议：{post_time}（本包 pillar: {pillar}）
 - [ ] 位置/地点是否需要
 - [ ] @用户是否需要
-- [ ] 发布
+- [ ] 发布后在 http://localhost:8765/publish-log 登记（发帖后 30 秒）
 """
         (post_dir / "publish-checklist.md").write_text(checklist, encoding="utf-8")
 
@@ -328,6 +336,144 @@ _BAD_KEYWORD_PATTERNS = [
     "accessories", "fashion", "photo", "picture", "photograph",
     "no description", "untitled", "img", "image",
 ]
+
+# 各 pillar 的小红书黄金发布时段建议
+PILLAR_POST_TIMES = {
+    "lookbook": "12:00–13:00",
+    "daily_archive": "18:00–19:00",
+    "moving_taste": "20:00–22:00",
+    "reading_taste": "20:00–22:00",
+    "product_seeds": "12:00–13:00",
+}
+
+
+def _prepare_image(src_path: Path, dest_path: Path) -> None:
+    """中心裁切为 3:4 竖版（小红书标准），过大则缩到 1080×1440。PIL 不可用时原样复制。"""
+    try:
+        from PIL import Image
+    except ImportError:
+        shutil.copy2(src_path, dest_path)
+        return
+    try:
+        with Image.open(src_path) as im:
+            im = im.convert("RGB")
+            w, h = im.size
+            target_ratio = 3 / 4
+            if w / h > target_ratio:  # 太宽 → 裁宽
+                new_w = int(h * target_ratio)
+                left = (w - new_w) // 2
+                im = im.crop((left, 0, left + new_w, h))
+            elif w / h < target_ratio:  # 太高 → 裁高
+                new_h = int(w / target_ratio)
+                top = (h - new_h) // 2
+                im = im.crop((0, top, w, top + new_h))
+            if im.width > 1080 or im.height > 1440:
+                im.thumbnail((1080, 1440), Image.LANCZOS)
+            im.save(dest_path, quality=90)
+    except Exception:
+        shutil.copy2(src_path, dest_path)
+
+
+def _slug_words(source_id: str) -> str:
+    """'src_off_white' → 'off white'，用于 legacy slug 与 DB 名称的模糊匹配。"""
+    return source_id.removeprefix("src_").replace("_", " ").strip()
+
+
+def _build_source_lookup(all_sources) -> dict[str, str]:
+    """images.source_id 有 hex id / legacy slug 两套，且部分指向已删除的源行（孤儿引用）。
+
+    命中顺序: hex id → url → slug 子串匹配 → 图片 page_url 域名匹配（兜底孤儿引用）。
+    """
+    import urllib.parse
+
+    by_key: dict[str, str] = {}
+    by_domain: dict[str, str] = {}
+    names = []
+    for s in all_sources:
+        by_key[s.id] = s.name
+        by_key[s.url] = s.name
+        names.append(s.name)
+        try:
+            dom = urllib.parse.urlparse(s.url).netloc
+            by_domain.setdefault(dom, s.name)
+        except Exception:
+            pass
+
+    def lookup(sid: str, page_url: str = "") -> str:
+        if sid:
+            if sid in by_key:
+                return by_key[sid]
+            if sid.startswith("src_"):
+                cand = _slug_words(sid)
+                if cand:
+                    matches = [n for n in names if cand in n.lower()]
+                    if matches:
+                        return min(matches, key=len)
+        if page_url:
+            try:
+                dom = urllib.parse.urlparse(page_url).netloc
+                if dom in by_domain:
+                    return by_domain[dom]
+            except Exception:
+                pass
+        return ""
+
+    return lookup
+
+
+def _generate_opinion_draft(titles: list[str], source_names: list[str], pillar: str) -> str:
+    """把一包 9 图写成一段连贯的观点草稿。AI 可用则 AI，否则模板拼接。
+
+    草稿只是起点——终稿必须由人改写（Goal 验收项：正文为人工撰写）。
+    """
+    lines = "\n".join(f"- {t}" for t in titles)
+    srcs = "、".join(n for n in dict.fromkeys(source_names) if n) or "archive"
+    try:
+        import json as _json
+        import os
+        import urllib.request
+
+        api_key = os.environ.get("DEEPSEEK_API_KEY", "")
+        if api_key:
+            prompt = f"""You write Xiaohongshu captions for a personal taste archive account.
+Style: quiet, editorial, like Hidden NY meets a private visual diary.
+NOT influencer. NOT marketing. NOT "姐妹们冲".
+
+A moodboard pack of 9 images, per-image titles:
+{lines}
+Sources: {srcs}
+
+Write ONE coherent 3-4 sentence draft caption in Chinese (80-150 chars):
+- Sentence 1: what ties these 9 images together (the thread)
+- Sentence 2-3: one sharp cultural observation, your taste judgment
+- Sentence 4: who this is for, one line, no sales
+Never: 氛围, 感觉, 安静, 柔和, 光线, 午后, 美, 高级, 绝了, 氛围感, 姐妹们.
+Return ONLY the caption text, no quotes, no markdown."""
+            req = urllib.request.Request(
+                "https://api.deepseek.com/v1/chat/completions",
+                data=_json.dumps({
+                    "model": "deepseek-chat",
+                    "max_tokens": 300,
+                    "messages": [{"role": "user", "content": prompt}],
+                }).encode("utf-8"),
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                },
+                method="POST",
+            )
+            resp = urllib.request.urlopen(req, timeout=30)
+            out = _json.loads(resp.read().decode("utf-8"))
+            text = out["choices"][0]["message"]["content"].strip()
+            if text:
+                return text
+    except Exception:
+        pass
+    return (
+        f"这九张图有一个共同的东西：{titles[0] if titles else '比例和节奏'}。"
+        f"它们不抢眼，但每一张都在说同一句话——好品味不需要大声。"
+        f"适合收藏起来，在下一次想「少买一点、买对一点」的时候翻出来看。"
+    )
 
 
 def _clip_auto_tag(image_path: str, clip_svc, top_n: int = 4) -> list[str]:
@@ -670,6 +816,12 @@ def _generate_queue_html(batch_dir: Path, post_dirs: list[Path], date_str: str):
         is_pack = len(img_files) > 1
         open_target = str(post_dir) if is_pack else img_abs
 
+        import html as _html
+        draft = ""
+        draft_path = post_dir / "opinion_draft.txt"
+        if draft_path.exists():
+            draft = _html.escape(draft_path.read_text(encoding="utf-8").strip())
+
         pillar_label = PILLAR_LABELS.get(pillar, "📔")
 
         cards.append(f"""
@@ -684,6 +836,7 @@ def _generate_queue_html(batch_dir: Path, post_dirs: list[Path], date_str: str):
         <div class="card-title" contenteditable="true" data-file="{post_dir}/title.txt" data-post="{post_id}">{title}</div>
         <div class="card-text" contenteditable="true" data-file="{post_dir}/body.txt" data-post="{post_id}">{body}</div>
         <div class="card-tags" contenteditable="true" data-file="{post_dir}/hashtags.txt" data-post="{post_id}">{hashtags}</div>
+        <div class="card-draft" contenteditable="true" data-file="{post_dir}/opinion_draft.txt" data-post="{post_id}" title="观点草稿（机器起草，改写后才是你的正文）">💭 {draft}</div>
         <div class="card-meta">Score: {score} · Pillar: {pillar}{' · ' + str(len(img_files)) + ' 图' if is_pack else ''}</div>
       </div>
       <div class="card-actions">
@@ -762,6 +915,13 @@ def _generate_queue_html(batch_dir: Path, post_dirs: list[Path], date_str: str):
     border: 1px solid transparent; transition: border-color 0.2s;
   }}
   .card-tags:focus {{ border-color: #007aff; background: #f8f9ff; }}
+  .card-draft {{
+    margin-top: 6px; font-size: 12px; color: #666; line-height: 1.5;
+    border-left: 2px solid #c9b8a3; padding: 3px 6px; border-radius: 2px;
+    background: #faf8f5; outline: none; border-top: 1px solid transparent;
+    border-right: 1px solid transparent; border-bottom: 1px solid transparent;
+  }}
+  .card-draft:focus {{ border-color: #007aff; background: #f8f9ff; }}
   .card-meta {{ font-size: 10px; color: #ccc; margin-top: 4px; }}
   .card-actions {{ display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }}
   .card-actions button {{
@@ -816,6 +976,7 @@ def _generate_queue_html(batch_dir: Path, post_dirs: list[Path], date_str: str):
   <div style="font-size:13px;color:#999;text-align:right">
     点击文字直接编辑 · 双击图片打开 Preview<br>
     <a href="/sources" style="color:#666">📡 信息源</a> ·
+    <a href="/publish-log" style="color:#666">📓 发布登记</a> ·
     <a href="#" onclick="showWeeklyReport()" style="color:#666">📊 周报</a>
   </div>
 </div>

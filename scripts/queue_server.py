@@ -20,6 +20,7 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 POSTS_DIR = BASE_DIR / "posts"
+PUBLISH_LOG_PATH = BASE_DIR / "data" / "publish_log.json"
 PORT = 8765
 
 
@@ -92,8 +93,59 @@ class QueueHandler(http.server.SimpleHTTPRequestHandler):
                 self._json({"ok": False, "error": "not found"}, status=404)
             return
 
+        # ── /publish-log → 发布登记页（本地数据，不碰 XHS） ──
+        if parsed.path == "/publish-log":
+            page = BASE_DIR / "scripts" / "publish-log.html"
+            if page.exists():
+                body = page.read_bytes()
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+            else:
+                self._json({"ok": False, "error": "publish-log.html not found"}, status=404)
+            return
+
+        # ── /publish-entries → GET 列表 ──
+        if parsed.path == "/publish-entries":
+            try:
+                entries = json.loads(PUBLISH_LOG_PATH.read_text(encoding="utf-8"))
+            except Exception:
+                entries = []
+            self._json({"ok": True, "entries": entries})
+            return
+
         # ── Default: serve static files ──
         super().do_GET()
+
+    def do_POST(self):
+        parsed = urllib.parse.urlparse(self.path)
+        if parsed.path != "/publish-entries":
+            self._json({"ok": False, "error": "not found"}, status=404)
+            return
+        try:
+            length = int(self.headers.get("Content-Length", 0))
+            payload = json.loads(self.rfile.read(length).decode("utf-8"))
+        except Exception as e:
+            self._json({"ok": False, "error": str(e)}, status=400)
+            return
+        try:
+            entries = json.loads(PUBLISH_LOG_PATH.read_text(encoding="utf-8"))
+        except Exception:
+            entries = []
+        if payload.get("delete"):
+            entries = [e for e in entries if e.get("id") != payload["delete"]]
+        elif payload.get("id"):
+            for e in entries:
+                if e.get("id") == payload["id"]:
+                    e.update({k: v for k, v in payload.items() if k != "id"})
+        else:
+            payload["id"] = f"p{len(entries) + 1:03d}"
+            entries.append(payload)
+        PUBLISH_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+        PUBLISH_LOG_PATH.write_text(json.dumps(entries, ensure_ascii=False, indent=2), encoding="utf-8")
+        self._json({"ok": True, "entries": entries})
 
     def _copy_file_to_clipboard(self, path: str):
         """Copy image file to macOS clipboard using osascript + Applescript.
@@ -142,11 +194,23 @@ def main():
         sys.exit(1)
 
     print(f"📋 Serving: {latest.name}")
-    print(f"   Open: http://localhost:{PORT}/posts/{latest.name}/QUEUE.html")
     print(f"   Click 📋 on any card → copies image to clipboard → Cmd+V into XHS")
     print(f"   Press Ctrl+C to stop")
 
-    server = http.server.HTTPServer(("127.0.0.1", PORT), QueueHandler)
+    server = None
+    bound_port = None
+    for try_port in (PORT, 8766, 8767):
+        try:
+            server = http.server.HTTPServer(("127.0.0.1", try_port), QueueHandler)
+            bound_port = try_port
+            break
+        except OSError:
+            print(f"   port {try_port} busy → trying next")
+    if server is None:
+        print("No free port (8765-8767). Stop another service first.")
+        sys.exit(1)
+    print(f"   Open: http://localhost:{bound_port}/posts/{latest.name}/QUEUE.html")
+    print(f"   发布登记: http://localhost:{bound_port}/publish-log")
     try:
         server.serve_forever()
     except KeyboardInterrupt:
