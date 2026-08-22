@@ -7,6 +7,15 @@ class SourceType(str, Enum):
     ARTICLE = "article"
     PHOTO = "photo"
     MIXED = "mixed"
+    # 以下 7 个类型由 link_sources.json → DB 同步与 crawl 探索写入（2026-08-18/19 起），
+    # 枚举未同步导致 pack_generation 自 8/19 连续崩溃（ValueError: not a valid SourceType）
+    ARE_NA_CHANNEL = "are.na_channel"
+    CHINESE_TREND = "chinese_trend"
+    MAGAZINE = "magazine"
+    MAGAZINE_RSS = "magazine_rss"
+    REDDIT_SUB = "reddit_sub"
+    RETAILER = "retailer"
+    VISUAL_BOARD = "visual_board"
 
 
 class SourceStatus(str, Enum):

@@ -3,16 +3,6 @@
   "purpose": "Seed sources for taste-first link packs. These are starting points, not fixed rules.",
   "lookbook_images": [
     {
-      "name": "Vogue Runway - Menswear",
-      "url": "https://www.vogue.com/fashion-shows/menswear",
-      "why": "Reliable runway/lookbook image archive with designer context."
-    },
-    {
-      "name": "Vogue Runway - Lemaire",
-      "url": "https://www.vogue.com/fashion-shows/designer/lemaire",
-      "why": "Quiet uniform, relaxed tailoring, understated styling. Runway archive with full lookbook images."
-    },
-    {
       "name": "Vogue Runway - 032c",
       "url": "https://www.vogue.com/fashion-shows/designer/032c",
       "why": "Sharper, Berlin-coded, conceptual street/tailoring energy."
@@ -73,11 +63,6 @@
       "name": "SHOWstudio Fashion Film",
       "url": "https://www.showstudio.com/projects/fashion_film_submissions",
       "why": "Fashion film archive and submissions, better for wild visual references."
-    },
-    {
-      "name": "SHOWstudio Video",
-      "url": "https://www.showstudio.com/videos",
-      "why": "Experimental fashion moving image and process references."
     },
     {
       "name": "NOWNESS Fashion",
