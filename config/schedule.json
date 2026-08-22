@@ -73,6 +73,14 @@
       "script": "scripts/trend_report.py",
       "schedule": "mon 10:00",
       "enabled": true
+    },
+    {
+      "name": "source_healthcheck",
+      "script": "scripts/source_healthcheck.py",
+      "schedule": "mon 11:00",
+      "enabled": true,
+      "timeout": 1800,
+      "_note": "每周全源健康检查（8/15 一次性探测的周期化），产出 data/source-healthcheck-YYYY-MM-DD.{json,md}"
     }
   ]
 }
