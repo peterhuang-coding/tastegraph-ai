@@ -67,6 +67,8 @@ def parse_schedule(schedule_str: str) -> tuple[str | None, str | None]:
     elif len(parts) == 2:
         weekday = parts[0].lower()
         return weekday, parts[1]
+    elif not parts:
+        return None, None
     else:
         return None, parts[0]
 
@@ -234,33 +236,61 @@ def run_single_task(config: dict, task_name: str) -> None:
         sys.exit(1)
 
 
+def due_targets(task: dict, now: datetime) -> list[tuple[str, datetime]]:
+    """返回任务今天已到点的调度目标 [(时间字符串, 目标时刻)]。
+
+    允许机器睡眠错过触发窗口后醒来补跑；过旧的目标由宽限期过滤。
+    """
+    schedule_str = task.get("schedule", "")
+    weekday, time_str = parse_schedule(schedule_str)
+    if weekday is not None and now.weekday() != WEEKDAY_MAP.get(weekday):
+        return []
+    if not time_str:
+        return []
+    targets = []
+    for t_str in time_str.split(","):
+        t_str = t_str.strip()
+        if ":" not in t_str:
+            continue
+        try:
+            hour, minute = map(int, t_str.split(":"))
+        except ValueError:
+            continue
+        target = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+        if now >= target:
+            targets.append((t_str, target))
+    return targets
+
+
 def run_daemon(config: dict) -> None:
     """守护进程主循环：每 5 分钟检查一次任务注册表。"""
     print(f"[scheduler] 调度器已启动 (检查间隔: {CHECK_INTERVAL}s)")
     log_event("scheduler.start", {"check_interval": CHECK_INTERVAL})
 
-    # last_run 记录每个任务上次执行的时间点，防止重复触发
-    last_run: dict[str, datetime] = {}
+    # last_run 按 (任务, 时点) 记录今天是否已执行，防止重复触发。
+    # 机器睡眠会错过触发窗口，因此醒来后补跑当天错过且未超宽限期的任务
+    # （默认 3 小时，可在 schedule.json 用 catchup_grace_minutes 覆盖）。
+    last_run: dict[tuple[str, str], datetime.date] = {}
 
     while True:
-        now = datetime.now()
         tasks = get_tasks(config)
-        triggered = False
 
         for task in tasks:
             name = task["name"]
-            if should_run_now(task, now):
-                last = last_run.get(name)
-                if last is not None and (now - last).total_seconds() < CHECK_INTERVAL:
+            now = datetime.now()  # 每任务刷新，长任务后不用旧时间判断
+            for t_str, target in due_targets(task, now):
+                key = (name, t_str)
+                if last_run.get(key) == now.date():
+                    continue
+                grace = timedelta(minutes=task.get("catchup_grace_minutes", 180))
+                if now - target > grace:
                     continue
 
-                print(f"[scheduler] 触发任务: {name}")
-                last_run[name] = now
-                triggered = True
+                print(f"[scheduler] 触发任务: {name} ({t_str})")
+                log_event("scheduler.trigger", {"task": name, "time": t_str})
+                last_run[key] = now.date()
                 run_task(task)
-
-        if not triggered:
-            pass
+                break
 
         time.sleep(CHECK_INTERVAL)
 

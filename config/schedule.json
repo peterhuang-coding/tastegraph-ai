@@ -17,7 +17,8 @@
         "400",
         "--max-discovered",
         "200"
-      ]
+      ],
+      "catchup_grace_minutes": 480
     },
     {
       "name": "daily_source_brief",
