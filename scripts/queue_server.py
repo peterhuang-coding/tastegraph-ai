@@ -26,6 +26,13 @@ PUBLISH_LOG_PATH = BASE_DIR / "data" / "publish_log.json"
 PORT = int(os.environ.get("QUEUE_PORT", "8765"))
 UPSTREAM_API = "http://127.0.0.1:8787"  # 图谱/周报/候选池 API (taste_graph_ai server)
 
+# 换图同步图注需要 DEEPSEEK_API_KEY（与 generate_publish_packs 同源 .env）
+try:
+    from dotenv import load_dotenv
+    load_dotenv(BASE_DIR / ".env")
+except Exception:
+    pass
+
 _INDEX_HTML = """<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -33,48 +40,70 @@ _INDEX_HTML = """<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>moodboard. 工作台</title>
 <style>
-  :root {{ --bg:#f6f4f1; --card:#fff; --ink:#2b2a28; --mut:#99948c; --line:#e5e0d8; --accent:#c9b8a3; }}
-  body {{ margin:0; font-family:-apple-system,"PingFang SC",sans-serif; background:var(--bg); color:var(--ink); }}
-  .wrap {{ max-width:760px; margin:0 auto; padding:40px 20px 60px; }}
-  h1 {{ font-size:26px; font-weight:600; margin:0 0 4px; }}
-  .sub {{ color:var(--mut); font-size:13px; margin-bottom:28px; }}
-  .day {{ background:var(--card); border:1px solid var(--line); border-radius:10px; padding:18px 20px; margin-bottom:20px; }}
-  .day h2 {{ font-size:13px; letter-spacing:.08em; color:var(--accent); margin:0 0 10px; text-transform:uppercase; }}
-  .day ol {{ margin:0; padding-left:20px; font-size:14px; line-height:2; color:var(--ink); }}
-  .day a {{ color:inherit; }}
-  .links {{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }}
-  .links a {{ display:block; background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; text-decoration:none; color:var(--ink); transition:border-color .15s; }}
-  .links a:hover {{ border-color:var(--accent); }}
-  .links b {{ display:block; font-size:15px; margin-bottom:4px; }}
-  .links span {{ font-size:12px; color:var(--mut); }}
-  .foot {{ margin-top:24px; font-size:12px; color:var(--mut); }}
-  @media (max-width:600px) {{ .links {{ grid-template-columns:1fr; }} }}
-  @media (prefers-color-scheme: dark) {{
-    :root {{ --bg:#1c1b19; --card:#26241f; --ink:#e8e4dc; --mut:#8a857c; --line:#3a362f; --accent:#8a7a68; }}
+  :root {{
+    --bg:#201e1c; --panel:#26231f; --card:#2d2a24; --card-edge:#3b362d;
+    --ink:#e9e3d8; --mut:#a29a8d; --faint:#6e675d;
+    --accent:#e0933c; --green:#8f9a6b; --line:#3b362d;
+    --mono:"SF Mono",Menlo,monospace;
+    --serif:"Songti SC","Noto Serif SC",Georgia,serif;
+    --sans:-apple-system,"PingFang SC",sans-serif;
   }}
+  @media (prefers-color-scheme: light) {{
+    :root {{ --bg:#e7e4dd; --panel:#efede7; --card:#f8f5ef; --card-edge:#d8d2c4;
+            --ink:#26231f; --mut:#6e675d; --faint:#a09a8d; --line:#d8d2c4; }}
+  }}
+  * {{ box-sizing:border-box; }}
+  body {{ margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); }}
+  .wrap {{ max-width:860px; margin:0 auto; padding:44px 20px 70px; }}
+  h1 {{ font-family:var(--serif); font-size:34px; font-weight:600; margin:0; }}
+  h1 .dot {{ color:var(--accent); }}
+  .sub {{ color:var(--mut); font-size:13px; margin:6px 0 30px; }}
+  .mono {{ font-family:var(--mono); }}
+
+  .day {{
+    background:var(--card); border:1px solid var(--card-edge); border-radius:8px;
+    padding:20px 22px; margin-bottom:20px; box-shadow:0 2px 0 rgba(0,0,0,.25), 0 12px 32px rgba(0,0,0,.35);
+  }}
+  .day h2 {{ font-size:11px; letter-spacing:.16em; color:var(--accent); margin:0 0 12px; font-family:var(--mono); }}
+  .day ol {{ margin:0; padding-left:22px; font-size:14px; line-height:2.1; }}
+  .day a {{ color:var(--accent); text-decoration:none; }}
+  .day a:hover {{ text-decoration:underline; }}
+  .day .frame-hint {{ color:var(--faint); font-size:12px; }}
+
+  .links {{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }}
+  .links a {{
+    display:block; background:var(--card); border:1px solid var(--card-edge); border-radius:8px;
+    padding:18px; text-decoration:none; color:var(--ink); transition:border-color .15s;
+  }}
+  .links a:hover {{ border-color:var(--accent); }}
+  .links b {{ display:block; font-size:15px; margin-bottom:5px; }}
+  .links span {{ font-size:12px; color:var(--mut); }}
+  .links .k {{ font-family:var(--mono); font-size:10px; letter-spacing:.14em; color:var(--faint); display:block; margin-bottom:6px; }}
+  .foot {{ margin-top:26px; font-size:12px; color:var(--faint); }}
+  @media (max-width:600px) {{ .links {{ grid-template-columns:1fr; }} }}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>moodboard.</h1>
-  <div class="sub">个人视觉采样系统 · 每日人工策展工作台（路线 A：机器出候选，人做判断）</div>
+  <h1>moodboard<span class="dot">.</span></h1>
+  <div class="sub">个人视觉采样系统 · 每日人工策展工作台 — 机器出方案，人做判断</div>
   <div class="day">
-    <h2>今天要做</h2>
+    <h2>TODAY · 今天要做</h2>
     <ol>
-      <li>打开 <a href="{queue_href}">编辑工作台</a>，看今日 9 图候选包</li>
-      <li>挑图：9 宫格悬停点 🔁 换图；改写观点草稿（💾 保存会落盘）</li>
-      <li>复制文案 → 小红书新号手动发布</li>
+      <li>打开 <a href="{queue_href}">编辑台</a>，看今日 6 套候选方案（综合 + 5 个栏目）</li>
+      <li>挑一套：9 帧联系表悬停点 ⇄ 换图 <span class="frame-hint">（图注自动同步）</span></li>
+      <li>改写观点草稿 → 复制全文案 → 小红书新号手动发布</li>
       <li>发完到 <a href="/publish-log">发布登记</a> 记录（30 秒）</li>
-      <li>24h / 48h 后回填赞藏评 → 周报自动汇总</li>
+      <li>24h / 48h 回填赞藏评 → 周报自动汇总</li>
     </ol>
   </div>
   <nav class="links">
-    <a href="{queue_href}"><b>✏️ 编辑工作台</b><span>今日候选包 · 挑图 · 改写 · 复制</span></a>
-    <a href="/publish-log"><b>📓 发布登记</b><span>登记 + 24h/48h 回填 + 周汇总</span></a>
-    <a href="/sources"><b>📡 信息源</b><span>源面板与健康度</span></a>
-    <a href="http://127.0.0.1:8787"><b>⚙️ 系统台</b><span>图谱 / 爬虫 / Pipeline（技术控制台）</span></a>
+    <a href="{queue_href}"><span class="k">01 / CURATE</span><b>✏️ 编辑台</b><span>6 套方案 · 挑图 · 改写 · 策展逻辑</span></a>
+    <a href="/publish-log"><span class="k">02 / LOG</span><b>📓 发布登记</b><span>登记 + 24h/48h 回填 + 周汇总</span></a>
+    <a href="/sources"><span class="k">03 / SOURCES</span><b>📡 信息源</b><span>源面板与健康度</span></a>
+    <a href="http://127.0.0.1:8787"><span class="k">04 / SYSTEM</span><b>⚙️ 系统台</b><span>图谱 / 爬虫 / Pipeline（技术控制台）</span></a>
   </nav>
-  <div class="foot">周报入口：编辑工作台右上角「📊 周报」。数据全部本地，不碰小红书。</div>
+  <div class="foot">周报入口：编辑台右上角「📊 周报」。数据全部本地，不碰小红书。</div>
 </div>
 </body>
 </html>
@@ -138,6 +167,7 @@ class QueueHandler(http.server.SimpleHTTPRequestHandler):
                         "local_path": src,
                         "final_score": im.get("final_score", 0),
                         "source_name": im.get("source_name", ""),
+                        "keywords": im.get("keywords", []),
                     })
             except Exception:
                 pass
@@ -182,6 +212,8 @@ class QueueHandler(http.server.SimpleHTTPRequestHandler):
                 self._json({"ok": False, "error": "src not found"}, status=404)
                 return
             target = pack_dir / f"image-{pos_n:02d}.jpg"
+            kw = params.get("kw", [""])[0]
+            srcname = params.get("srcname", [""])[0]
             try:
                 if src_path.suffix.lower() == ".png":
                     subprocess.run(
@@ -190,7 +222,24 @@ class QueueHandler(http.server.SimpleHTTPRequestHandler):
                     )
                 else:
                     shutil.copyfile(src_path, target)
-                self._json({"ok": True, "rel": str(target.relative_to(BASE_DIR))})
+
+                # 图注同步：生成一句话图注并回写 body.txt 第 0N 行
+                caption = self._caption_for_frame(pack_dir, kw, srcname)
+                body_path = pack_dir / "body.txt"
+                if body_path.exists():
+                    lines = body_path.read_text(encoding="utf-8").splitlines()
+                    new_line = f"{pos_n:02d} {caption}"
+                    replaced = False
+                    for li, line in enumerate(lines):
+                        if line.startswith(f"{pos_n:02d} "):
+                            lines[li] = new_line
+                            replaced = True
+                            break
+                    if not replaced:
+                        lines.append(new_line)
+                    body_path.write_text("\n".join(lines), encoding="utf-8")
+
+                self._json({"ok": True, "rel": str(target.relative_to(BASE_DIR)), "caption": caption})
             except Exception as e:
                 self._json({"ok": False, "error": str(e)}, status=500)
             return
@@ -329,6 +378,43 @@ class QueueHandler(http.server.SimpleHTTPRequestHandler):
         PUBLISH_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
         PUBLISH_LOG_PATH.write_text(json.dumps(entries, ensure_ascii=False, indent=2), encoding="utf-8")
         self._json({"ok": True, "entries": entries})
+
+    def _caption_for_frame(self, pack_dir: Path, kw: str, srcname: str) -> str:
+        """为换入的第 N 帧生成一句话图注（DeepSeek，失败则模板）。含来源后缀。"""
+        ctx = ""
+        for name in ("title.txt", "opinion_draft.txt"):
+            p = pack_dir / name
+            if p.exists():
+                ctx += p.read_text(encoding="utf-8").strip()[:200] + " "
+        api_key = os.environ.get("DEEPSEEK_API_KEY", "")
+        if api_key and (kw or ctx):
+            try:
+                prompt = (
+                    "小红书 moodboard 笔记，一包 9 帧图，每帧一句话图注。\n"
+                    f"本包标题与观点：{ctx.strip() or '（无）'}\n"
+                    f"新图关键词：{kw or '（无）'}\n"
+                    f"来源：{srcname or 'archive'}\n"
+                    "写一句话图注（≤18 字），与全包语气一致，quiet editorial，不要营销腔，不要引号。只输出图注本身。"
+                )
+                req = urllib.request.Request(
+                    "https://api.deepseek.com/v1/chat/completions",
+                    data=json.dumps({
+                        "model": "deepseek-chat",
+                        "max_tokens": 60,
+                        "messages": [{"role": "user", "content": prompt}],
+                    }).encode("utf-8"),
+                    headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+                    method="POST",
+                )
+                resp = urllib.request.urlopen(req, timeout=20)
+                out = json.loads(resp.read().decode("utf-8"))
+                text = out["choices"][0]["message"]["content"].strip().strip('"')
+                if text:
+                    return f"{text} — {srcname}" if srcname else text
+            except Exception:
+                pass
+        base = srcname or "archive"
+        return f"{kw.split()[0]} · {base}" if kw else f"来自 {base} 的新帧"
 
     def _copy_file_to_clipboard(self, path: str):
         """Copy image file to macOS clipboard using osascript + Applescript.
