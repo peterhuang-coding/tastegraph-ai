@@ -824,14 +824,30 @@ def _generate_queue_html(batch_dir: Path, post_dirs: list[Path], date_str: str):
 
         pillar_label = PILLAR_LABELS.get(pillar, "📔")
 
+        if is_pack:
+            thumbs = []
+            for idx, f in enumerate(img_files, 1):
+                f_rel = str(f.relative_to(batch_dir))
+                thumbs.append(
+                    f'<div class="thumb-wrap">'
+                    f'<img src="{f_rel}" class="grid-img" loading="lazy" data-abs="{f}" data-pos="{idx}" '
+                    f'onclick="openInPreview(\'{f}\')" title="点击在 Preview 打开">'
+                    f'<span class="thumb-replace" onclick="openReplaceModal(\'{post_id}\', {idx}, this)" '
+                    f'title="从候选池换一张">🔁</span>'
+                    f'</div>'
+                )
+            img_block = f'<div class="card-grid">{"".join(thumbs)}</div>'
+        else:
+            img_block = f'''<img src="{img_rel}" class="card-img"
+             data-abs="{img_abs}"
+             ondblclick="openInPreview('{open_target}')"
+             title="双击在 Preview 中打开 → 拖到小红书">'''
+
         cards.append(f"""
-    <div class="card" id="{post_id}" data-pillar="{pillar}">
+    <div class="card" id="{post_id}" data-pillar="{pillar}" data-pack="{post_dir}">
       <input type="checkbox" class="select-cb" data-post="{post_id}" checked>
       <div class="card-num">#{i+1}<br><span class="pillar-tag">{pillar_label}</span></div>
-      <img src="{img_rel}" class="card-img"
-           data-abs="{img_abs}"
-           ondblclick="openInPreview('{open_target}')"
-           title="{'双击打开目录 → 全选 9 图拖到小红书' if is_pack else '双击在 Preview 中打开 → 拖到小红书'}">
+      {img_block}
       <div class="card-body">
         <div class="card-title" contenteditable="true" data-file="{post_dir}/title.txt" data-post="{post_id}">{title}</div>
         <div class="card-text" contenteditable="true" data-file="{post_dir}/body.txt" data-post="{post_id}">{body}</div>
@@ -895,6 +911,25 @@ def _generate_queue_html(batch_dir: Path, post_dirs: list[Path], date_str: str):
     border: 2px solid transparent; transition: border-color 0.2s;
   }}
   .card-img:hover {{ border-color: #ff2442; }}
+  .card-grid {{
+    display: grid; grid-template-columns: repeat(3, 84px); gap: 4px; flex-shrink: 0;
+  }}
+  .thumb-wrap {{ position: relative; width: 84px; height: 84px; }}
+  .grid-img {{
+    width: 100%; height: 100%; object-fit: cover; border-radius: 4px;
+    cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s;
+  }}
+  .grid-img:hover {{ border-color: #ff2442; }}
+  .thumb-replace {{
+    position: absolute; top: 3px; right: 3px; width: 20px; height: 20px;
+    border-radius: 4px; background: rgba(0,0,0,0.55); color: #fff;
+    font-size: 11px; line-height: 20px; text-align: center; cursor: pointer;
+    opacity: 0; transition: opacity 0.15s;
+  }}
+  .thumb-wrap:hover .thumb-replace {{ opacity: 1; }}
+  .rm-grid {{ display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; max-height: 420px; overflow-y: auto; }}
+  .rm-grid img {{ width: 100%; aspect-ratio: 3/4; object-fit: cover; border-radius: 4px; border: 2px solid transparent; cursor: pointer; }}
+  .rm-grid img:hover {{ border-color: #ff2442; }}
   .card-body {{ flex: 1; min-width: 0; }}
   .card-title {{
     font-size: 16px; font-weight: 700; margin-bottom: 6px; color: #111;
@@ -1024,6 +1059,18 @@ def _generate_queue_html(batch_dir: Path, post_dirs: list[Path], date_str: str):
   </div>
 </div>
 
+<!-- Replace Image Modal -->
+<div class="modal-overlay" id="replace-modal">
+  <div class="modal" style="max-width:640px">
+    <h2>🔁 换图 — <span id="rm-pos"></span></h2>
+    <div style="font-size:12px;color:#999;margin-bottom:10px">候选池来自今日爬取（按评分排序）。点击一张即替换到该位置。</div>
+    <div class="rm-grid" id="rm-grid">加载中...</div>
+    <div style="margin-top:16px;text-align:right">
+      <button class="btn-cancel" onclick="closeReplaceModal()">取消</button>
+    </div>
+  </div>
+</div>
+
 <!-- Weekly Report Modal -->
 <div class="modal-overlay" id="report-modal">
   <div class="modal" style="max-width:500px">
@@ -1069,10 +1116,14 @@ async function copyImage(path, btn) {{
     if (btn) {{ setTimeout(() => {{ btn.innerText = '📋 图片'; btn.disabled = false; }}, 1000); }}
 }}
 function copyAll(postId) {{
-    const title = document.querySelector('#' + postId + ' .card-title').innerText;
-    const body = document.querySelector('#' + postId + ' .card-text').innerText;
-    const tags = document.querySelector('#' + postId + ' .card-tags').innerText;
-    copyToClipboard(title + '\\n\\n' + body + '\\n\\n' + tags);
+    const card = document.getElementById(postId);
+    const title = card.querySelector('.card-title').innerText;
+    const body = card.querySelector('.card-text').innerText;
+    const tags = card.querySelector('.card-tags').innerText;
+    const draftEl = card.querySelector('.card-draft');
+    const draft = draftEl ? draftEl.innerText.replace(/^💭\\s*/, '').trim() : '';
+    const parts = [title, draft, body, tags].filter(p => p);
+    copyToClipboard(parts.join('\\n\\n'));
 }}
 
 // ── Inline editing: save to file ──
@@ -1081,10 +1132,13 @@ async function saveEdits(postId) {{
     const title = card.querySelector('.card-title');
     const body = card.querySelector('.card-text');
     const tags = card.querySelector('.card-tags');
+    const draft = card.querySelector('.card-draft');
 
     const titleFile = title.dataset.file;
     const bodyFile = body.dataset.file;
     const tagsFile = tags.dataset.file;
+    const draftFile = draft ? draft.dataset.file : null;
+    const draftText = draft ? draft.innerText.replace(/^💭\\s*/, '') : '';
 
     let saved = 0;
     try {{
@@ -1094,12 +1148,17 @@ async function saveEdits(postId) {{
         saved++;
         await fetch('/save-file?path=' + encodeURIComponent(tagsFile) + '&content=' + encodeURIComponent(tags.innerText));
         saved++;
+        if (draftFile) {{
+            await fetch('/save-file?path=' + encodeURIComponent(draftFile) + '&content=' + encodeURIComponent(draftText));
+            saved++;
+        }}
     }} catch(e) {{ /* silent */ }}
 
     // LocalStorage fallback: store edits so they survive refresh
     localStorage.setItem(postId + '-title', title.innerText);
     localStorage.setItem(postId + '-body', body.innerText);
     localStorage.setItem(postId + '-tags', tags.innerText);
+    if (draft) localStorage.setItem(postId + '-draft', draftText);
 
     toast('💾 已保存 (' + saved + ' 个文件)');
 }}
@@ -1221,7 +1280,7 @@ function openSelected() {{
     const checked = getChecked();
     if (checked.length === 0) {{ toast('请先勾选要打开的卡片'); return; }}
     checked.forEach(postId => {{
-        const img = document.querySelector('#' + postId + ' .card-img');
+        const img = document.querySelector('#' + postId + ' .card-img, #' + postId + ' .grid-img');
         if (img && img.dataset.abs) {{
             const dir = img.dataset.abs.split('/').slice(0, -1).join('/');
             window.open('file://' + dir, '_blank');
@@ -1244,11 +1303,15 @@ function updateCounter() {{
 // ── Restore saved edits from localStorage ──
 document.querySelectorAll('.card').forEach(card => {{
     const pid = card.id;
-    ['title', 'body', 'tags'].forEach(field => {{
+    ['title', 'body', 'tags', 'draft'].forEach(field => {{
         const saved = localStorage.getItem(pid + '-' + field);
         if (saved) {{
-            const el = card.querySelector(field === 'title' ? '.card-title' : field === 'body' ? '.card-text' : '.card-tags');
-            if (el && el.innerText !== saved) el.innerText = saved;
+            const el = card.querySelector(
+                field === 'title' ? '.card-title' : field === 'body' ? '.card-text' :
+                field === 'tags' ? '.card-tags' : '.card-draft');
+            if (!el) return;
+            const current = field === 'draft' ? el.innerText.replace(/^💭\\s*/, '') : el.innerText;
+            if (current !== saved) el.innerText = saved;
         }}
     }});
 }});
@@ -1260,6 +1323,64 @@ document.querySelectorAll('[contenteditable="true"]').forEach(el => {{
         if (postId) saveEdits(postId);
     }});
 }});
+
+// ── Replace image (换图) ──
+let replaceTarget = null;
+function openReplaceModal(postId, pos, btn) {{
+    replaceTarget = {{ postId, pos }};
+    document.getElementById('rm-pos').innerText = postId + ' #' + pos;
+    document.getElementById('replace-modal').classList.add('show');
+    loadCandidates();
+}}
+function closeReplaceModal() {{
+    document.getElementById('replace-modal').classList.remove('show');
+    replaceTarget = null;
+}}
+function _esc(s) {{
+    return String(s ?? '').replace(/[&<>"']/g, c => ({{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}})[c]);
+}}
+async function loadCandidates() {{
+    const grid = document.getElementById('rm-grid');
+    grid.innerHTML = '加载中...';
+    try {{
+        const resp = await fetch('/queue-candidates');
+        const data = await resp.json();
+        const imgs = (data.images || []);
+        if (imgs.length === 0) {{
+            grid.innerHTML = '<p>候选池为空 — 等下一班 crawl 后再试。</p>';
+            return;
+        }}
+        grid.innerHTML = imgs.map(im =>
+            '<div style="cursor:pointer" onclick="confirmReplace(\\'' + _esc(im.local_path).replace(/'/g, '&#39;') + '\\')" title="' +
+            _esc(im.source_name) + ' · 分 ' + im.final_score + '">' +
+            '<img src="' + _esc(im.src) + '" loading="lazy">' +
+            '<div style="font-size:10px;color:#999;text-align:center;margin-top:2px">' + im.final_score + '</div>' +
+            '</div>').join('');
+    }} catch(e) {{
+        grid.innerHTML = '<p style="color:red">候选池加载失败 — 请确认 8787 服务在跑。</p>';
+    }}
+}}
+async function confirmReplace(src) {{
+    if (!replaceTarget) return;
+    const {{ postId, pos }} = replaceTarget;
+    const card = document.getElementById(postId);
+    const pack = card.dataset.pack;
+    try {{
+        const resp = await fetch('/replace-image?pack=' + encodeURIComponent(pack) +
+            '&pos=' + pos + '&src=' + encodeURIComponent(src));
+        const data = await resp.json();
+        if (data.ok) {{
+            const thumb = card.querySelector('.grid-img[data-pos="' + pos + '"]');
+            if (thumb) thumb.src = '/' + data.rel + '?t=' + Date.now();
+            toast('✅ 已替换 #' + pos + '（图注不变，可点击文字修改）');
+            closeReplaceModal();
+        }} else {{
+            toast('❌ ' + (data.error || '替换失败'));
+        }}
+    }} catch(e) {{
+        toast('❌ 替换失败 — 请确认工作台服务在跑');
+    }}
+}}
 
 // ── Toast ──
 function toast(msg) {{
