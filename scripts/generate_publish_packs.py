@@ -45,6 +45,9 @@ from taste_graph_ai.services.clip import get_clip
 POSTS_DIR = BASE_DIR / "posts"
 HASHTAGS = ["#moodboard", "#审美积累", "#穿搭参考"]
 
+# QUEUE.html 模板版本戳（auto_deploy 用它判断是否需要重生成今日包）
+TEMPLATE_VERSION = "2026-08-25.1"
+
 # Taste concept bank for CLIP auto-tagging when keywords are missing
 TASTE_CONCEPTS = [
     "brutalist architecture", "concrete texture", "minimal interior",
@@ -903,6 +906,7 @@ def _generate_queue_html(batch_dir: Path, post_dirs: list[Path], date_str: str):
     html = f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+<!-- queue-template-v: {TEMPLATE_VERSION} -->
 <meta charset="UTF-8">
 <title>编辑台 — {date_str}</title>
 <style>
