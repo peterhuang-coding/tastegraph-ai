@@ -47,7 +47,7 @@ def main() -> None:
         return
 
     # ── 2. fetch 对比 ──
-    r = run(["git", *PROXY, "fetch", "origin", BRANCH])
+    r = run(["git", "-C", str(REPO), *PROXY, "fetch", "origin", BRANCH])
     if r.returncode != 0:
         log("fetch 失败（网络/代理）")
         return
