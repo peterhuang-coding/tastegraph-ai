@@ -46,7 +46,7 @@ POSTS_DIR = BASE_DIR / "posts"
 HASHTAGS = ["#moodboard", "#审美积累", "#穿搭参考"]
 
 # QUEUE.html 模板版本戳（auto_deploy 用它判断是否需要重生成今日包）
-TEMPLATE_VERSION = "2026-08-25.1"
+TEMPLATE_VERSION = "2026-08-25.2"
 
 # Taste concept bank for CLIP auto-tagging when keywords are missing
 TASTE_CONCEPTS = [

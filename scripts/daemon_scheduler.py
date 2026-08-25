@@ -273,6 +273,8 @@ def run_daemon(config: dict) -> None:
     last_run: dict[tuple[str, str], datetime.date] = {}
 
     while True:
+        # 每轮重读配置：schedule.json 改动无需重启 daemon 即生效
+        config = load_config()
         tasks = get_tasks(config)
 
         for task in tasks:

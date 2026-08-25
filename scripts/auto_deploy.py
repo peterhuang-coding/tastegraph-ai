@@ -55,35 +55,36 @@ def main() -> None:
     local = r.stdout.strip()
     r = run(["git", "-C", str(REPO), "rev-parse", f"origin/{BRANCH}"])
     remote = r.stdout.strip()
-    if not local or not remote or local == remote:
-        return  # 无新提交
-
-    log(f"发现新提交: {local[:7]} → {remote[:7]}")
-    r = run(["git", "-C", str(REPO), "diff", "--name-only", local, remote])
-    changed = r.stdout.split()
-
-    # ── 3. 快进合并 ──
-    r = run(["git", *PROXY, "-C", str(REPO), "merge", "--ff-only", f"origin/{BRANCH}"])
-    if r.returncode != 0:
-        log(f"merge 失败（非快进，跳过）: {r.stderr.strip()[:200]}")
+    if not local or not remote:
         return
-    log(f"已合并: {' '.join(changed)}")
 
-    # ── 4. 服务端代码变了 → 重启工作台 ──
-    if any("scripts/queue_server.py" in c for c in changed):
-        subprocess.run(["pkill", "-f", "scripts/queue_server.py"], cwd=HOME)
-        subprocess.run(["sleep", "1"], cwd=HOME)
-        logf = open("/tmp/queue_server.log", "ab")
-        subprocess.Popen(
-            [PYTHON, "-u", str(REPO / "scripts" / "queue_server.py")],
-            cwd=str(REPO), stdout=logf, stderr=subprocess.STDOUT,
-            start_new_session=True,
-        )
-        log("queue_server 已重启")
+    changed = []
+    if local != remote:
+        log(f"发现新提交: {local[:7]} → {remote[:7]}")
+        r = run(["git", "-C", str(REPO), "diff", "--name-only", local, remote])
+        changed = r.stdout.split()
 
-    # ── 5. 模板代码变了 → 重生成今日包 ──
-    if not any("scripts/generate_publish_packs.py" in c for c in changed):
-        return
+        # ── 3. 快进合并 ──
+        r = run(["git", *PROXY, "-C", str(REPO), "merge", "--ff-only", f"origin/{BRANCH}"])
+        if r.returncode != 0:
+            log(f"merge 失败（非快进，跳过）: {r.stderr.strip()[:200]}")
+            return
+        log(f"已合并: {' '.join(changed)}")
+
+        # ── 4. 服务端代码变了 → 重启工作台 ──
+        if any("scripts/queue_server.py" in c for c in changed):
+            subprocess.run(["pkill", "-f", "scripts/queue_server.py"], cwd=HOME)
+            subprocess.run(["sleep", "1"], cwd=HOME)
+            logf = open("/tmp/queue_server.log", "ab")
+            subprocess.Popen(
+                [PYTHON, "-u", str(REPO / "scripts" / "queue_server.py")],
+                cwd=str(REPO), stdout=logf, stderr=subprocess.STDOUT,
+                start_new_session=True,
+            )
+            log("queue_server 已重启")
+
+    # ── 5. 每次循环都查模板版本戳：任何来源覆盖了旧版 QUEUE 都会被纠正 ──
+    # （daemon 旧进程用旧参数重生成也会被这里的版本比对抓住）
     r = run(["pgrep", "-f", "generate_publish_packs.py"])
     if r.returncode == 0:
         log("skip regen: 生成任务正在运行（daemon 班次会带出新模板）")
@@ -114,7 +115,7 @@ def main() -> None:
                     break
             except OSError:
                 pass
-    if recently_edited:
+    if recently_edited and not os.environ.get("TASTEGRAPH_FORCE_REGEN"):
         log("skip regen: 今日包近 2 小时有人编辑过")
         return
 
