@@ -46,7 +46,7 @@ POSTS_DIR = BASE_DIR / "posts"
 HASHTAGS = ["#moodboard", "#审美积累", "#穿搭参考"]
 
 # QUEUE.html 模板版本戳（auto_deploy 用它判断是否需要重生成今日包）
-TEMPLATE_VERSION = "2026-08-25.2"
+TEMPLATE_VERSION = "2026-08-25.3"
 
 # Taste concept bank for CLIP auto-tagging when keywords are missing
 TASTE_CONCEPTS = [
@@ -73,6 +73,32 @@ def _resolve_local_path(img) -> str:
         if p.exists():
             return str(p)
     return ""
+
+
+def _load_published_image_ids() -> set:
+    """已发布 pack 里用过的图不进候选池。
+
+    publish-log 登记的 pack → 其 curation.json 的 image_ids 集合。
+    没发过 = 全部可用（生成过但没登记的 pack 不算发布）。
+    """
+    ids: set = set()
+    try:
+        entries = json.loads((BASE_DIR / "data" / "publish_log.json").read_text(encoding="utf-8"))
+    except Exception:
+        return ids
+    for e in entries:
+        pack_rel = (e or {}).get("pack", "")
+        if not pack_rel:
+            continue
+        pack_dir = BASE_DIR / pack_rel
+        if not pack_dir.exists():
+            continue
+        try:
+            curation = json.loads((pack_dir / "curation.json").read_text(encoding="utf-8"))
+            ids.update(curation.get("image_ids", []))
+        except Exception:
+            pass
+    return ids
 
 
 async def generate(date_str: str = None, count: int = 5, skip_queue: bool = False, pack_size: int = 1) -> Path:
@@ -117,13 +143,17 @@ async def generate(date_str: str = None, count: int = 5, skip_queue: bool = Fals
         return batch_dir
 
     # Filter + backfill: local_path 列可能过期，按 image_id 在 data/images 下回填
+    # 排除已发布 pack 用过的图——没发过的一切（含历史爬取）都是候选
+    published_ids = _load_published_image_ids()
     valid = []
     for img in candidates:
+        if img.id in published_ids:
+            continue
         lp = _resolve_local_path(img)
         if lp:
             img.local_path = lp
             valid.append(img)
-    print(f"Found {len(valid)} valid images to choose from.")
+    print(f"Found {len(valid)} valid unpublished images to choose from.")
 
     # Score and pick top-N diverse images
     clip_svc = get_clip()
@@ -138,10 +168,10 @@ async def generate(date_str: str = None, count: int = 5, skip_queue: bool = Fals
         "product_seeds": ["object", "product", "design", "industrial", "still", "furniture", "material", "detail", "watch", "bag", "器物", "设计"],
     }
 
-    # 按 final_score 预筛控制成本，再进图谱/关键词打分
+    # 全库未发布图全部进打分池（图谱关键词打分很快，无需预筛）
     valid.sort(key=lambda i: getattr(i, "final_score", 0.0) or 0.0, reverse=True)
-    pool = valid[:max(200, target_total * 3)]
-    print(f"Scoring pool: {len(pool)} (top by final_score)")
+    pool = valid
+    print(f"Scoring pool: {len(pool)} (全库未发布)")
 
     runway_indicators = ["vogue", "runway", "off-white", "louis vuitton", "dior", "prada", "gucci"]
 
@@ -281,6 +311,8 @@ async def generate(date_str: str = None, count: int = 5, skip_queue: bool = Fals
             "sources": sorted(source_counts.items(), key=lambda kv: kv[1], reverse=True),
             "avg_score": round(avg_score, 2),
             "image_count": len(metas),
+            "image_ids": [item["img"].id for item in group],
+            "pool_size": len(pool),
             "score_formula": "图谱分 30% + 历史评分 30% + pillar 契合 25% + 来源多样性 15%",
         }
         (post_dir / "curation.json").write_text(
@@ -846,7 +878,7 @@ def _generate_queue_html(batch_dir: Path, post_dirs: list[Path], date_str: str):
       <div class="curation-logic">
         <div class="logic-label">📐 为什么是这套</div>
         <div class="logic-chips">{logic_chips}</div>
-        <div class="logic-meta mono">来源 {n_sources} 个 · 均分 {avg} · {_html.escape(curation.get("score_formula", "图谱 + 历史评分 + pillar 契合"))}</div>
+        <div class="logic-meta mono">候选池 {curation.get("pool_size", "?")} 张 · 来源 {n_sources} 个 · 均分 {avg} · {_html.escape(curation.get("score_formula", "图谱 + 历史评分 + pillar 契合"))}</div>
       </div>"""
 
         pillar_label = PILLAR_LABELS.get(pillar, "📔")
@@ -1156,7 +1188,7 @@ def _generate_queue_html(batch_dir: Path, post_dirs: list[Path], date_str: str):
 <div class="modal-overlay" id="replace-modal">
   <div class="modal">
     <h2>⇄ 换图 — <span id="rm-pos" class="mono"></span></h2>
-    <div style="font-size:12px;color:var(--mut);margin-bottom:10px">候选池来自今日爬取（按评分排序）。点击一张即替换，图注自动同步。</div>
+    <div style="font-size:12px;color:var(--mut);margin-bottom:10px">候选池 = 全库未发布档案（按评分排序）。点击一张即替换，图注自动同步。</div>
     <div class="rm-grid" id="rm-grid">加载中...</div>
     <div style="margin-top:16px;text-align:right">
       <button class="btn-cancel" onclick="closeReplaceModal()">取消</button>

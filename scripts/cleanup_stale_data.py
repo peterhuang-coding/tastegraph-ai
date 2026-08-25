@@ -5,9 +5,8 @@ tape — 数据清理脚本
 清理过期图片、知识图谱节点去重、日志轮转。
 
 用法:
-  python3 scripts/cleanup_stale_data.py            # 执行清理
+  python3 scripts/cleanup_stale_data.py            # 执行清理（只删无 DB 记录的孤儿文件）
   python3 scripts/cleanup_stale_data.py --dry-run  # 预览不删除
-  python3 scripts/cleanup_stale_data.py --days 60  # 60天未用算过期
 """
 
 import argparse
@@ -36,26 +35,33 @@ def get_db_connection() -> sqlite3.Connection:
 
 
 def cleanup_stale_images(dry_run: bool = False, stale_days: int = DEFAULT_STALE_DAYS) -> int:
-    """Delete images not used in the last N days. Returns number of deleted files."""
-    cutoff = datetime.now(timezone.utc) - timedelta(days=stale_days)
+    """只删除数据库无记录的孤儿文件；被引用的归档图永久保留。
+
+    按年龄删除已废弃（--days 保留仅为兼容）：老板要求全部未发布数据可复用，
+    归档是资产不是缓存。
+    """
+    del stale_days
+    con = get_db_connection()
+    ids = {row[0] for row in con.execute("SELECT id FROM images")}
+    con.close()
+
     deleted = 0
     skipped = 0
-
     for img_path in sorted(IMAGES_DIR.glob("*")):
         if not img_path.is_file():
             continue
-        mtime = datetime.fromtimestamp(img_path.stat().st_mtime, tz=timezone.utc)
-        if mtime < cutoff:
-            if dry_run:
-                print(f"  [dry-run] 删除: {img_path.name} (最后使用 {mtime.strftime('%Y-%m-%d')})")
-            else:
-                img_path.unlink()
-                print(f"  ✅ 删除: {img_path.name}")
-            deleted += 1
-        else:
+        stem = img_path.name.rsplit(".", 1)[0]
+        if stem in ids:
             skipped += 1
+            continue
+        if dry_run:
+            print(f"  [dry-run] 删除孤儿: {img_path.name}")
+        else:
+            img_path.unlink()
+            print(f"  ✅ 删除孤儿: {img_path.name}")
+        deleted += 1
 
-    print(f"  图片清理: {deleted} 张删除, {skipped} 张保留")
+    print(f"  图片清理: {deleted} 张孤儿删除, {skipped} 张归档保留")
     return deleted
 
 
