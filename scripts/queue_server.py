@@ -474,7 +474,7 @@ def main():
     bound_port = None
     for try_port in (PORT, 8766, 8767):
         try:
-            server = http.server.HTTPServer(("127.0.0.1", try_port), QueueHandler)
+            server = http.server.ThreadingHTTPServer(("127.0.0.1", try_port), QueueHandler)
             bound_port = try_port
             break
         except OSError:
