@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>C · 档案索引 — moodboard. 设计预览</title>
+<style>
+  :root {
+    --bg:#e9e6df; --card:#f6f2e9; --card2:#efe9dd; --ink:#262320; --mut:#7a7263; --faint:#a89f8d;
+    --line:#d9d2c2; --stamp:#b3542e; --blue:#5c6b7a;
+    --mono:"SF Mono",Menlo,monospace;
+    --serif:"Songti SC","Noto Serif SC",Georgia,serif;
+    --sans:-apple-system,"PingFang SC",sans-serif;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body {
+    background:var(--bg);
+    color:var(--ink); font-family:var(--sans); -webkit-font-smoothing:antialiased;
+    background-image:radial-gradient(rgba(38,35,32,.05) 1px, transparent 1px);
+    background-size:22px 22px;
+  }
+  .wrap { max-width:1040px; margin:0 auto; padding:0 20px 80px; }
+
+  .top { display:flex; align-items:baseline; justify-content:space-between; padding:34px 0 8px; }
+  .top .brand { font-family:var(--serif); font-size:30px; font-weight:600; }
+  .top .no { font-family:var(--mono); font-size:11px; color:var(--stamp); letter-spacing:.18em; }
+  .top .meta { font-family:var(--mono); font-size:11px; color:var(--mut); }
+  .rule { border:none; border-top:1px solid var(--ink); margin:14px 0 30px; }
+
+  .agenda { display:flex; gap:14px; flex-wrap:wrap; margin-bottom:34px; }
+  .agenda .step { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--mut); }
+  .agenda .n { font-family:var(--mono); font-size:11px; color:var(--stamp); border:1px solid var(--stamp); padding:2px 6px; border-radius:2px; }
+
+  /* 档案卡：索引卡片 */
+  .plan { background:var(--card); border:1px solid var(--line); box-shadow:0 1px 0 rgba(38,35,32,.06), 0 10px 24px rgba(38,35,32,.08); padding:0; margin-bottom:22px; position:relative; }
+  .plan::before { content:""; position:absolute; top:0; left:0; right:0; height:4px; background:repeating-linear-gradient(90deg, var(--stamp) 0 6px, transparent 6px 12px); opacity:.55; }
+  .card-head { display:flex; align-items:center; gap:12px; padding:18px 20px 14px; border-bottom:1px solid var(--line); }
+  .card-head .idx { font-family:var(--mono); font-size:11px; color:var(--stamp); border:2px solid var(--stamp); padding:3px 8px; letter-spacing:.12em; }
+  .card-head .pill { font-size:12px; color:var(--blue); }
+  .card-head .score { font-family:var(--mono); font-size:11px; color:var(--faint); margin-left:auto; }
+
+  .card-main { display:grid; grid-template-columns:1fr 1.25fr; gap:26px; padding:20px; }
+  .sheet { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+  .frame { position:relative; aspect-ratio:3/4; border:1px solid var(--line); background:var(--card2); }
+  .frame img { width:100%; height:100%; object-fit:cover; display:block; }
+  .frame .num { position:absolute; left:-1px; bottom:-1px; font-family:var(--mono); font-size:9px; background:var(--card); color:var(--stamp); border:1px solid var(--line); padding:1px 5px; }
+
+  .title { font-family:var(--serif); font-size:24px; font-weight:600; margin-bottom:2px; }
+  .label { font-family:var(--mono); font-size:10px; color:var(--stamp); letter-spacing:.16em; margin:14px 0 6px; }
+  .draft { font-family:var(--serif); font-size:14px; line-height:1.9; padding:10px 12px; background:var(--card2); border-left:3px solid var(--stamp); }
+  .caps { font-size:13px; line-height:1.9; color:var(--mut); }
+  .caps .src { color:var(--faint); }
+  .tags { font-size:12px; color:var(--blue); margin-top:4px; }
+
+  .logic { display:flex; flex-wrap:wrap; gap:10px; align-items:center; padding:12px 20px; border-top:1px dashed var(--line); background:var(--card2); }
+  .logic .lbl { font-family:var(--mono); font-size:10px; color:var(--stamp); letter-spacing:.14em; }
+  .logic .kw { font-size:12px; background:var(--card); border:1px solid var(--line); padding:2px 8px; }
+  .logic .kw i { font-style:normal; color:var(--stamp); margin-left:3px; }
+  .logic .meta { font-family:var(--mono); font-size:10px; color:var(--faint); margin-left:auto; }
+
+  .actions { display:flex; gap:6px; padding:0 20px 16px; }
+  .btn { font-size:12px; padding:6px 14px; background:var(--card); border:1px solid var(--line); color:var(--ink); border-radius:2px; cursor:pointer; }
+  .btn:hover { border-color:var(--stamp); }
+  .btn.primary { background:var(--ink); color:var(--card); border-color:var(--ink); }
+
+  .foot { text-align:center; font-family:var(--mono); font-size:11px; color:var(--faint); margin-top:34px; letter-spacing:.1em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand">moodboard<span style="color:var(--stamp)">.</span></div>
+    <div class="no">ARCHIVE INDEX · 档案索引</div>
+    <div class="meta">2026-08-26 · 6 套 · 769 帧未发布</div>
+  </div>
+  <hr class="rule">
+
+  <div class="agenda">
+    <span class="step"><span class="n">01</span>挑一套</span>
+    <span class="step"><span class="n">02</span>换图（图注自动同步）</span>
+    <span class="step"><span class="n">03</span>改写观点</span>
+    <span class="step"><span class="n">04</span>手动发布</span>
+    <span class="step"><span class="n">05</span>登记回填</span>
+  </div>
+
+  <div class="plan">
+    <div class="card-head">
+      <span class="idx">PLAN 01</span>
+      <span class="pill">综合 · 📔 档案</span>
+      <span class="score">SCORE 0.44</span>
+    </div>
+    <div class="card-main">
+      <div class="sheet">
+        <div class="frame"><img src="../posts/2026-08-26/pack-001/image-01.jpg" alt=""><span class="num">01</span></div>
+        <div class="frame"><img src="../posts/2026-08-26/pack-001/image-02.jpg" alt=""><span class="num">02</span></div>
+        <div class="frame"><img src="../posts/2026-08-26/pack-001/image-03.jpg" alt=""><span class="num">03</span></div>
+        <div class="frame"><img src="../posts/2026-08-26/pack-001/image-04.jpg" alt=""><span class="num">04</span></div>
+        <div class="frame"><img src="../posts/2026-08-26/pack-001/image-05.jpg" alt=""><span class="num">05</span></div>
+        <div class="frame"><img src="../posts/2026-08-26/pack-001/image-06.jpg" alt=""><span class="num">06</span></div>
+        <div class="frame"><img src="../posts/2026-08-26/pack-001/image-07.jpg" alt=""><span class="num">07</span></div>
+        <div class="frame"><img src="../posts/2026-08-26/pack-001/image-08.jpg" alt=""><span class="num">08</span></div>
+        <div class="frame"><img src="../posts/2026-08-26/pack-001/image-09.jpg" alt=""><span class="num">09</span></div>
+      </div>
+      <div>
+        <div class="title">剪裁比 logo 诚实</div>
+        <div class="label">观点 · 待改写为你的正文</div>
+        <div class="draft">衣服先于品牌说话。这九帧的共同点不是某个符号，而是同一件事：结构被看见的那一刻，logo 就多余了。给那些更相信缝线的人。</div>
+        <div class="label">图注 · 逐帧一句话</div>
+        <div class="caps">
+          01 廓形在说话 <span class="src">— Highsnobiety</span><br>
+          02 肩膀的直角 <span class="src">— Vogue Archive</span><br>
+          03 布料先于图案 <span class="src">— Dazed Fashion</span><br>
+          04 背面的诚实 <span class="src">— Highsnobiety</span><br>
+          05 收口的绳 <span class="src">— SSENSE</span><br>
+          06 结构的影子 <span class="src">— The Guardian</span><br>
+          07 细节不需要观众 <span class="src">— Highsnobiety</span><br>
+          08 比例即立场 <span class="src">— Vogue Archive</span><br>
+          09 静物练习 <span class="src">— Dazed Video</span>
+        </div>
+        <div class="label">标签</div>
+        <div class="tags">#moodboard #审美积累 #穿搭参考 #archive</div>
+      </div>
+    </div>
+    <div class="logic">
+      <span class="lbl">为什么是这套</span>
+      <span class="kw">廓形<i>3</i></span><span class="kw">结构<i>3</i></span><span class="kw">剪裁<i>2</i></span>
+      <span class="meta">候选池 769 张 · 来源 5 个 · 均分 0.44 · 图谱 30% + 历史 30% + pillar 25% + 多样性 15%</span>
+    </div>
+    <div class="actions">
+      <button class="btn">🖼 打开</button>
+      <button class="btn">📝 复制全文案</button>
+      <button class="btn">💾 保存</button>
+      <button class="btn primary">发完登记</button>
+    </div>
+  </div>
+
+  <div class="foot">— 预览 · 方向 C「档案索引」 —</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>A · 编辑部 — moodboard. 设计预览</title>
+<style>
+  :root {
+    --paper:#faf8f4; --ink:#1a1815; --mut:#7d7668; --faint:#b3ab9c;
+    --line:#d8d2c4; --red:#c0392b; --mono:"SF Mono",Menlo,monospace;
+    --serif:"Songti SC","Noto Serif SC",Georgia,serif;
+    --sans:-apple-system,"PingFang SC",sans-serif;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--paper); color:var(--ink); font-family:var(--sans); -webkit-font-smoothing:antialiased; }
+
+  .wrap { max-width:1080px; margin:0 auto; padding:0 24px 80px; }
+
+  /* ── 报头：出版线 ── */
+  .publine { display:flex; justify-content:space-between; align-items:center; border-top:3px solid var(--ink); border-bottom:1px solid var(--ink); padding:10px 0; margin-top:28px; }
+  .publine .vol { font-family:var(--mono); font-size:11px; letter-spacing:.18em; color:var(--mut); }
+  .publine .date { font-family:var(--mono); font-size:11px; color:var(--mut); }
+  .masthead { text-align:center; padding:44px 0 36px; }
+  .masthead h1 { font-family:var(--serif); font-size:56px; font-weight:600; letter-spacing:.06em; }
+  .masthead .rule { width:64px; height:2px; background:var(--red); margin:18px auto 14px; }
+  .masthead .sub { font-size:13px; color:var(--mut); letter-spacing:.08em; }
+
+  /* ── 今日流程 ── */
+  .agenda { display:grid; grid-template-columns:repeat(5,1fr); gap:1px; background:var(--line); border:1px solid var(--line); margin-bottom:48px; }
+  .agenda .step { background:var(--paper); padding:16px 14px; }
+  .agenda .step b { display:block; font-size:13px; margin-bottom:4px; }
+  .agenda .step span { font-size:12px; color:var(--mut); line-height:1.6; }
+  .agenda .step .n { font-family:var(--mono); font-size:10px; color:var(--red); letter-spacing:.14em; display:block; margin-bottom:6px; }
+
+  /* ── 方案卡：杂志跨页 ── */
+  .plan { border-top:1px solid var(--ink); padding:36px 0 44px; display:grid; grid-template-columns:1fr 1.2fr; gap:40px; }
+  .plan .head { grid-column:1/-1; display:flex; justify-content:space-between; align-items:baseline; margin-bottom:24px; }
+  .plan .head .no { font-family:var(--mono); font-size:11px; color:var(--red); letter-spacing:.2em; }
+  .plan .head .score { font-family:var(--mono); font-size:11px; color:var(--mut); }
+
+  .sheet { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--ink); border:1px solid var(--ink); }
+  .frame { position:relative; aspect-ratio:3/4; overflow:hidden; background:var(--paper); }
+  .frame img { width:100%; height:100%; object-fit:cover; display:block; filter:grayscale(8%); }
+  .frame .num { position:absolute; left:6px; bottom:6px; font-family:var(--mono); font-size:10px; color:#fff; background:rgba(0,0,0,.55); padding:1px 5px; }
+
+  .copy .title { font-family:var(--serif); font-size:28px; font-weight:600; line-height:1.35; margin-bottom:8px; }
+  .copy .draft-label { font-family:var(--mono); font-size:10px; color:var(--red); letter-spacing:.16em; margin:18px 0 6px; }
+  .copy .draft { font-family:var(--serif); font-size:15px; line-height:1.9; border-left:2px solid var(--red); padding-left:14px; color:var(--ink); }
+  .copy .caps-label { font-family:var(--mono); font-size:10px; color:var(--mut); letter-spacing:.16em; margin:18px 0 6px; }
+  .copy .caps { font-size:13px; line-height:1.9; color:var(--mut); }
+  .copy .caps .src { color:var(--faint); }
+  .copy .tags { font-size:12px; color:#5f6d4e; margin-top:6px; }
+
+  /* ── 策展逻辑：细线注释 ── */
+  .logic { grid-column:1/-1; border-top:1px solid var(--line); margin-top:8px; padding-top:14px; display:flex; flex-wrap:wrap; gap:16px; align-items:center; }
+  .logic .label { font-family:var(--mono); font-size:10px; color:var(--red); letter-spacing:.16em; }
+  .logic .kw { font-size:12px; color:var(--ink); border:1px solid var(--line); padding:2px 8px; }
+  .logic .kw i { font-style:normal; color:var(--red); margin-left:3px; }
+  .logic .meta { font-family:var(--mono); font-size:11px; color:var(--mut); margin-left:auto; }
+
+  .foot { text-align:center; font-family:var(--mono); font-size:11px; color:var(--faint); margin-top:40px; letter-spacing:.1em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="publine"><span class="vol">VOL. 002 · 编辑台</span><span class="date">2026-08-26 · 6 套方案 · 全库未发布 769 帧</span></div>
+  <div class="masthead">
+    <h1>moodboard.</h1>
+    <div class="rule"></div>
+    <div class="sub">机器出方案 · 人做判断 — 一份私人的视觉档案</div>
+  </div>
+
+  <div class="agenda">
+    <div class="step"><span class="n">01</span><b>挑一套</b><span>6 套候选，每套一个切入点</span></div>
+    <div class="step"><span class="n">02</span><b>换图</b><span>帧上悬停 ⇄，图注自动同步</span></div>
+    <div class="step"><span class="n">03</span><b>改写观点</b><span>机器起草，终稿必须是你的话</span></div>
+    <div class="step"><span class="n">04</span><b>发布</b><span>复制全文案，新号手动发</span></div>
+    <div class="step"><span class="n">05</span><b>登记</b><span>30 秒登记，24/48h 回填</span></div>
+  </div>
+
+  <div class="plan">
+    <div class="head"><span class="no">PLAN 01 · 综合</span><span class="score">SCORE 0.44</span></div>
+    <div class="sheet">
+      <div class="frame"><img src="../posts/2026-08-26/pack-001/image-01.jpg" alt=""><span class="num">01</span></div>
+      <div class="frame"><img src="../posts/2026-08-26/pack-001/image-02.jpg" alt=""><span class="num">02</span></div>
+      <div class="frame"><img src="../posts/2026-08-26/pack-001/image-03.jpg" alt=""><span class="num">03</span></div>
+      <div class="frame"><img src="../posts/2026-08-26/pack-001/image-04.jpg" alt=""><span class="num">04</span></div>
+      <div class="frame"><img src="../posts/2026-08-26/pack-001/image-05.jpg" alt=""><span class="num">05</span></div>
+      <div class="frame"><img src="../posts/2026-08-26/pack-001/image-06.jpg" alt=""><span class="num">06</span></div>
+      <div class="frame"><img src="../posts/2026-08-26/pack-001/image-07.jpg" alt=""><span class="num">07</span></div>
+      <div class="frame"><img src="../posts/2026-08-26/pack-001/image-08.jpg" alt=""><span class="num">08</span></div>
+      <div class="frame"><img src="../posts/2026-08-26/pack-001/image-09.jpg" alt=""><span class="num">09</span></div>
+    </div>
+    <div class="copy">
+      <div class="title">剪裁比 logo 诚实</div>
+      <div class="draft-label">观点 · 待改写为你的正文</div>
+      <div class="draft">衣服先于品牌说话。这九帧的共同点不是某个符号，而是同一件事：结构被看见的那一刻，logo 就多余了。给那些更相信缝线的人。</div>
+      <div class="caps-label">图注 · 逐帧一句话</div>
+      <div class="caps">
+        01 廓形在说话 <span class="src">— Highsnobiety</span><br>
+        02 肩膀的直角 <span class="src">— Vogue Archive</span><br>
+        03 布料先于图案 <span class="src">— Dazed Fashion</span><br>
+        04 背面的诚实 <span class="src">— Highsnobiety</span><br>
+        05 收口的绳 <span class="src">— SSENSE</span><br>
+        06 结构的影子 <span class="src">— The Guardian</span><br>
+        07 细节不需要观众 <span class="src">— Highsnobiety</span><br>
+        08 比例即立场 <span class="src">— Vogue Archive</span><br>
+        09 静物练习 <span class="src">— Dazed Video</span>
+      </div>
+      <div class="caps-label">标签</div>
+      <div class="tags">#moodboard #审美积累 #穿搭参考 #archive</div>
+    </div>
+    <div class="logic">
+      <span class="label">为什么是这套</span>
+      <span class="kw">廓形<i>3</i></span><span class="kw">结构<i>3</i></span><span class="kw">剪裁<i>2</i></span>
+      <span class="meta">候选池 769 张 · 来源 5 个 · 均分 0.44 · 图谱分 30% + 历史评分 30% + pillar 契合 25% + 来源多样性 15%</span>
+    </div>
+  </div>
+
+  <div class="foot">— 预览 · 方向 A「编辑部」 —</div>
+</div>
+</body>
+</html>
