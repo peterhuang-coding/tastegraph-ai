@@ -41,68 +41,72 @@ _INDEX_HTML = """<!DOCTYPE html>
 <title>moodboard. 工作台</title>
 <style>
   :root {{
-    --bg:#201e1c; --panel:#26231f; --card:#2d2a24; --card-edge:#3b362d;
-    --ink:#e9e3d8; --mut:#a29a8d; --faint:#6e675d;
-    --accent:#e0933c; --green:#8f9a6b; --line:#3b362d;
-    --mono:"SF Mono",Menlo,monospace;
-    --serif:"Songti SC","Noto Serif SC",Georgia,serif;
+    --bg:#f5f5f7; --card:#ffffff; --ink:#1d1d1f; --mut:#6e6e73; --faint:#aeaeb2;
+    --line:#e5e5ea; --green:#1a6b4f; --green-soft:#eef5f1;
     --sans:-apple-system,"PingFang SC",sans-serif;
   }}
-  @media (prefers-color-scheme: light) {{
-    :root {{ --bg:#e7e4dd; --panel:#efede7; --card:#f8f5ef; --card-edge:#d8d2c4;
-            --ink:#26231f; --mut:#6e675d; --faint:#a09a8d; --line:#d8d2c4; }}
-  }}
-  * {{ box-sizing:border-box; }}
-  body {{ margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); }}
-  .wrap {{ max-width:860px; margin:0 auto; padding:44px 20px 70px; }}
-  h1 {{ font-family:var(--serif); font-size:34px; font-weight:600; margin:0; }}
-  h1 .dot {{ color:var(--accent); }}
-  .sub {{ color:var(--mut); font-size:13px; margin:6px 0 30px; }}
-  .mono {{ font-family:var(--mono); }}
+  * {{ box-sizing:border-box; margin:0; padding:0; }}
+  body {{ background:var(--bg); color:var(--ink); font-family:var(--sans); -webkit-font-smoothing:antialiased; }}
+  .bar {{ height:3px; background:var(--green); }}
+  .wrap {{ max-width:880px; margin:0 auto; padding:0 20px 70px; }}
 
-  .day {{
-    background:var(--card); border:1px solid var(--card-edge); border-radius:8px;
-    padding:20px 22px; margin-bottom:20px; box-shadow:0 2px 0 rgba(0,0,0,.25), 0 12px 32px rgba(0,0,0,.35);
-  }}
-  .day h2 {{ font-size:11px; letter-spacing:.16em; color:var(--accent); margin:0 0 12px; font-family:var(--mono); }}
-  .day ol {{ margin:0; padding-left:22px; font-size:14px; line-height:2.1; }}
-  .day a {{ color:var(--accent); text-decoration:none; }}
-  .day a:hover {{ text-decoration:underline; }}
-  .day .frame-hint {{ color:var(--faint); font-size:12px; }}
+  .top {{ display:flex; justify-content:space-between; align-items:center; padding:26px 0 16px; }}
+  .top .brand {{ font-size:24px; font-weight:700; letter-spacing:-.02em; }}
+  .top .brand .dot {{ color:var(--green); }}
+  .top .meta {{ font-size:13px; color:var(--mut); }}
+
+  .intro {{ padding:10px 0 24px; }}
+  .intro h1 {{ font-size:28px; font-weight:700; letter-spacing:-.02em; margin-bottom:6px; }}
+  .intro p {{ font-size:14px; color:var(--mut); }}
+
+  .steps {{ display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-bottom:24px; }}
+  @media (max-width:760px) {{ .steps {{ grid-template-columns:repeat(2,1fr); }} }}
+  .step {{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px; }}
+  .step .n {{ font-size:11px; font-weight:700; color:var(--green); margin-bottom:5px; }}
+  .step b {{ display:block; font-size:13px; margin-bottom:2px; }}
+  .step span {{ font-size:12px; color:var(--mut); line-height:1.5; }}
 
   .links {{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }}
   .links a {{
-    display:block; background:var(--card); border:1px solid var(--card-edge); border-radius:8px;
+    display:block; background:var(--card); border:1px solid var(--line); border-radius:14px;
     padding:18px; text-decoration:none; color:var(--ink); transition:border-color .15s;
   }}
-  .links a:hover {{ border-color:var(--accent); }}
-  .links b {{ display:block; font-size:15px; margin-bottom:5px; }}
+  .links a:hover {{ border-color:var(--green); }}
+  .links .k {{ font-size:11px; font-weight:700; color:var(--green); display:block; margin-bottom:6px; }}
+  .links b {{ display:block; font-size:15px; margin-bottom:4px; }}
   .links span {{ font-size:12px; color:var(--mut); }}
-  .links .k {{ font-family:var(--mono); font-size:10px; letter-spacing:.14em; color:var(--faint); display:block; margin-bottom:6px; }}
   .foot {{ margin-top:26px; font-size:12px; color:var(--faint); }}
   @media (max-width:600px) {{ .links {{ grid-template-columns:1fr; }} }}
 </style>
 </head>
 <body>
+<div class="bar"></div>
 <div class="wrap">
-  <h1>moodboard<span class="dot">.</span></h1>
-  <div class="sub">个人视觉采样系统 · 每日人工策展工作台 — 机器出方案，人做判断</div>
-  <div class="day">
-    <h2>TODAY · 今天要做</h2>
-    <ol>
-      <li>打开 <a href="{queue_href}">编辑台</a>，看今日 6 套候选方案（综合 + 5 个栏目）</li>
-      <li>挑一套：9 帧联系表悬停点 ⇄ 换图 <span class="frame-hint">（图注自动同步）</span></li>
-      <li>改写观点草稿 → 复制全文案 → 小红书新号手动发布</li>
-      <li>发完到 <a href="/publish-log">发布登记</a> 记录（30 秒）</li>
-      <li>24h / 48h 回填赞藏评 → 周报自动汇总</li>
-    </ol>
+  <div class="top">
+    <div class="brand">moodboard<span class="dot">.</span></div>
+    <div class="meta">个人视觉采样系统 · 机器出方案，人做判断</div>
   </div>
+
+  <div class="intro">
+    <h1>今天发哪套？</h1>
+    <p>打开编辑台，从 6 套候选方案里挑一套，换图、改写观点，然后发布。</p>
+  </div>
+
+  <div class="steps">
+    <div class="step"><span class="n">1</span><b>挑一套</b><span>综合 + 5 个栏目</span></div>
+    <div class="step"><span class="n">2</span><b>换图</b><span>悬停帧上 ⇄，图注自动同步</span></div>
+    <div class="step"><span class="n">3</span><b>改写观点</b><span>终稿必须是你的话</span></div>
+    <div class="step"><span class="n">4</span><b>发布</b><span>复制全文案，手动发</span></div>
+    <div class="step"><span class="n">5</span><b>登记</b><span>30 秒，24/48h 回填</span></div>
+  </div>
+
   <nav class="links">
-    <a href="{queue_href}"><span class="k">01 / CURATE</span><b>✏️ 编辑台</b><span>6 套方案 · 挑图 · 改写 · 策展逻辑</span></a>
-    <a href="/publish-log"><span class="k">02 / LOG</span><b>📓 发布登记</b><span>登记 + 24h/48h 回填 + 周汇总</span></a>
-    <a href="/sources"><span class="k">03 / SOURCES</span><b>📡 信息源</b><span>源面板与健康度</span></a>
-    <a href="http://127.0.0.1:8787"><span class="k">04 / SYSTEM</span><b>⚙️ 系统台</b><span>图谱 / 爬虫 / Pipeline（技术控制台）</span></a>
+    <a href="{queue_href}"><span class="k">01 · CURATE</span><b>✏️ 编辑台</b><span>6 套方案 · 挑图 · 改写 · 策展逻辑</span></a>
+    <a href="/publish-log"><span class="k">02 · LOG</span><b>📓 发布登记</b><span>登记 + 24h/48h 回填 + 周汇总</span></a>
+    <a href="/sources"><span class="k">03 · SOURCES</span><b>📡 信息源</b><span>源面板与健康度</span></a>
+    <a href="http://127.0.0.1:8787"><span class="k">04 · SYSTEM</span><b>⚙️ 系统台</b><span>图谱 / 爬虫 / Pipeline（技术控制台）</span></a>
   </nav>
+
   <div class="foot">周报入口：编辑台右上角「📊 周报」。数据全部本地，不碰小红书。</div>
 </div>
 </body>

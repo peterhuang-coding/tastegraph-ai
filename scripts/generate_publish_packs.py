@@ -46,7 +46,7 @@ POSTS_DIR = BASE_DIR / "posts"
 HASHTAGS = ["#moodboard", "#审美积累", "#穿搭参考"]
 
 # QUEUE.html 模板版本戳（auto_deploy 用它判断是否需要重生成今日包）
-TEMPLATE_VERSION = "2026-08-25.3"
+TEMPLATE_VERSION = "2026-08-25.4"
 
 # Taste concept bank for CLIP auto-tagging when keywords are missing
 TASTE_CONCEPTS = [
@@ -820,12 +820,12 @@ PILLAR_LABELS = {
 
 
 def _generate_queue_html(batch_dir: Path, post_dirs: list[Path], date_str: str):
-    """Generate an editorial workbench QUEUE.html — 暗房联系表设计。
+    """Generate the editorial workbench QUEUE.html — 极简工作室设计（老板选定方向 B）。
 
-    - 每套方案一张「打样卡」：左侧 9 帧联系表（胶片齿孔 + Frame 编号），右侧文案栏
-    - 观点草稿作为「待改写正文」突出显示（保存/复制都会带上）
-    - 「策展逻辑」条：主题线索 / 来源分布 / 均分 —— 为什么是这套的图谱依据
-    - 换图后服务端生成新图注并回写 body.txt，卡片同步
+    - 浅灰底 + 白卡片 + 墨绿点缀，Apple/Linear 式克制
+    - 每套方案一张卡：左 9 帧联系表（圆角帧 + 编号），右文案栏
+    - 观点草稿 = 绿色底提示框「待改写」；策展逻辑条在卡底
+    - 换图自动同步图注（服务端生成并回写 body.txt）
     """
     import html as _html
 
@@ -862,38 +862,41 @@ def _generate_queue_html(batch_dir: Path, post_dirs: list[Path], date_str: str):
             except Exception:
                 curation = {}
 
-        # ── 策展逻辑条（图谱依据） ──
         shared_kws = curation.get("shared_keywords", [])
         if shared_kws:
-            logic_chips = " ".join(
-                f'<span class="logic-chip">{_html.escape(k["kw"])}<i class="mono">{k["count"]}</i></span>'
+            logic_chips = "".join(
+                f'<span class="chip">{_html.escape(k["kw"])}<i>{k["count"]}</i></span>'
                 for k in shared_kws[:5]
             )
         else:
-            logic_chips = '<span class="logic-empty">暂无共享关键词 — 换图或等下一班 crawl</span>'
+            logic_chips = '<span class="chip" style="color:var(--faint)">暂无共享关键词</span>'
         n_sources = len(curation.get("sources", []))
         avg = curation.get("avg_score", score)
 
         logic_block = f"""
-      <div class="curation-logic">
-        <div class="logic-label">📐 为什么是这套</div>
-        <div class="logic-chips">{logic_chips}</div>
-        <div class="logic-meta mono">候选池 {curation.get("pool_size", "?")} 张 · 来源 {n_sources} 个 · 均分 {avg} · {_html.escape(curation.get("score_formula", "图谱 + 历史评分 + pillar 契合"))}</div>
+      <div class="logic">
+        <span class="lbl">为什么是这套</span>
+        {logic_chips}
+        <span class="meta">候选池 {curation.get("pool_size", "?")} 张 · 来源 {n_sources} 个 · 均分 {avg}</span>
       </div>"""
 
         pillar_label = PILLAR_LABELS.get(pillar, "📔")
+        if i == 0:
+            pill_text = "综合"
+        else:
+            pill_text = pillar_label.split(" ")[-1] if pillar_label else "方案"
 
         if is_pack:
             thumbs = []
             for idx, f in enumerate(img_files, 1):
                 f_rel = str(f.relative_to(batch_dir))
                 thumbs.append(
-                    f'<figure class="frame">'
+                    f'<div class="frame">'
                     f'<img src="{f_rel}" class="grid-img" loading="lazy" data-abs="{f}" data-pos="{idx}" '
                     f'onclick="openInPreview(\'{f}\')" title="点击在 Preview 打开">'
-                    f'<figcaption class="frame-num mono">{idx:02d}</figcaption>'
-                    f'<span class="thumb-replace" onclick="openReplaceModal(\'{post_id}\', {idx}, this)" title="从候选池换一张（图注自动同步）">⇄</span>'
-                    f'</figure>'
+                    f'<span class="num">{idx:02d}</span>'
+                    f'<span class="swap" onclick="openReplaceModal(\'{post_id}\', {idx}, this)" title="换一张（图注自动同步）">⇄</span>'
+                    f'</div>'
                 )
             img_block = f'<div class="sheet">{"".join(thumbs)}</div>'
         else:
@@ -903,34 +906,34 @@ def _generate_queue_html(batch_dir: Path, post_dirs: list[Path], date_str: str):
              title="双击在 Preview 中打开 → 拖到小红书">'''
 
         cards.append(f"""
-    <article class="card" id="{post_id}" data-pillar="{pillar}" data-pack="{post_dir}">
+    <article class="plan" id="{post_id}" data-pillar="{pillar}" data-pack="{post_dir}">
       <input type="checkbox" class="select-cb" data-post="{post_id}" checked>
-      <header class="card-head">
-        <span class="plan-no mono">PLAN {i+1:02d}</span>
-        <span class="pillar-chip" data-pillar="{pillar}">{pillar_label}</span>
-        <span class="plan-score mono">score {score}</span>
-        <span class="card-status" id="status-{post_id}" onclick="togglePublished('{post_id}')" title="点按标记已发">⏳</span>
-      </header>
-      <div class="card-main">
+      <div class="plan-head">
+        <span class="pill">{pill_text}</span>
+        <span class="pill-no">PLAN {i+1:02d} · {pillar_label}</span>
+        <span class="score">score {score}</span>
+        <span class="status" id="status-{post_id}" onclick="togglePublished('{post_id}')" title="点按标记已发">⏳</span>
+      </div>
+      <div class="plan-main">
         {img_block}
-        <div class="card-copy">
-          <div class="card-title" contenteditable="true" data-file="{post_dir}/title.txt" data-post="{post_id}">{title}</div>
-          <div class="copy-label">观点 · 待改写为你的正文</div>
-          <div class="card-draft" contenteditable="true" data-file="{post_dir}/opinion_draft.txt" data-post="{post_id}" title="观点草稿（机器起草，改写后才是你的正文）">{draft}</div>
-          <div class="copy-label">图注 · 逐帧一句话</div>
-          <div class="card-text" contenteditable="true" data-file="{post_dir}/body.txt" data-post="{post_id}">{body}</div>
-          <div class="copy-label">标签</div>
-          <div class="card-tags" contenteditable="true" data-file="{post_dir}/hashtags.txt" data-post="{post_id}">{hashtags}</div>
+        <div class="copy">
+          <div class="title" contenteditable="true" data-file="{post_dir}/title.txt" data-post="{post_id}">{title}</div>
+          <div class="label">观点 · 待改写为你的正文</div>
+          <div class="draft" contenteditable="true" data-file="{post_dir}/opinion_draft.txt" data-post="{post_id}" title="机器起草，改写后才是你的正文">{draft}</div>
+          <div class="label">图注 · 逐帧一句话</div>
+          <div class="caps" contenteditable="true" data-file="{post_dir}/body.txt" data-post="{post_id}">{body}</div>
+          <div class="label">标签</div>
+          <div class="tags" contenteditable="true" data-file="{post_dir}/hashtags.txt" data-post="{post_id}">{hashtags}</div>
         </div>
       </div>
       {logic_block}
-      <footer class="card-actions">
-        <button onclick="openInPreview('{open_target}', this)" title="在 Preview 中打开 → 拖进小红书">🖼 打开</button>
-        <button onclick="copyImage('{img_abs}', this)" title="复制首图到剪贴板 → Cmd+V 到小红书">📋 首图</button>
-        <button onclick="copyAll('{post_id}')" title="复制标题+观点+图注+标签">📝 全文案</button>
-        <button onclick="saveEdits('{post_id}')" title="保存编辑到文件">💾 保存</button>
-        <button onclick="recordFeedback('{post_id}')" title="发布后录入互动数据" class="fb-btn">📊 反馈</button>
-      </footer>
+      <div class="actions">
+        <button class="btn" onclick="openInPreview('{open_target}', this)" title="在 Preview 中打开 → 拖进小红书">🖼 打开</button>
+        <button class="btn" onclick="copyImage('{img_abs}', this)" title="复制首图 → Cmd+V 到小红书">📋 首图</button>
+        <button class="btn" onclick="copyAll('{post_id}')" title="标题+观点+图注+标签">📝 全文案</button>
+        <button class="btn" onclick="saveEdits('{post_id}')" title="保存编辑到文件">💾 保存</button>
+        <button class="btn fb" onclick="recordFeedback('{post_id}')" title="发布后录入互动数据">📊 反馈</button>
+      </div>
     </article>""")
 
     pillar_summary = " · ".join(f"{PILLAR_LABELS.get(k, k)}: {v}" for k, v in pillar_counts.items())
@@ -943,221 +946,169 @@ def _generate_queue_html(batch_dir: Path, post_dirs: list[Path], date_str: str):
 <title>编辑台 — {date_str}</title>
 <style>
   :root {{
-    --bg:#201e1c; --panel:#26231f; --card:#2d2a24; --card-edge:#3b362d;
-    --ink:#e9e3d8; --mut:#a29a8d; --faint:#6e675d;
-    --accent:#e0933c; --accent-dim:#8a622f;
-    --green:#8f9a6b; --red:#c6462e;
-    --line:#3b362d;
-    --mono:"SF Mono", Menlo, monospace;
-    --serif:"Songti SC","Noto Serif SC",Georgia,serif;
+    --bg:#f5f5f7; --card:#ffffff; --ink:#1d1d1f; --mut:#6e6e73; --faint:#aeaeb2;
+    --line:#e5e5ea; --green:#1a6b4f; --green-soft:#eef5f1; --red:#c0392b;
+    --mono:"SF Mono",Menlo,monospace;
     --sans:-apple-system,"PingFang SC",sans-serif;
   }}
-  @media (prefers-color-scheme: light) {{
-    :root {{
-      --bg:#e7e4dd; --panel:#efede7; --card:#f8f5ef; --card-edge:#d8d2c4;
-      --ink:#26231f; --mut:#6e675d; --faint:#a09a8d; --line:#d8d2c4;
-    }}
-  }}
-  * {{ box-sizing: border-box; }}
-  body {{ margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); }}
-  .mono {{ font-family:var(--mono); }}
+  * {{ box-sizing:border-box; margin:0; padding:0; }}
+  body {{ background:var(--bg); color:var(--ink); font-family:var(--sans); -webkit-font-smoothing:antialiased; }}
+  .bar {{ height:3px; background:var(--green); }}
 
-  .wrap {{ max-width:1100px; margin:0 auto; padding:32px 20px 80px; }}
+  .wrap {{ max-width:1000px; margin:0 auto; padding:0 20px 80px; }}
 
-  /* ── Header ── */
-  .masthead {{ display:flex; justify-content:space-between; align-items:flex-end; border-bottom:1px solid var(--line); padding-bottom:16px; margin-bottom:20px; }}
-  .masthead h1 {{ font-family:var(--serif); font-size:30px; font-weight:600; margin:0; letter-spacing:.01em; }}
-  .masthead .dot {{ color:var(--accent); }}
-  .masthead .sub {{ font-size:13px; color:var(--mut); margin-top:4px; }}
-  .masthead .stats {{ font-family:var(--mono); font-size:12px; color:var(--mut); text-align:right; }}
-  .masthead nav {{ margin-top:8px; }}
-  .masthead nav a {{ color:var(--mut); text-decoration:none; font-size:13px; margin-left:14px; }}
-  .masthead nav a:hover {{ color:var(--ink); }}
+  .top {{ display:flex; justify-content:space-between; align-items:center; padding:26px 0 18px; }}
+  .top .brand {{ font-size:24px; font-weight:700; letter-spacing:-.02em; }}
+  .top .brand .dot {{ color:var(--green); }}
+  .top .meta {{ font-size:13px; color:var(--mut); }}
+  .top nav a {{ font-size:13px; color:var(--mut); text-decoration:none; margin-left:18px; }}
+  .top nav a:hover {{ color:var(--ink); }}
 
-  /* ── Toolbar ── */
-  .toolbar {{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:24px; }}
-  .toolbar button {{
-    padding:7px 14px; border:1px solid var(--line); border-radius:4px; background:var(--panel);
-    color:var(--ink); cursor:pointer; font-size:13px;
-  }}
-  .toolbar button:hover {{ border-color:var(--accent); }}
-  .toolbar .save-all {{ background:var(--accent); color:var(--accent-ink,#241a0e); border-color:var(--accent); font-weight:600; }}
-  .toolbar .spacer {{ flex:1; }}
-  .pillar-filter {{ display:flex; gap:6px; flex-wrap:wrap; }}
-  .pillar-filter button {{
-    padding:5px 12px; font-size:12px; border:1px solid var(--line); border-radius:20px;
-    background:transparent; color:var(--mut); cursor:pointer;
-  }}
-  .pillar-filter button.on {{ background:var(--card); color:var(--ink); border-color:var(--accent); }}
+  .intro {{ padding:6px 0 22px; }}
+  .intro h1 {{ font-size:28px; font-weight:700; letter-spacing:-.02em; margin-bottom:6px; }}
+  .intro p {{ font-size:14px; color:var(--mut); }}
 
-  /* ── Pack card: 暗房打样纸 ── */
-  .card {{
-    background:var(--card); border:1px solid var(--card-edge); border-radius:8px;
-    margin-bottom:28px; padding:20px 20px 16px; position:relative;
-    box-shadow:0 2px 0 rgba(0,0,0,.25), 0 12px 32px rgba(0,0,0,.35);
-  }}
-  .card.published {{ opacity:.4; }}
-  .select-cb {{ position:absolute; top:18px; left:18px; width:16px; height:16px; cursor:pointer; z-index:5; }}
+  .steps {{ display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-bottom:16px; }}
+  @media (max-width:820px) {{ .steps {{ grid-template-columns:repeat(2,1fr); }} }}
+  .step {{ background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px; }}
+  .step .n {{ font-size:11px; font-weight:700; color:var(--green); margin-bottom:5px; }}
+  .step b {{ display:block; font-size:13px; margin-bottom:2px; }}
+  .step span {{ font-size:12px; color:var(--mut); line-height:1.5; }}
 
-  .card-head {{ display:flex; align-items:center; gap:10px; padding-left:34px; margin-bottom:14px; }}
-  .plan-no {{ font-size:11px; letter-spacing:.14em; color:var(--accent); border:1px solid var(--accent-dim); border-radius:3px; padding:3px 8px; }}
-  .pillar-chip {{ font-size:12px; color:var(--mut); }}
-  .pillar-chip[data-pillar="lookbook"]::before {{ content:"👔 "; }}
-  .pillar-chip[data-pillar="daily_archive"]::before {{ content:"📔 "; }}
-  .pillar-chip[data-pillar="moving_taste"]::before {{ content:"🎬 "; }}
-  .pillar-chip[data-pillar="reading_taste"]::before {{ content:"📖 "; }}
-  .pillar-chip[data-pillar="product_seeds"]::before {{ content:"🔧 "; }}
-  .plan-score {{ font-size:11px; color:var(--faint); margin-left:auto; }}
-  .card-status {{ font-size:16px; cursor:pointer; }}
+  .toolbar {{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:22px; }}
+  .btn {{ font-size:13px; font-weight:500; padding:7px 14px; border-radius:10px; border:1px solid var(--line); background:var(--card); color:var(--ink); cursor:pointer; }}
+  .btn:hover {{ border-color:var(--green); }}
+  .btn.primary {{ background:var(--green); border-color:var(--green); color:#fff; }}
+  .filters {{ display:flex; gap:6px; margin-left:auto; flex-wrap:wrap; }}
+  .filter {{ font-size:12px; padding:6px 12px; border-radius:20px; border:1px solid var(--line); background:var(--card); color:var(--mut); cursor:pointer; }}
+  .filter.on {{ background:var(--green-soft); border-color:var(--green); color:var(--green); font-weight:600; }}
+  #counter {{ font-size:12px; color:var(--faint); margin-left:10px; }}
 
-  .card-main {{ display:flex; gap:24px; align-items:flex-start; }}
-  @media (max-width:820px) {{ .card-main {{ flex-direction:column; }} }}
+  /* ── 方案卡 ── */
+  .plan {{ position:relative; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:20px; margin-bottom:20px; }}
+  .plan.published {{ opacity:.4; }}
+  .select-cb {{ position:absolute; top:22px; left:20px; width:16px; height:16px; cursor:pointer; z-index:5; }}
+  .plan-head {{ display:flex; align-items:center; gap:10px; padding-left:26px; margin-bottom:16px; }}
+  .pill {{ background:var(--green-soft); color:var(--green); font-size:12px; font-weight:600; padding:4px 12px; border-radius:20px; }}
+  .pill-no {{ font-size:12px; color:var(--mut); }}
+  .score {{ font-size:12px; color:var(--faint); margin-left:auto; }}
+  .status {{ font-size:15px; cursor:pointer; }}
 
-  /* ── 联系表 9 帧（胶片齿孔签名） ── */
-  .sheet {{
-    flex-shrink:0; display:grid; grid-template-columns:repeat(3, 150px); gap:8px;
-    background:#171512; padding:14px 12px 10px; border-radius:4px; position:relative;
-  }}
-  .sheet::before, .sheet::after {{
-    content:""; display:block; height:9px; position:absolute; left:0; right:0;
-    background-image:radial-gradient(circle, var(--card) 2px, transparent 2.6px);
-    background-size:22px 9px; background-repeat:repeat-x;
-  }}
-  .sheet::before {{ top:3px; }}
-  .sheet::after {{ bottom:3px; }}
-  @media (prefers-color-scheme: light) {{ .sheet {{ background:#171512; }} }}
-  .frame {{ position:relative; margin:0; width:150px; }}
-  .grid-img {{
-    width:100%; aspect-ratio:3/4; object-fit:cover; border-radius:2px; display:block;
-    cursor:pointer; border:2px solid transparent; transition:border-color .15s;
-  }}
-  .grid-img:hover {{ border-color:var(--accent); }}
-  .frame-num {{ position:absolute; left:4px; bottom:4px; font-size:10px; color:#d8d2c6; background:rgba(0,0,0,.55); padding:1px 5px; border-radius:2px; }}
-  .thumb-replace {{
-    position:absolute; top:4px; right:4px; width:22px; height:22px; border-radius:4px;
-    background:rgba(0,0,0,.6); color:#fff; font-size:12px; line-height:22px; text-align:center;
+  .plan-main {{ display:grid; grid-template-columns:1fr 1.3fr; gap:24px; }}
+  @media (max-width:820px) {{ .plan-main {{ grid-template-columns:1fr; }} }}
+
+  .sheet {{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }}
+  .frame {{ position:relative; aspect-ratio:3/4; border-radius:10px; overflow:hidden; background:#eee; }}
+  .grid-img {{ width:100%; height:100%; object-fit:cover; display:block; cursor:pointer; transition:transform .15s; }}
+  .grid-img:hover {{ transform:scale(1.03); }}
+  .frame .num {{ position:absolute; left:6px; bottom:6px; font-size:10px; font-weight:600; color:#fff; background:rgba(0,0,0,.45); padding:2px 6px; border-radius:6px; }}
+  .frame .swap {{
+    position:absolute; top:6px; right:6px; width:24px; height:24px; border-radius:8px;
+    background:rgba(0,0,0,.5); color:#fff; font-size:13px; line-height:24px; text-align:center;
     cursor:pointer; opacity:0; transition:opacity .15s;
   }}
-  .frame:hover .thumb-replace {{ opacity:1; }}
-  .card-img {{ width:220px; border-radius:4px; cursor:pointer; flex-shrink:0; }}
+  .frame:hover .swap {{ opacity:1; }}
+  .card-img {{ width:100%; border-radius:10px; cursor:pointer; }}
 
-  /* ── 文案栏 ── */
-  .card-copy {{ flex:1; min-width:0; }}
-  .card-title {{
-    font-family:var(--serif); font-size:20px; font-weight:600; line-height:1.4;
-    padding:2px 4px; border-radius:3px; outline:none; border:1px solid transparent;
-  }}
-  .card-title:focus {{ border-color:var(--accent); background:rgba(224,147,60,.06); }}
-  .copy-label {{ font-size:10px; letter-spacing:.12em; color:var(--faint); margin:12px 4px 4px; }}
-  .card-draft {{
-    font-family:var(--serif); font-size:14px; line-height:1.8; color:var(--ink);
-    border-left:2px solid var(--accent); padding:6px 10px; border-radius:2px;
-    background:rgba(224,147,60,.05); outline:none; white-space:pre-line;
-  }}
-  .card-draft:focus {{ border-color:var(--accent); }}
-  .card-text {{
-    font-size:13px; color:var(--mut); line-height:1.7; white-space:pre-line;
-    padding:2px 4px; border-radius:3px; outline:none; border:1px solid transparent; min-height:24px;
-  }}
-  .card-text:focus {{ border-color:var(--accent); color:var(--ink); }}
-  .card-tags {{
-    font-size:12px; color:var(--green); word-break:break-all;
-    padding:2px 4px; border-radius:3px; outline:none; border:1px solid transparent;
-  }}
-  .card-tags:focus {{ border-color:var(--accent); }}
+  .title {{ font-size:22px; font-weight:700; letter-spacing:-.01em; margin-bottom:2px; padding:2px 4px; border-radius:8px; outline:none; border:1px solid transparent; }}
+  .title:focus {{ border-color:var(--green); background:var(--green-soft); }}
+  .label {{ font-size:11px; font-weight:600; color:var(--mut); text-transform:uppercase; letter-spacing:.06em; margin:14px 4px 6px; }}
+  .draft {{ font-size:14px; line-height:1.8; background:var(--green-soft); border-radius:10px; padding:12px 14px; outline:none; border:1px solid transparent; white-space:pre-line; }}
+  .draft:focus {{ border-color:var(--green); }}
+  .caps {{ font-size:13px; line-height:1.9; color:var(--mut); white-space:pre-line; padding:2px 4px; border-radius:8px; outline:none; border:1px solid transparent; }}
+  .caps:focus {{ border-color:var(--green); color:var(--ink); }}
+  .tags {{ font-size:12px; color:var(--green); padding:2px 4px; border-radius:8px; outline:none; border:1px solid transparent; }}
+  .tags:focus {{ border-color:var(--green); }}
 
-  /* ── 策展逻辑条 ── */
-  .curation-logic {{ margin-top:16px; border-top:1px dashed var(--line); padding-top:10px; display:flex; flex-wrap:wrap; gap:10px; align-items:center; }}
-  .logic-label {{ font-size:11px; letter-spacing:.1em; color:var(--accent); }}
-  .logic-chips {{ display:flex; gap:6px; flex-wrap:wrap; }}
-  .logic-chip {{
-    font-size:12px; color:var(--ink); background:var(--panel); border:1px solid var(--line);
-    border-radius:3px; padding:2px 8px;
-  }}
-  .logic-chip i {{ font-style:normal; color:var(--accent); margin-left:4px; }}
-  .logic-empty {{ font-size:12px; color:var(--faint); }}
-  .logic-meta {{ font-size:10px; color:var(--faint); margin-left:auto; }}
+  .logic {{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; border-top:1px solid var(--line); margin-top:16px; padding-top:12px; }}
+  .logic .lbl {{ font-size:11px; font-weight:600; color:var(--green); }}
+  .chip {{ font-size:12px; background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:3px 10px; }}
+  .chip i {{ font-style:normal; color:var(--green); margin-left:4px; font-weight:600; }}
+  .logic .meta {{ font-size:11px; color:var(--faint); margin-left:auto; }}
 
-  .card-actions {{ display:flex; gap:8px; margin-top:12px; }}
-  .card-actions button {{
-    padding:6px 12px; font-size:12px; border:1px solid var(--line); border-radius:4px;
-    background:var(--panel); color:var(--ink); cursor:pointer;
-  }}
-  .card-actions button:hover {{ border-color:var(--accent); }}
-  .card-actions .fb-btn {{ color:var(--red); }}
+  .actions {{ display:flex; gap:8px; margin-top:14px; }}
+  .actions .fb {{ color:var(--red); }}
 
   /* ── Modals ── */
   .modal-overlay {{
-    display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:1000;
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:1000;
     justify-content:center; align-items:center;
   }}
   .modal-overlay.show {{ display:flex; }}
   .modal {{
-    background:var(--card); border:1px solid var(--card-edge); border-radius:10px;
-    padding:24px; max-width:640px; width:92%; box-shadow:0 18px 60px rgba(0,0,0,.5);
+    background:var(--card); border-radius:16px; padding:24px; max-width:640px; width:92%;
+    box-shadow:0 20px 60px rgba(0,0,0,.2);
   }}
-  .modal h2 {{ font-family:var(--serif); font-size:18px; margin:0 0 14px; }}
+  .modal h2 {{ font-size:18px; font-weight:700; margin:0 0 14px; }}
   .modal label {{ display:block; font-size:13px; color:var(--mut); margin-bottom:4px; }}
   .modal input {{
-    width:100%; padding:8px 12px; border:1px solid var(--line); border-radius:6px;
-    font-size:14px; margin-bottom:12px; background:var(--panel); color:var(--ink);
+    width:100%; padding:9px 12px; border:1px solid var(--line); border-radius:10px;
+    font-size:14px; margin-bottom:12px; background:var(--bg); color:var(--ink); outline:none;
   }}
+  .modal input:focus {{ border-color:var(--green); }}
   .modal .row {{ display:flex; gap:8px; }}
   .modal .row input {{ flex:1; }}
-  .modal button {{ padding:8px 16px; border:none; border-radius:6px; cursor:pointer; font-size:14px; }}
-  .modal .btn-save {{ background:var(--red); color:#fff; }}
-  .modal .btn-cancel {{ background:var(--panel); color:var(--mut); border:1px solid var(--line); }}
+  .modal .btn-save {{ background:var(--green); color:#fff; padding:9px 18px; border:none; border-radius:10px; cursor:pointer; font-size:14px; }}
+  .modal .btn-cancel {{ background:var(--bg); color:var(--mut); border:1px solid var(--line); padding:9px 18px; border-radius:10px; cursor:pointer; font-size:14px; }}
   .rm-grid {{ display:grid; grid-template-columns:repeat(5,1fr); gap:6px; max-height:440px; overflow-y:auto; }}
-  .rm-grid img {{ width:100%; aspect-ratio:3/4; object-fit:cover; border-radius:4px; border:2px solid transparent; cursor:pointer; }}
-  .rm-grid img:hover {{ border-color:var(--accent); }}
-  .rm-grid .rm-cap {{ font-size:10px; color:var(--mut); text-align:center; margin-top:2px; }}
+  .rm-grid img {{ width:100%; aspect-ratio:3/4; object-fit:cover; border-radius:8px; border:2px solid transparent; cursor:pointer; }}
+  .rm-grid img:hover {{ border-color:var(--green); }}
+  .rm-cap {{ font-size:10px; color:var(--mut); text-align:center; margin-top:2px; }}
 
   .toast {{
     position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
-    background:var(--ink); color:var(--bg); padding:10px 24px; border-radius:6px;
+    background:var(--ink); color:#fff; padding:10px 22px; border-radius:12px;
     font-size:14px; z-index:1999; animation:fadeOut 2.2s forwards; pointer-events:none;
   }}
   @keyframes fadeOut {{ 0%,60% {{ opacity:1; }} 100% {{ opacity:0; }} }}
 
-  .footer {{ text-align:center; color:var(--faint); font-size:12px; margin-top:36px; }}
+  .foot {{ text-align:center; font-size:12px; color:var(--faint); margin-top:34px; }}
 </style>
 </head>
 <body>
+<div class="bar"></div>
 <div class="wrap">
 
-<div class="masthead">
-  <div>
-    <h1>moodboard<span class="dot">.</span></h1>
-    <div class="sub">编辑台 · {date_str} · 机器出方案，人做判断</div>
-  </div>
-  <div class="stats">
-    {len(post_dirs)} 套方案 · 每套 9 帧<br>
-    <nav>
-      <a href="/">🏠 工作台</a>
-      <a href="/publish-log">📓 发布登记</a>
-      <a href="/sources">📡 信息源</a>
-      <a href="#" onclick="showWeeklyReport()">📊 周报</a>
-      <a href="http://127.0.0.1:8787">⚙️ 系统台</a>
-    </nav>
-  </div>
+<div class="top">
+  <div class="brand">moodboard<span class="dot">.</span></div>
+  <div class="meta">{date_str} · {len(post_dirs)} 套方案 · 机器出方案，人做判断</div>
+  <nav>
+    <a href="/">🏠 首页</a>
+    <a href="/publish-log">📓 发布登记</a>
+    <a href="/sources">📡 信息源</a>
+    <a href="#" onclick="showWeeklyReport()">📊 周报</a>
+    <a href="http://127.0.0.1:8787">⚙️ 系统台</a>
+  </nav>
+</div>
+
+<div class="intro">
+  <h1>今天发哪套？</h1>
+  <p>机器从全库未发布档案里准备了 {len(post_dirs)} 套方案。挑一套，换图，改写观点，然后发布。</p>
+</div>
+
+<div class="steps">
+  <div class="step"><span class="n">1</span><b>挑一套</b><span>每套一个切入点</span></div>
+  <div class="step"><span class="n">2</span><b>换图</b><span>悬停帧上 ⇄，图注自动同步</span></div>
+  <div class="step"><span class="n">3</span><b>改写观点</b><span>终稿必须是你的话</span></div>
+  <div class="step"><span class="n">4</span><b>发布</b><span>复制全文案，手动发</span></div>
+  <div class="step"><span class="n">5</span><b>登记</b><span>30 秒，24/48h 回填</span></div>
 </div>
 
 <div class="toolbar">
-  <button onclick="selectAll()">☑ 全选</button>
-  <button onclick="deselectAll()">☐ 取消全选</button>
-  <button onclick="openSelected()">📁 打开选中</button>
-  <button class="save-all" onclick="saveAllEdits()">💾 全部保存</button>
-  <button onclick="markAllDone()">✅ 全部标为已发</button>
-  <span class="spacer"></span>
-  <div class="pillar-filter">
-    <button class="on" data-p="all" onclick="filterByPillar('all',this)">全部</button>
-    <button data-p="lookbook" onclick="filterByPillar('lookbook',this)">👔 Lookbook</button>
-    <button data-p="daily_archive" onclick="filterByPillar('daily_archive',this)">📔 日常档案</button>
-    <button data-p="moving_taste" onclick="filterByPillar('moving_taste',this)">🎬 影像</button>
-    <button data-p="reading_taste" onclick="filterByPillar('reading_taste',this)">📖 阅读</button>
-    <button data-p="product_seeds" onclick="filterByPillar('product_seeds',this)">🔧 产品</button>
+  <button class="btn" onclick="selectAll()">☑ 全选</button>
+  <button class="btn" onclick="deselectAll()">☐ 取消全选</button>
+  <button class="btn" onclick="openSelected()">📁 打开选中</button>
+  <button class="btn primary" onclick="saveAllEdits()">💾 全部保存</button>
+  <button class="btn" onclick="markAllDone()">✅ 全部标为已发</button>
+  <div class="filters">
+    <button class="filter on" data-p="all" onclick="filterByPillar('all',this)">全部</button>
+    <button class="filter" data-p="lookbook" onclick="filterByPillar('lookbook',this)">👔 Lookbook</button>
+    <button class="filter" data-p="daily_archive" onclick="filterByPillar('daily_archive',this)">📔 日常档案</button>
+    <button class="filter" data-p="moving_taste" onclick="filterByPillar('moving_taste',this)">🎬 影像</button>
+    <button class="filter" data-p="reading_taste" onclick="filterByPillar('reading_taste',this)">📖 阅读</button>
+    <button class="filter" data-p="product_seeds" onclick="filterByPillar('product_seeds',this)">🔧 产品</button>
   </div>
-  <span class="mono" style="font-size:12px;color:var(--mut)" id="counter">{len(post_dirs)} 待发</span>
+  <span id="counter">{len(post_dirs)} 待发</span>
 </div>
 
 {''.join(cards)}
@@ -1187,7 +1138,7 @@ def _generate_queue_html(batch_dir: Path, post_dirs: list[Path], date_str: str):
 <!-- Replace Image Modal -->
 <div class="modal-overlay" id="replace-modal">
   <div class="modal">
-    <h2>⇄ 换图 — <span id="rm-pos" class="mono"></span></h2>
+    <h2>⇄ 换图 — <span id="rm-pos" class="mono" style="font-family:var(--mono)"></span></h2>
     <div style="font-size:12px;color:var(--mut);margin-bottom:10px">候选池 = 全库未发布档案（按评分排序）。点击一张即替换，图注自动同步。</div>
     <div class="rm-grid" id="rm-grid">加载中...</div>
     <div style="margin-top:16px;text-align:right">
@@ -1207,9 +1158,7 @@ def _generate_queue_html(batch_dir: Path, post_dirs: list[Path], date_str: str):
   </div>
 </div>
 
-<div class="footer">
-  点击缩略图 → Preview 打开 · 悬停帧 ⇄ 换图（图注自动同步）· 文字直接编辑 · 💾 保存落盘 · 发完 📊 反馈
-</div>
+<div class="foot">点击缩略图 → Preview 打开 · 悬停帧 ⇄ 换图（图注自动同步）· 文字直接编辑 · 💾 保存落盘 · 发完 📊 反馈</div>
 
 </div>
 
@@ -1244,10 +1193,10 @@ async function copyImage(path, btn) {{
 }}
 function copyAll(postId) {{
     const card = document.getElementById(postId);
-    const title = card.querySelector('.card-title').innerText;
-    const body = card.querySelector('.card-text').innerText;
-    const tags = card.querySelector('.card-tags').innerText;
-    const draftEl = card.querySelector('.card-draft');
+    const title = card.querySelector('.title').innerText;
+    const body = card.querySelector('.caps').innerText;
+    const tags = card.querySelector('.tags').innerText;
+    const draftEl = card.querySelector('.draft');
     const draft = draftEl ? draftEl.innerText.replace(/^💭\\s*/, '').trim() : '';
     const parts = [title, draft, body, tags].filter(p => p);
     copyToClipboard(parts.join('\\n\\n'));
@@ -1256,10 +1205,10 @@ function copyAll(postId) {{
 // ── Inline editing: save to file ──
 async function saveEdits(postId) {{
     const card = document.getElementById(postId);
-    const title = card.querySelector('.card-title');
-    const body = card.querySelector('.card-text');
-    const tags = card.querySelector('.card-tags');
-    const draft = card.querySelector('.card-draft');
+    const title = card.querySelector('.title');
+    const body = card.querySelector('.caps');
+    const tags = card.querySelector('.tags');
+    const draft = card.querySelector('.draft');
 
     const titleFile = title.dataset.file;
     const bodyFile = body.dataset.file;
@@ -1290,7 +1239,7 @@ async function saveEdits(postId) {{
 }}
 
 async function saveAllEdits() {{
-    const cards = document.querySelectorAll('.card');
+    const cards = document.querySelectorAll('.plan');
     let count = 0;
     for (const card of cards) {{
         await saveEdits(card.id);
@@ -1363,7 +1312,7 @@ async function showWeeklyReport() {{
         }}
         document.getElementById('report-content').innerHTML = html;
     }} catch(e) {{
-        document.getElementById('report-content').innerHTML = '<p style="color:#c6462e">API 未连接。请先启动: python taste_graph_ai/server.py</p>';
+        document.getElementById('report-content').innerHTML = '<p style="color:#c0392b">API 未连接。请先启动: python taste_graph_ai/server.py</p>';
     }}
 }}
 function closeReport() {{
@@ -1372,9 +1321,9 @@ function closeReport() {{
 
 // ── Pillar filter (chips) ──
 function filterByPillar(pillar, btn) {{
-    document.querySelectorAll('.pillar-filter button').forEach(b => b.classList.remove('on'));
+    document.querySelectorAll('.filter').forEach(b => b.classList.remove('on'));
     if (btn) btn.classList.add('on');
-    document.querySelectorAll('.card').forEach(card => {{
+    document.querySelectorAll('.plan').forEach(card => {{
         if (pillar === 'all' || card.dataset.pillar === pillar) {{
             card.style.display = 'block';
         }} else {{
@@ -1415,26 +1364,26 @@ function openSelected() {{
     }});
 }}
 function markAllDone() {{
-    document.querySelectorAll('.card').forEach(c => c.classList.add('published'));
-    document.querySelectorAll('.card-status').forEach(s => s.innerText = '✅');
+    document.querySelectorAll('.plan').forEach(c => c.classList.add('published'));
+    document.querySelectorAll('.status').forEach(s => s.innerText = '✅');
     updateCounter();
     toast('已标记 ✓');
 }}
 function updateCounter() {{
-    const total = document.querySelectorAll('.card').length;
-    const published = document.querySelectorAll('.card.published').length;
+    const total = document.querySelectorAll('.plan').length;
+    const published = document.querySelectorAll('.plan.published').length;
     document.getElementById('counter').innerText = (total - published) + ' 待发 · ' + published + ' 已发';
 }}
 
 // ── Restore saved edits from localStorage ──
-document.querySelectorAll('.card').forEach(card => {{
+document.querySelectorAll('.plan').forEach(card => {{
     const pid = card.id;
     ['title', 'body', 'tags', 'draft'].forEach(field => {{
         const saved = localStorage.getItem(pid + '-' + field);
         if (saved) {{
             const el = card.querySelector(
-                field === 'title' ? '.card-title' : field === 'body' ? '.card-text' :
-                field === 'tags' ? '.card-tags' : '.card-draft');
+                field === 'title' ? '.title' : field === 'body' ? '.caps' :
+                field === 'tags' ? '.tags' : '.draft');
             if (!el) return;
             const current = field === 'draft' ? el.innerText.replace(/^💭\\s*/, '') : el.innerText;
             if (current !== saved) el.innerText = saved;
@@ -1479,12 +1428,11 @@ async function loadCandidates() {{
         grid.innerHTML = imgs.map(im => {{
             const kw = (im.keywords && im.keywords.length) ? im.keywords.slice(0,4).join(' ') : '';
             return '<div onclick="confirmReplace(' + _js(im.local_path) + ',' + _js(kw) + ',' + _js(im.source_name) + ')">' +
-                '<img src="' + im.src.replace(/&/g,'&amp;').replace(/"/g,'&quot;') + '" loading="lazy" title="' +
-                im.source_name.replace(/[&<>\"]/g, c => ({{'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}})[c]) + '">' +
-                '<div class="rm-cap mono">' + im.final_score + '</div></div>';
+                '<img src="' + im.src.replace(/&/g,'&amp;').replace(/"/g,'&quot;') + '" loading="lazy">' +
+                '<div class="rm-cap mono" style="font-family:var(--mono)">' + im.final_score + '</div></div>';
         }}).join('');
     }} catch(e) {{
-        grid.innerHTML = '<p style="color:#c6462e">候选池加载失败 — 请确认 8787 服务在跑。</p>';
+        grid.innerHTML = '<p style="color:#c0392b">候选池加载失败 — 请确认 8787 服务在跑。</p>';
     }}
 }}
 async function confirmReplace(src, kw, srcname) {{
@@ -1501,7 +1449,7 @@ async function confirmReplace(src, kw, srcname) {{
             const thumb = card.querySelector('.grid-img[data-pos="' + pos + '"]');
             if (thumb) thumb.src = '/' + data.rel + '?t=' + Date.now();
             if (data.caption) {{
-                const bodyEl = card.querySelector('.card-text');
+                const bodyEl = card.querySelector('.caps');
                 const lines = bodyEl.innerText.split('\\n');
                 const pat = new RegExp('^' + String(pos).padStart(2,'0') + ' ');
                 let found = false;
