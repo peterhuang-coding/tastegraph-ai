@@ -46,7 +46,7 @@ POSTS_DIR = BASE_DIR / "posts"
 HASHTAGS = ["#moodboard", "#审美积累", "#穿搭参考"]
 
 # QUEUE.html 模板版本戳（auto_deploy 用它判断是否需要重生成今日包）
-TEMPLATE_VERSION = "2026-08-25.4"
+TEMPLATE_VERSION = "2026-08-25.5"
 
 # Taste concept bank for CLIP auto-tagging when keywords are missing
 TASTE_CONCEPTS = [
@@ -1261,26 +1261,30 @@ async function submitFeedback() {{
     const likes = parseInt(document.getElementById('fb-likes').value) || 0;
     const saves = parseInt(document.getElementById('fb-saves').value) || 0;
     const comments = parseInt(document.getElementById('fb-comments').value) || 0;
-    const shares = parseInt(document.getElementById('fb-shares').value) || 0;
 
     try {{
-        const resp = await fetch('/api/v1/feedback/publish-metrics', {{
+        // 单一入口：写发布账本（有真实数据时服务端自动镜像到图谱做调权）
+        const resp = await fetch('/publish-entries', {{
             method: 'POST',
             headers: {{'Content-Type': 'application/json'}},
-            body: JSON.stringify({{pack_id: packId, likes, saves, comments, shares, post_url: ''}})
+            body: JSON.stringify({{
+                pack: packId, time: new Date().toISOString(),
+                l24: likes, s24: saves, c24: comments
+            }})
         }});
         const data = await resp.json();
-        toast('📊 已录入 · 互动分: ' + data.engagement_score + '/10 · 图谱调权: ' + (data.delta > 0 ? '+' : '') + data.delta);
+        toast('📊 已登记到发布账本 · 24h 后回填到 /publish-log');
         closeFeedback();
 
         const card = document.getElementById(packId);
         if (card) {{
             card.classList.add('published');
             document.getElementById('status-' + packId).innerText = '✅';
+            localStorage.setItem(packId + '-published', '1');
             updateCounter();
         }}
     }} catch(e) {{
-        toast('❌ 录入失败，请确认 API 服务已启动');
+        toast('❌ 登记失败，请确认工作台服务在跑');
     }}
 }}
 
@@ -1332,16 +1336,18 @@ function filterByPillar(pillar, btn) {{
     }});
 }}
 
-// ── Published toggle ──
+// ── Published toggle（持久化到 localStorage，刷新不丢） ──
 function togglePublished(postId) {{
     const card = document.getElementById(postId);
     const status = document.getElementById('status-' + postId);
     if (card.classList.contains('published')) {{
         card.classList.remove('published');
         status.innerText = '⏳';
+        localStorage.setItem(postId + '-published', '0');
     }} else {{
         card.classList.add('published');
         status.innerText = '✅';
+        localStorage.setItem(postId + '-published', '1');
     }}
     updateCounter();
 }}
@@ -1364,7 +1370,10 @@ function openSelected() {{
     }});
 }}
 function markAllDone() {{
-    document.querySelectorAll('.plan').forEach(c => c.classList.add('published'));
+    document.querySelectorAll('.plan').forEach(c => {{
+        c.classList.add('published');
+        localStorage.setItem(c.id + '-published', '1');
+    }});
     document.querySelectorAll('.status').forEach(s => s.innerText = '✅');
     updateCounter();
     toast('已标记 ✓');
@@ -1390,6 +1399,15 @@ document.querySelectorAll('.plan').forEach(card => {{
         }}
     }});
 }});
+
+// ── Restore published state（F5: 已发标记刷新不丢） ──
+document.querySelectorAll('.plan').forEach(card => {{
+    if (localStorage.getItem(card.id + '-published') === '1') {{
+        card.classList.add('published');
+        document.getElementById('status-' + card.id).innerText = '✅';
+    }}
+}});
+updateCounter();
 
 // ── Auto-save on blur ──
 document.querySelectorAll('[contenteditable="true"]').forEach(el => {{

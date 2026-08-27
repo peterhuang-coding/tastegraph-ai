@@ -383,6 +383,37 @@ class QueueHandler(http.server.SimpleHTTPRequestHandler):
         PUBLISH_LOG_PATH.write_text(json.dumps(entries, ensure_ascii=False, indent=2), encoding="utf-8")
         self._json({"ok": True, "entries": entries})
 
+        # ── 数据单源化：publish-log 为唯一入口，有真实数据时镜像到图谱做调权 ──
+        def _num(v):
+            try:
+                return int(float(v))
+            except (TypeError, ValueError):
+                return 0
+
+        if not payload.get("delete"):
+            likes = _num(payload.get("l24")) + _num(payload.get("l48"))
+            saves = _num(payload.get("s24")) + _num(payload.get("s48"))
+            comments = _num(payload.get("c24")) + _num(payload.get("c48"))
+            if likes or saves or comments:
+                try:
+                    metrics = {
+                        "pack_id": payload.get("pack", ""),
+                        "likes": likes,
+                        "saves": saves,
+                        "comments": comments,
+                        "shares": 0,
+                        "post_url": payload.get("link", ""),
+                    }
+                    req = urllib.request.Request(
+                        UPSTREAM_API + "/api/v1/feedback/publish-metrics",
+                        data=json.dumps(metrics).encode("utf-8"),
+                        method="POST",
+                        headers={"Content-Type": "application/json"},
+                    )
+                    urllib.request.urlopen(req, timeout=10).read()
+                except Exception:
+                    pass  # 图谱不在线不阻塞登记
+
     def _caption_for_frame(self, pack_dir: Path, kw: str, srcname: str) -> str:
         """为换入的第 N 帧生成一句话图注（DeepSeek，失败则模板）。含来源后缀。"""
         ctx = ""
