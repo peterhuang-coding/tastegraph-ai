@@ -26,6 +26,50 @@ PUBLISH_LOG_PATH = BASE_DIR / "data" / "publish_log.json"
 PORT = int(os.environ.get("QUEUE_PORT", "8765"))
 UPSTREAM_API = "http://127.0.0.1:8787"  # 图谱/周报/候选池 API (taste_graph_ai server)
 
+_TREND_CSS = """
+:root { --bg:#f5f5f7; --card:#fff; --ink:#1d1d1f; --mut:#6e6e73; --line:#e5e5ea; --green:#1a6b4f; }
+* { box-sizing:border-box; margin:0; padding:0; }
+body { background:var(--bg); color:var(--ink); font-family:-apple-system,"PingFang SC",sans-serif; -webkit-font-smoothing:antialiased; }
+.bar { height:3px; background:var(--green); }
+.wrap { max-width:720px; margin:0 auto; padding:36px 20px 80px; }
+h1 { font-size:26px; font-weight:700; margin:18px 0 6px; }
+h2 { font-size:18px; font-weight:700; margin:26px 0 10px; color:var(--green); }
+h3 { font-size:15px; font-weight:600; margin:16px 0 6px; }
+p, li { font-size:14px; line-height:1.9; color:var(--ink); }
+ul { padding-left:20px; }
+blockquote { border-left:3px solid var(--green); padding:8px 14px; margin:12px 0; background:var(--card); border-radius:0 10px 10px 0; }
+.back { display:inline-block; margin-top:28px; font-size:13px; color:var(--mut); text-decoration:none; }
+.back:hover { color:var(--ink); }
+"""
+
+
+def _md_to_html(md: str) -> str:
+    """极简 markdown → HTML（够趋势简报用：标题/列表/引用/加粗）。"""
+    import html as _h
+    import re as _re
+    out = []
+    for line in md.splitlines():
+        s = line.rstrip()
+        if s.startswith("# "):
+            out.append(f"<h1>{_h.escape(s[2:])}</h1>")
+        elif s.startswith("## "):
+            out.append(f"<h2>{_h.escape(s[3:])}</h2>")
+        elif s.startswith("### "):
+            out.append(f"<h3>{_h.escape(s[4:])}</h3>")
+        elif s.startswith("> "):
+            out.append(f"<blockquote>{_h.escape(s[2:])}</blockquote>")
+        elif _re.match(r"^\d+\.\s", s):
+            out.append(f"<li>{_h.escape(_re.sub(r'^\\d+\\.\\s', '', s))}</li>")
+        elif s.startswith("- "):
+            out.append(f"<li>{_h.escape(s[2:])}</li>")
+        elif not s.strip():
+            continue
+        else:
+            t = _h.escape(s)
+            t = t.replace("**", "<b>", 1).replace("**", "</b>", 1)
+            out.append(f"<p>{t}</p>")
+    return "\\n".join(out)
+
 # 换图同步图注需要 DEEPSEEK_API_KEY（与 generate_publish_packs 同源 .env）
 try:
     from dotenv import load_dotenv
@@ -129,6 +173,29 @@ class QueueHandler(http.server.SimpleHTTPRequestHandler):
             latest = date_dirs[0]
             queue_href = f"/posts/{latest.name}/QUEUE.html"
             body = _INDEX_HTML.replace("{queue_href}", queue_href).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+
+        # ── /trend-report → 最新编前会纪要（周一 10:00 自动生成） ──
+        if parsed.path == "/trend-report":
+            reports = sorted((BASE_DIR / "data").glob("trend-report-*.md"), reverse=True)
+            if not reports:
+                self._json({"ok": False, "error": "暂无编前会纪要 — 周一 10:00 自动生成"}, status=404)
+                return
+            md = reports[0].read_text(encoding="utf-8")
+            html = (
+                "<!DOCTYPE html><html lang=\"zh-CN\"><head><meta charset=\"utf-8\">"
+                "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
+                f"<title>编前会 — {reports[0].stem}</title><style>{_TREND_CSS}</style></head><body>"
+                "<div class=\"bar\"></div><div class=\"wrap\">"
+                + _md_to_html(md)
+                + "<a class=\"back\" href=\"/posts/\">&larr; 回工作台</a></div></body></html>"
+            )
+            body = html.encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))

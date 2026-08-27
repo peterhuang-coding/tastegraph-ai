@@ -46,7 +46,7 @@ POSTS_DIR = BASE_DIR / "posts"
 HASHTAGS = ["#moodboard", "#审美积累", "#穿搭参考"]
 
 # QUEUE.html 模板版本戳（auto_deploy 用它判断是否需要重生成今日包）
-TEMPLATE_VERSION = "2026-08-25.5"
+TEMPLATE_VERSION = "2026-08-25.6"
 
 # Taste concept bank for CLIP auto-tagging when keywords are missing
 TASTE_CONCEPTS = [
@@ -1076,6 +1076,7 @@ def _generate_queue_html(batch_dir: Path, post_dirs: list[Path], date_str: str):
     <a href="/">🏠 首页</a>
     <a href="/publish-log">📓 发布登记</a>
     <a href="/sources">📡 信息源</a>
+    <a href="/trend-report">📝 编前会</a>
     <a href="#" onclick="showWeeklyReport()">📊 周报</a>
     <a href="http://127.0.0.1:8787">⚙️ 系统台</a>
   </nav>

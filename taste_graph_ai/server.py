@@ -38,6 +38,15 @@ app.add_middleware(
 
 app.include_router(api_router)
 
+# 归一：旧版信息源简报已废弃，重定向到工作台的 live 源面板（8766 /sources）
+from fastapi.responses import RedirectResponse
+
+
+@app.get("/SOURCES.html")
+def _legacy_sources_redirect():
+    return RedirectResponse("http://127.0.0.1:8766/sources")
+
+
 # Serve images directory (must be mounted before / to avoid interception)
 from taste_graph_ai.config import IMAGES_DIR, EXPORTS_DIR
 if IMAGES_DIR.exists():
