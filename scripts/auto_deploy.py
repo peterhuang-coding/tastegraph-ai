@@ -71,6 +71,13 @@ def main() -> None:
             return
         log(f"已合并: {' '.join(changed)}")
 
+        # ── 3.5 同步 origin/main（老板要求 GitHub main 自动保持最新） ──
+        r = run(["git", *PROXY, "-C", str(REPO), "push", "origin", "HEAD:main"])
+        if r.returncode == 0:
+            log("已同步 origin/main")
+        else:
+            log(f"同步 origin/main 失败: {r.stderr.strip()[:160]}")
+
         # ── 4. 服务端代码变了 → 重启工作台 ──
         if any("scripts/queue_server.py" in c for c in changed):
             subprocess.run(["pkill", "-f", "scripts/queue_server.py"], cwd=HOME)
