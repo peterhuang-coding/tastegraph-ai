@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
-"""Local server for the publish QUEUE — enables cross-domain image copy to clipboard.
+"""运营工作台 server — 人工策展 QUEUE 的本地 HTTP 入口。
 
 Run:  python scripts/queue_server.py
 Then: open http://localhost:8765
 
-Features:
-  - Serves QUEUE.html + images from a local HTTP origin
-  - /copy-image?path=...  → copies image file to macOS clipboard (Cmd+V into XHS)
-  - /open-folder?path=... → reveals in Finder
+设计原则（2026-09-08 安全收口）：
+  - 全部能力在浏览器内完成：页内预览、单张下载 <a download>、九图 ZIP 打包、
+    复制文案 navigator.clipboard；不再有任何 osascript / pbcopy / open 等
+    「远程操控 mini」的端点（剪贴板/Finder/Preview 在远程访问时本就无效）。
+  - 草稿编辑通过 /save-file 服务端落盘（权威），状态记 data/workbench_state.json。
+  - 自动发布永久禁用：本服务不含任何发布/登录/互动能力。
 """
 
 import http.server
+import io
 import json
 import os
 import shutil
@@ -18,11 +21,20 @@ import subprocess
 import sys
 import urllib.parse
 import urllib.request
+import zipfile
+from datetime import datetime, timezone
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+# 脚本直起（launchd / python3 scripts/queue_server.py）时 sys.path[0] 是 scripts/，
+# 项目根不在路径上，/sources 的 `from scripts.source_dashboard import build` 会崩；
+# 统一补上根目录（经 pipeline.py 模块方式启动时幂等无害）。
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
 POSTS_DIR = BASE_DIR / "posts"
 PUBLISH_LOG_PATH = BASE_DIR / "data" / "publish_log.json"
+INGEST_STATUS_PATH = BASE_DIR / "data" / "daily_ingestion_status.json"
+WORKBENCH_STATE_PATH = BASE_DIR / "data" / "workbench_state.json"
 PORT = int(os.environ.get("QUEUE_PORT", "8765"))
 # 绑定地址：默认环回（仅本机）。Tailscale/局域网访问设 QUEUE_HOST=0.0.0.0 或
 # tailscale IP，并配 TASTEGRAPH_ALLOWED_ORIGINS 白名单（见 docs/operations.md §7）。
@@ -42,6 +54,126 @@ def _cors_origin_for(origin: str | None) -> str | None:
     if origin and origin.rstrip("/") in ALLOWED_ORIGINS:
         return origin
     return None
+
+
+# ── 工作台策展状态（服务端权威）：记录每个 pack 的最后保存/下载时间，
+#    供首页「今天唯一下一步」状态卡与「最后保存于 HH:MM」展示。 ──
+
+def _load_workbench_state() -> dict:
+    try:
+        return json.loads(WORKBENCH_STATE_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def _save_workbench_state(state: dict) -> None:
+    try:
+        WORKBENCH_STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        WORKBENCH_STATE_PATH.write_text(
+            json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+    except Exception:
+        pass  # 状态记录失败不阻塞策展操作
+
+
+def _mark_pack_state(pack_path: Path, key: str) -> None:
+    """key: 'saved_at' | 'zip_at'。pack_path 用相对 posts/ 的键存储。"""
+    try:
+        rel = str(pack_path.resolve().relative_to(POSTS_DIR.resolve()))
+    except Exception:
+        return
+    state = _load_workbench_state()
+    entry = state.get(rel, {})
+    entry[key] = datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds")
+    state[rel] = entry
+    _save_workbench_state(state)
+
+
+def _today_next_step() -> dict:
+    """首页「今天唯一下一步」：
+    开始挑图 / 继续编辑 / 下载发布包 / 回填反馈 / 系统异常 / 今日无新候选。"""
+    today = datetime.now().strftime("%Y-%m-%d")
+    posts_today = POSTS_DIR / today
+    packs = sorted(p for p in posts_today.glob("*") if p.is_dir()) if posts_today.is_dir() else []
+
+    ingest = None
+    try:
+        ingest = json.loads(INGEST_STATUS_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        pass
+
+    if not packs:
+        if not ingest:
+            return {
+                "state": "error",
+                "title": "系统异常",
+                "text": "今天还没有采集记录（daily_ingestion 未跑或状态文件缺失）。",
+                "href": "", "cta": "",
+            }
+        if ingest.get("status") not in ("succeeded", "partial"):
+            return {
+                "state": "error",
+                "title": "系统异常",
+                "text": f"采集状态异常：{ingest.get('status', '?')}。{ingest.get('error_summary', '')}",
+                "href": "", "cta": "",
+            }
+        return {
+            "state": "empty",
+            "title": "今日无新候选",
+            "text": "采集正常结束但候选池为空，可从编辑台继续翻看历史包。",
+            "href": "", "cta": "",
+        }
+
+    queue_href = f"/posts/{today}/QUEUE.html"
+    try:
+        entries = json.loads(PUBLISH_LOG_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        entries = []
+    today_entries = [e for e in entries if today in str((e or {}).get("pack", ""))]
+
+    def _has_metrics(e: dict) -> bool:
+        return any(str(e.get(k, "")) not in ("", "0", "None") for k in ("l24", "l48", "s24", "s48", "c24", "c48"))
+
+    if today_entries:
+        if all(_has_metrics(e) for e in today_entries):
+            return {
+                "state": "done",
+                "title": "今天已完成",
+                "text": "发布与反馈回填都已登记，明天见。",
+                "href": "/publish-log", "cta": "查看发布账本",
+            }
+        return {
+            "state": "feedback",
+            "title": "回填反馈",
+            "text": "今天已登记发布 — 发布后 24h/48h 记得回填点赞/收藏/评论。",
+            "href": "/publish-log", "cta": "去回填",
+        }
+
+    wb_state = _load_workbench_state()
+    pack_keys = [str(p.resolve().relative_to(POSTS_DIR.resolve())) for p in packs]
+    zipped = any(wb_state.get(k, {}).get("zip_at") for k in pack_keys)
+    edited = any(wb_state.get(k, {}).get("saved_at") for k in pack_keys)
+
+    if zipped:
+        return {
+            "state": "publish",
+            "title": "下载发布包",
+            "text": "发布包已下载 — 在小红书人工发布后，回到这里登记（30 秒）。",
+            "href": "/publish-log", "cta": "去登记发布",
+        }
+    if edited:
+        return {
+            "state": "edit",
+            "title": "继续编辑",
+            "text": "今天的方案已有草稿保存 — 换图、改写观点，定稿后下载九图发布包。",
+            "href": queue_href, "cta": "回编辑台",
+        }
+    return {
+        "state": "pick",
+        "title": "开始挑图",
+        "text": f"今天有 {len(packs)} 套候选方案 — 挑一套，换图，把观点改成你的话。",
+        "href": queue_href, "cta": "打开编辑台",
+    }
 
 _TREND_CSS = """
 :root { --bg:#f5f5f7; --card:#fff; --ink:#1d1d1f; --mut:#6e6e73; --line:#e5e5ea; --green:#1a6b4f; }
@@ -103,7 +235,7 @@ _INDEX_HTML = """<!DOCTYPE html>
 <style>
   :root {{
     --bg:#f5f5f7; --card:#ffffff; --ink:#1d1d1f; --mut:#6e6e73; --faint:#aeaeb2;
-    --line:#e5e5ea; --green:#1a6b4f; --green-soft:#eef5f1;
+    --line:#e5e5ea; --green:#1a6b4f; --green-soft:#eef5f1; --red:#c0392b; --red-soft:#fbecea;
     --sans:-apple-system,"PingFang SC",sans-serif;
   }}
   * {{ box-sizing:border-box; margin:0; padding:0; }}
@@ -116,9 +248,17 @@ _INDEX_HTML = """<!DOCTYPE html>
   .top .brand .dot {{ color:var(--green); }}
   .top .meta {{ font-size:13px; color:var(--mut); }}
 
-  .intro {{ padding:10px 0 24px; }}
-  .intro h1 {{ font-size:28px; font-weight:700; letter-spacing:-.02em; margin-bottom:6px; }}
-  .intro p {{ font-size:14px; color:var(--mut); }}
+  /* ── 今天唯一下一步状态卡 ── */
+  .next {{ background:var(--card); border:1px solid var(--line); border-radius:18px;
+           padding:26px 28px; margin:10px 0 26px; border-left:5px solid var(--green); }}
+  .next.error {{ border-left-color:var(--red); }}
+  .next .k {{ font-size:11px; font-weight:700; letter-spacing:.08em; color:var(--green); margin-bottom:8px; }}
+  .next.error .k {{ color:var(--red); }}
+  .next h1 {{ font-size:26px; font-weight:700; letter-spacing:-.02em; margin-bottom:6px; }}
+  .next p {{ font-size:14px; color:var(--mut); line-height:1.7; margin-bottom:16px; }}
+  .next .cta {{ display:inline-block; background:var(--green); color:#fff; font-size:14px; font-weight:600;
+                padding:10px 22px; border-radius:12px; text-decoration:none; }}
+  .next .meta-line {{ font-size:12px; color:var(--faint); margin-top:14px; }}
 
   .steps {{ display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-bottom:24px; }}
   @media (max-width:760px) {{ .steps {{ grid-template-columns:repeat(2,1fr); }} }}
@@ -127,7 +267,7 @@ _INDEX_HTML = """<!DOCTYPE html>
   .step b {{ display:block; font-size:13px; margin-bottom:2px; }}
   .step span {{ font-size:12px; color:var(--mut); line-height:1.5; }}
 
-  .links {{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }}
+  .links {{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }}
   .links a {{
     display:block; background:var(--card); border:1px solid var(--line); border-radius:14px;
     padding:18px; text-decoration:none; color:var(--ink); transition:border-color .15s;
@@ -148,27 +288,29 @@ _INDEX_HTML = """<!DOCTYPE html>
     <div class="meta">个人视觉采样系统 · 机器出方案，人做判断</div>
   </div>
 
-  <div class="intro">
-    <h1>今天发哪套？</h1>
-    <p>打开编辑台，从 6 套候选方案里挑一套，换图、改写观点，然后发布。</p>
+  <div class="next {card_cls}">
+    <div class="k">今天唯一下一步 · {today}</div>
+    <h1>{next_title}</h1>
+    <p>{next_text}</p>
+    {cta_block}
+    <div class="meta-line">{meta_line}</div>
   </div>
 
   <div class="steps">
     <div class="step"><span class="n">1</span><b>挑一套</b><span>综合 + 5 个栏目</span></div>
     <div class="step"><span class="n">2</span><b>换图</b><span>悬停帧上 ⇄，图注自动同步</span></div>
     <div class="step"><span class="n">3</span><b>改写观点</b><span>终稿必须是你的话</span></div>
-    <div class="step"><span class="n">4</span><b>发布</b><span>复制全文案，手动发</span></div>
+    <div class="step"><span class="n">4</span><b>发布</b><span>下载九图 ZIP，手动发</span></div>
     <div class="step"><span class="n">5</span><b>登记</b><span>30 秒，24/48h 回填</span></div>
   </div>
 
   <nav class="links">
-    <a href="{queue_href}"><span class="k">01 · CURATE</span><b>✏️ 编辑台</b><span>6 套方案 · 挑图 · 改写 · 策展逻辑</span></a>
+    <a href="{queue_href}"><span class="k">01 · CURATE</span><b>✏️ 编辑台</b><span>候选方案 · 挑图 · 改写 · 下载发布包</span></a>
     <a href="/publish-log"><span class="k">02 · LOG</span><b>📓 发布登记</b><span>登记 + 24h/48h 回填 + 周汇总</span></a>
     <a href="/sources"><span class="k">03 · SOURCES</span><b>📡 信息源</b><span>源面板与健康度</span></a>
-    <a href="http://127.0.0.1:8787"><span class="k">04 · SYSTEM</span><b>⚙️ 系统台</b><span>图谱 / 爬虫 / Pipeline（技术控制台）</span></a>
   </nav>
 
-  <div class="foot">周报入口：编辑台右上角「📊 周报」。数据全部本地，不碰小红书。</div>
+  <div class="foot">全部操作在浏览器内完成；数据本地保存，不碰小红书。自动发布永久禁用。</div>
 </div>
 </body>
 </html>
@@ -184,12 +326,37 @@ class QueueHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
 
-        # ── / → 每日工作台首页 ──
+        # ── / → 每日工作台首页（今天唯一下一步状态卡） ──
         if parsed.path == "/":
+            import html as _h
+
+            step = _today_next_step()
             date_dirs = sorted(POSTS_DIR.glob("20*"), reverse=True)
-            latest = date_dirs[0]
-            queue_href = f"/posts/{latest.name}/QUEUE.html"
-            body = _INDEX_HTML.replace("{queue_href}", queue_href).encode("utf-8")
+            queue_href = (
+                step.get("href")
+                if step.get("state") in ("pick", "edit") and step.get("href")
+                else (f"/posts/{date_dirs[0].name}/QUEUE.html" if date_dirs else "#")
+            )
+            cta_block = (
+                f'<a class="cta" href="{_h.escape(step["href"])}">{_h.escape(step["cta"])}</a>'
+                if step.get("href") and step.get("cta")
+                else ""
+            )
+            meta_line = self._ingest_meta_line()
+
+            body = _INDEX_HTML
+            repl = {
+                "{card_cls}": "error" if step["state"] == "error" else "",
+                "{today}": datetime.now().strftime("%Y-%m-%d"),
+                "{next_title}": _h.escape(step["title"]),
+                "{next_text}": _h.escape(step["text"]),
+                "{cta_block}": cta_block,
+                "{meta_line}": _h.escape(meta_line),
+                "{queue_href}": _h.escape(queue_href),
+            }
+            for k, v in repl.items():
+                body = body.replace(k, v)
+            body = body.encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))
@@ -332,14 +499,18 @@ class QueueHandler(http.server.SimpleHTTPRequestHandler):
                 self._json({"ok": False, "error": str(e)}, status=500)
             return
 
-        # ── /save-file?path=...&content=... → save edited content to file ──
+        # ── /save-file?path=...&content=... → 草稿服务端落盘（策展权威存储） ──
         if parsed.path == "/save-file":
             params = urllib.parse.parse_qs(parsed.query)
             path = params.get("path", [None])[0]
             content = params.get("content", [""])[0]
             if path and Path(path).parent.exists():
                 try:
-                    Path(path).write_text(content, encoding="utf-8")
+                    target = Path(path)
+                    target.write_text(content, encoding="utf-8")
+                    # 记录 pack 级保存时间（posts/ 下的文案文件）供状态卡/「最后保存于」
+                    if target.suffix == ".txt":
+                        _mark_pack_state(target.parent, "saved_at")
                     self._json({"ok": True, "path": path})
                 except Exception as e:
                     self._json({"ok": False, "error": str(e)}, status=500)
@@ -349,47 +520,53 @@ class QueueHandler(http.server.SimpleHTTPRequestHandler):
 
         # ── /sources → live source dashboard ──
         if parsed.path == "/sources":
-            from scripts.source_dashboard import build
-            build()
-            self.send_response(302)
-            self.send_header("Location", "/data/sources.html")
+            try:
+                from scripts.source_dashboard import build
+                build()
+                self.send_response(302)
+                self.send_header("Location", "/data/sources.html")
+                self.end_headers()
+            except Exception as e:
+                # DB 未就绪/迁移未跑时返回 JSON 500，不断连接
+                self._json({"ok": False, "error": f"源面板构建失败: {e}"}, status=500)
+            return
+
+        # ── /pack-zip?pack=<abs pack dir> → 打包该包 9 帧为 ZIP 下载 ──
+        # （浏览器内能力，替代旧的 Finder/Preview/剪贴板远程动作）
+        if parsed.path == "/pack-zip":
+            params = urllib.parse.parse_qs(parsed.query)
+            pack = params.get("pack", [None])[0]
+            if not pack:
+                self._json({"ok": False, "error": "missing pack"}, status=400)
+                return
+            pack_dir = Path(pack)
+            try:
+                pack_res = pack_dir.resolve()
+                posts_res = POSTS_DIR.resolve()
+                if pack_res != posts_res and posts_res not in pack_res.parents:
+                    self._json({"ok": False, "error": "pack must be under posts/"}, status=403)
+                    return
+            except Exception:
+                self._json({"ok": False, "error": "bad pack path"}, status=400)
+                return
+            imgs = sorted([p for p in pack_dir.glob("image*") if p.is_file()])
+            if not imgs:
+                self._json({"ok": False, "error": "no images in pack"}, status=404)
+                return
+            buf = io.BytesIO()
+            with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+                for img in imgs:
+                    zf.write(img, arcname=img.name)
+            buf.seek(0)
+            data = buf.read()
+            zip_name = f"{pack_res.parent.name}-{pack_res.name}.zip"
+            _mark_pack_state(pack_res, "zip_at")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/zip")
+            self.send_header("Content-Disposition", f'attachment; filename="{zip_name}"')
+            self.send_header("Content-Length", str(len(data)))
             self.end_headers()
-            return
-
-        # ── /copy-image?path=... → copy image to clipboard (Cmd+V into XHS) ──
-        if parsed.path == "/copy-image":
-            params = urllib.parse.parse_qs(parsed.query)
-            path = params.get("path", [None])[0]
-            if path and Path(path).exists():
-                try:
-                    self._copy_file_to_clipboard(path)
-                    self._json({"ok": True, "path": path})
-                except Exception as e:
-                    self._json({"ok": False, "error": str(e)}, status=500)
-            else:
-                self._json({"ok": False, "error": "file not found"}, status=404)
-            return
-
-        # ── /open-file?path=... → open image in Preview ──
-        if parsed.path == "/open-file":
-            params = urllib.parse.parse_qs(parsed.query)
-            path = params.get("path", [None])[0]
-            if path and Path(path).exists():
-                subprocess.run(["open", "-a", "Preview", path])
-                self._json({"ok": True, "path": path})
-            else:
-                self._json({"ok": False, "error": "file not found"}, status=404)
-            return
-
-        # ── /open-folder?path=... → reveal in Finder ──
-        if parsed.path == "/open-folder":
-            params = urllib.parse.parse_qs(parsed.query)
-            path = params.get("path", [None])[0]
-            if path and Path(path).exists():
-                subprocess.run(["open", "-R", path])
-                self._json({"ok": True})
-            else:
-                self._json({"ok": False, "error": "not found"}, status=404)
+            self.wfile.write(data)
             return
 
         # ── /publish-log → 发布登记页（本地数据，不碰 XHS） ──
@@ -502,6 +679,22 @@ class QueueHandler(http.server.SimpleHTTPRequestHandler):
                 except Exception:
                     pass  # 图谱不在线不阻塞登记
 
+    def _ingest_meta_line(self) -> str:
+        """首页状态卡小字：今日采集摘要（读 daily_ingestion_status.json）。"""
+        try:
+            st = json.loads(INGEST_STATUS_PATH.read_text(encoding="utf-8"))
+        except Exception:
+            return "采集状态不可用（data/daily_ingestion_status.json 缺失）。"
+        finished = str(st.get("finished_at") or "")[:16].replace("T", " ")
+        parts = [
+            f"采集 {finished or '时间未知'}",
+            f"下载 {st.get('images_downloaded', 0)} 张",
+            f"出包 {'是' if st.get('pack_generated') else '否'}",
+        ]
+        if st.get("status") == "partial" and st.get("error_summary"):
+            parts.append(f"部分失败：{st['error_summary'][:80]}")
+        return " · ".join(parts)
+
     def _caption_for_frame(self, pack_dir: Path, kw: str, srcname: str) -> str:
         """为换入的第 N 帧生成一句话图注（DeepSeek，失败则模板）。含来源后缀。"""
         ctx = ""
@@ -539,20 +732,6 @@ class QueueHandler(http.server.SimpleHTTPRequestHandler):
         base = srcname or "archive"
         return f"{kw.split()[0]} · {base}" if kw else f"来自 {base} 的新帧"
 
-    def _copy_file_to_clipboard(self, path: str):
-        """Copy image file to macOS clipboard using osascript + Applescript.
-        After this, Cmd+V in XHS upload area will paste the image."""
-        abs_path = str(Path(path).resolve())
-        script = f'''
-        set theFile to POSIX file "{abs_path}" as alias
-        set the clipboard to theFile
-        '''
-        subprocess.run(
-            ["osascript", "-e", script],
-            capture_output=True,
-            timeout=5,
-        )
-
     def _send_cors(self):
         """命中白名单的 Origin 才回 CORS 头；默认无白名单 = 同源 only。"""
         origin = _cors_origin_for(self.headers.get("Origin"))
@@ -583,11 +762,11 @@ class QueueHandler(http.server.SimpleHTTPRequestHandler):
         self.wfile.write(body)
 
     def log_message(self, fmt, *args):
-        # Quieter logging
-        if "/copy-image" in str(args) or "/open-folder" in str(args):
+        # Quieter logging: suppress routine 200s for static/asset requests
+        if "/pack-zip" in str(args) or "/save-file" in str(args) or "/replace-image" in str(args):
             print(f"  {args[0]}")
         elif "200" in fmt:
-            pass  # suppress 200 OK for static files
+            pass
         else:
             super().log_message(fmt, *args)
 
@@ -606,7 +785,8 @@ def main():
         sys.exit(1)
 
     print(f"📋 Serving: {latest.name}")
-    print(f"   Click 📋 on any card → copies image to clipboard → Cmd+V into XHS")
+    print(f"   编辑台：页内预览 · 单张/九图 ZIP 下载 · 复制文案（全部浏览器内完成）")
+    print(f"   自动发布永久禁用；无 osascript/pbcopy/open 远程动作端点")
     print(f"   Press Ctrl+C to stop")
 
     if ALLOWED_ORIGINS:

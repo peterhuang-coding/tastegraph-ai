@@ -25,6 +25,7 @@ import hashlib
 import json
 import shutil
 import sys
+import urllib.parse
 from datetime import date as date_type, timedelta
 from pathlib import Path
 
@@ -46,7 +47,9 @@ POSTS_DIR = BASE_DIR / "posts"
 HASHTAGS = ["#moodboard", "#审美积累", "#穿搭参考"]
 
 # QUEUE.html 模板版本戳（auto_deploy 用它判断是否需要重生成今日包）
-TEMPLATE_VERSION = "2026-08-25.6"
+# 2026-09-08: 安全收口 — 移除 open-file/copy-image/file:// 远程动作，
+# 改页内预览 + 单张下载 + 九图 ZIP；导航去硬编码；草稿「最后保存于」。
+TEMPLATE_VERSION = "2026-09-08.1"
 
 # Taste concept bank for CLIP auto-tagging when keywords are missing
 TASTE_CONCEPTS = [
@@ -334,7 +337,8 @@ async def generate(date_str: str = None, count: int = 5, skip_queue: bool = Fals
         # Checklist
         post_time = PILLAR_POST_TIMES.get(pillar, "20:00–22:00")
         img_note = (
-            "（一包 9 图：Finder 打开目录全选拖入）" if pack_size > 1 else "图片方向正确（竖版优先）"
+            "（一包 9 图：编辑台点「📦 下载九图」拿 ZIP，解压后全选拖入）"
+            if pack_size > 1 else "图片方向正确（竖版优先）"
         )
         checklist = f"""# {dir_num} — Publish Checklist
 
@@ -843,11 +847,12 @@ def _generate_queue_html(batch_dir: Path, post_dirs: list[Path], date_str: str):
         pillar_counts[pillar] = pillar_counts.get(pillar, 0) + 1
 
         img_files = sorted(post_dir.glob("image*"))
-        img_abs = str(img_files[0]) if img_files else ""
         img_rel = str(img_files[0].relative_to(batch_dir)) if img_files else ""
         post_id = post_dir.name
         is_pack = len(img_files) > 1
-        open_target = str(post_dir) if is_pack else img_abs
+        # 九图 ZIP 下载走工作台 /pack-zip（浏览器内能力，替代 Finder/剪贴板远程动作）
+        zip_href = f"/pack-zip?pack={urllib.parse.quote(str(post_dir))}"
+        zip_name = f"{date_str}-{post_id}.zip"
 
         draft = ""
         draft_path = post_dir / "opinion_draft.txt"
@@ -892,8 +897,8 @@ def _generate_queue_html(batch_dir: Path, post_dirs: list[Path], date_str: str):
                 f_rel = str(f.relative_to(batch_dir))
                 thumbs.append(
                     f'<div class="frame">'
-                    f'<img src="{f_rel}" class="grid-img" loading="lazy" data-abs="{f}" data-pos="{idx}" '
-                    f'onclick="openInPreview(\'{f}\')" title="点击在 Preview 打开">'
+                    f'<img src="{f_rel}" class="grid-img" loading="lazy" data-pos="{idx}" '
+                    f'onclick="showLightbox(this.src)" title="点击页内预览（⇄ 换图）">'
                     f'<span class="num">{idx:02d}</span>'
                     f'<span class="swap" onclick="openReplaceModal(\'{post_id}\', {idx}, this)" title="换一张（图注自动同步）">⇄</span>'
                     f'</div>'
@@ -901,9 +906,8 @@ def _generate_queue_html(batch_dir: Path, post_dirs: list[Path], date_str: str):
             img_block = f'<div class="sheet">{"".join(thumbs)}</div>'
         else:
             img_block = f'''<img src="{img_rel}" class="card-img"
-             data-abs="{img_abs}"
-             ondblclick="openInPreview('{open_target}')"
-             title="双击在 Preview 中打开 → 拖到小红书">'''
+             onclick="showLightbox(this.src)"
+             title="点击页内预览 → 用「下载」按钮存图">'''
 
         cards.append(f"""
     <article class="plan" id="{post_id}" data-pillar="{pillar}" data-pack="{post_dir}">
@@ -928,11 +932,11 @@ def _generate_queue_html(batch_dir: Path, post_dirs: list[Path], date_str: str):
       </div>
       {logic_block}
       <div class="actions">
-        <button class="btn" onclick="openInPreview('{open_target}', this)" title="在 Preview 中打开 → 拖进小红书">🖼 打开</button>
-        <button class="btn" onclick="copyImage('{img_abs}', this)" title="复制首图 → Cmd+V 到小红书">📋 首图</button>
-        <button class="btn" onclick="copyAll('{post_id}')" title="标题+观点+图注+标签">📝 全文案</button>
-        <button class="btn" onclick="saveEdits('{post_id}')" title="保存编辑到文件">💾 保存</button>
+        <a class="btn" href="{zip_href}" download="{zip_name}" data-zip title="打包本包 9 帧为 ZIP（浏览器下载，解压后全选拖入小红书）">📦 下载九图</a>
+        <button class="btn" onclick="copyAll('{post_id}')" title="复制标题+观点+图注+标签到剪贴板">📝 复制文案</button>
+        <button class="btn" onclick="saveEdits('{post_id}')" title="保存编辑到文件（失焦也会自动保存）">💾 保存</button>
         <button class="btn fb" onclick="recordFeedback('{post_id}')" title="发布后录入互动数据">📊 反馈</button>
+        <span class="saved-at" id="saved-{post_id}"></span>
       </div>
     </article>""")
 
@@ -1026,8 +1030,24 @@ def _generate_queue_html(batch_dir: Path, post_dirs: list[Path], date_str: str):
   .chip i {{ font-style:normal; color:var(--green); margin-left:4px; font-weight:600; }}
   .logic .meta {{ font-size:11px; color:var(--faint); margin-left:auto; }}
 
-  .actions {{ display:flex; gap:8px; margin-top:14px; }}
+  .actions {{ display:flex; gap:8px; margin-top:14px; align-items:center; flex-wrap:wrap; }}
+  .actions .btn {{ text-decoration:none; display:inline-block; line-height:1.2; }}
   .actions .fb {{ color:var(--red); }}
+  .saved-at {{ font-size:11px; color:var(--faint); margin-left:auto; }}
+
+  /* ── 页内预览 lightbox（替代 Preview/Finder 远程打开） ── */
+  .lightbox {{
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,.82); z-index:2000;
+    justify-content:center; align-items:center; cursor:zoom-out;
+  }}
+  .lightbox.show {{ display:flex; }}
+  .lightbox img {{ max-width:92vw; max-height:82vh; border-radius:10px; box-shadow:0 20px 60px rgba(0,0,0,.5); }}
+  .lightbox .lb-bar {{ position:absolute; top:18px; right:22px; display:flex; gap:10px; }}
+  .lightbox .lb-bar a, .lightbox .lb-bar button {{
+    background:rgba(255,255,255,.14); color:#fff; border:1px solid rgba(255,255,255,.35);
+    border-radius:10px; padding:8px 16px; font-size:13px; cursor:pointer; text-decoration:none;
+  }}
+  .lightbox .lb-bar a:hover, .lightbox .lb-bar button:hover {{ background:rgba(255,255,255,.28); }}
 
   /* ── Modals ── */
   .modal-overlay {{
@@ -1078,7 +1098,6 @@ def _generate_queue_html(batch_dir: Path, post_dirs: list[Path], date_str: str):
     <a href="/sources">📡 信息源</a>
     <a href="/trend-report">📝 编前会</a>
     <a href="#" onclick="showWeeklyReport()">📊 周报</a>
-    <a href="http://127.0.0.1:8787">⚙️ 系统台</a>
   </nav>
 </div>
 
@@ -1098,7 +1117,7 @@ def _generate_queue_html(batch_dir: Path, post_dirs: list[Path], date_str: str):
 <div class="toolbar">
   <button class="btn" onclick="selectAll()">☑ 全选</button>
   <button class="btn" onclick="deselectAll()">☐ 取消全选</button>
-  <button class="btn" onclick="openSelected()">📁 打开选中</button>
+  <button class="btn" onclick="downloadSelected()">📦 下载选中 ZIP</button>
   <button class="btn primary" onclick="saveAllEdits()">💾 全部保存</button>
   <button class="btn" onclick="markAllDone()">✅ 全部标为已发</button>
   <div class="filters">
@@ -1159,38 +1178,36 @@ def _generate_queue_html(batch_dir: Path, post_dirs: list[Path], date_str: str):
   </div>
 </div>
 
-<div class="foot">点击缩略图 → Preview 打开 · 悬停帧 ⇄ 换图（图注自动同步）· 文字直接编辑 · 💾 保存落盘 · 发完 📊 反馈</div>
+<!-- In-page image preview (lightbox) -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+  <div class="lb-bar">
+    <a id="lb-download" download onclick="event.stopPropagation()">⬇️ 下载这张</a>
+    <button onclick="closeLightbox(event)">关闭</button>
+  </div>
+  <img id="lb-img" src="" alt="预览">
+</div>
+
+<div class="foot">点帧页内预览（⬇️ 可存单张）· 📦 下载九图 ZIP · 悬停帧 ⇄ 换图（图注自动同步）· 文字直接编辑自动保存 · 人工发布后 📊 登记</div>
 
 </div>
 
 <script>
-// ── Open image in Preview ──
-async function openInPreview(path, btn) {{
-    if (btn) {{ btn.innerText = '...'; btn.disabled = true; }}
-    try {{
-        const resp = await fetch('/open-file?path=' + encodeURIComponent(path));
-        const data = await resp.json();
-        if (data.ok) toast('✅ Preview 已打开 → 拖图片到小红书');
-        else toast('❌ 失败');
-    }} catch(e) {{ toast('❌ 请先启动服务: python scripts/queue_server.py'); }}
-    if (btn) {{ setTimeout(() => {{ btn.innerText = '🖼 打开'; btn.disabled = false; }}, 1000); }}
+// ── 页内预览（lightbox，全部浏览器内完成，无远程 open/剪贴板动作） ──
+function showLightbox(src) {{
+    document.getElementById('lb-img').src = src;
+    const dl = document.getElementById('lb-download');
+    dl.href = src;
+    dl.download = src.split('/').pop() || 'image.jpg';
+    document.getElementById('lightbox').classList.add('show');
 }}
+function closeLightbox() {{
+    document.getElementById('lightbox').classList.remove('show');
+}}
+document.addEventListener('keydown', e => {{ if (e.key === 'Escape') closeLightbox(); }});
 
-// ── Copy ──
+// ── 复制文案（navigator.clipboard） ──
 function copyToClipboard(text) {{
-    navigator.clipboard.writeText(text).then(() => toast('已复制 ✓'));
-}}
-async function copyImage(path, btn) {{
-    if (btn) {{ btn.innerText = '...'; btn.disabled = true; }}
-    try {{
-        const resp = await fetch('/copy-image?path=' + encodeURIComponent(path));
-        const data = await resp.json();
-        if (data.ok) toast('✅ 图片已复制到剪贴板 → Cmd+V 到小红书');
-        else toast('❌ ' + (data.error || '失败'));
-    }} catch(e) {{
-        toast('❌ 请先启动服务: bash start.sh serve');
-    }}
-    if (btn) {{ setTimeout(() => {{ btn.innerText = '📋 首图'; btn.disabled = false; }}, 1000); }}
+    navigator.clipboard.writeText(text).then(() => toast('文案已复制 ✓'));
 }}
 function copyAll(postId) {{
     const card = document.getElementById(postId);
@@ -1236,7 +1253,10 @@ async function saveEdits(postId) {{
     localStorage.setItem(postId + '-tags', tags.innerText);
     if (draft) localStorage.setItem(postId + '-draft', draftText);
 
-    toast('💾 已保存 (' + saved + ' 个文件)');
+    const hhmm = new Date().toTimeString().slice(0, 5);
+    const savedAt = document.getElementById('saved-' + postId);
+    if (savedAt) savedAt.innerText = '最后保存于 ' + hhmm;
+    toast('💾 已保存 (' + saved + ' 个文件) · ' + hhmm);
 }}
 
 async function saveAllEdits() {{
@@ -1367,16 +1387,15 @@ function getChecked() {{
 }}
 function selectAll() {{ document.querySelectorAll('.select-cb').forEach(cb => cb.checked = true); updateCounter(); }}
 function deselectAll() {{ document.querySelectorAll('.select-cb').forEach(cb => cb.checked = false); updateCounter(); }}
-function openSelected() {{
+function downloadSelected() {{
     const checked = getChecked();
-    if (checked.length === 0) {{ toast('请先勾选要打开的卡片'); return; }}
-    checked.forEach(postId => {{
-        const img = document.querySelector('#' + postId + ' .card-img, #' + postId + ' .grid-img');
-        if (img && img.dataset.abs) {{
-            const dir = img.dataset.abs.split('/').slice(0, -1).join('/');
-            window.open('file://' + dir, '_blank');
-        }}
+    if (checked.length === 0) {{ toast('请先勾选要下载的卡片'); return; }}
+    // 逐包触发 /pack-zip 浏览器下载（间隔避免多下载拦截；不依赖本机 Finder/路径协议）
+    checked.forEach((postId, i) => {{
+        const link = document.querySelector('#' + postId + ' a[data-zip]');
+        if (link) setTimeout(() => link.click(), i * 600);
     }});
+    toast('📦 开始下载 ' + checked.length + ' 个 ZIP');
 }}
 function markAllDone() {{
     document.querySelectorAll('.plan').forEach(c => {{

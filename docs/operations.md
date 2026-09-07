@@ -276,8 +276,11 @@ git -c http.proxy=http://127.0.0.1:7897 \
   - Tailscale：设 `QUEUE_HOST=0.0.0.0`（或 tailscale IP）+ `TASTEGRAPH_ALLOWED_ORIGINS=http://<tailscale名>:8765`，
     暴露面 = tailnet 内设备（Tailscale 自带 mTLS + ACL）。**不要**绑公网 IP，不要做端口转发。
   - 局域网：同上但暴露面 = 同一 Wi-Fi 所有设备，仅在可信网络用。
-- queue_server 有文件写/剪贴板/Finder 端点（`/save-file`、`/replace-image`、`/copy-image`、
-  `/open-folder`），这些在绑环回时只响应本机；一旦绑 0.0.0.0，同网段任何人都能调用 ——
+- queue_server 仅剩文件写端点（`/save-file` 草稿落盘、`/replace-image` 换帧、
+  `/publish-entries` 发布账本）与 `/pack-zip` 打包下载；远程操控 mini 的
+  `/copy-image`（剪贴板）、`/open-file`、`/open-folder`（Finder/Preview）已于
+  2026-09-08 工作台收口移除，预览/下载/复制文案全部在浏览器内完成。文件写端点
+  在绑环回时只响应本机；一旦绑 0.0.0.0，同网段任何人都能调用 ——
   所以远程访问**只用 Tailscale，不用裸 0.0.0.0 + 公网**。
 
 ## 8. 目录结构(精简)

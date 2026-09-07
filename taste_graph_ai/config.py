@@ -52,6 +52,12 @@ ALLOWED_ORIGINS = [
     if o.strip()
 ]
 
+# 运营工作台（queue_server，人工策展/发布登记）地址。旧入口（如 /SOURCES.html）
+# 重定向到它；不再硬编码端口（queue 默认 8765，占用时自动顺延 8766/8767）。
+WORKBENCH_URL = os.environ.get(
+    "TASTEGRAPH_WORKBENCH_URL", "http://127.0.0.1:8765"
+).rstrip("/")
+
 # ── External APIs ────────────────────────────────────────────
 
 CLAUDE_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
