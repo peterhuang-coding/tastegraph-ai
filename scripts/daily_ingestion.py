@@ -33,12 +33,17 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-DB_PATH = BASE_DIR / "data" / "taste_graph.db"
+# TASTEGRAPH_DB 仅用于 /tmp 副本演练；生产默认 data/taste_graph.db。
+DB_PATH = Path(os.environ.get("TASTEGRAPH_DB", str(BASE_DIR / "data" / "taste_graph.db")))
 IMAGES_DIR = BASE_DIR / "data" / "images"
 RUNS_DIR = BASE_DIR / "runs"
 LOCK_PATH = BASE_DIR / "data" / "ingestion.lock"
 STATUS_PATH = BASE_DIR / "data" / "daily_ingestion_status.json"
 MIN_FREE_BYTES = 1 << 30  # preflight 要求至少 1 GiB 空闲
+
+# job_runs 关联：scheduler 拉起时传入 TASTEGRAPH_JOB_RUN_ID（行已建）；
+# launchd/手动直跑时无此变量，本进程自建 job_runs 行。
+JOB_NAME = os.environ.get("TASTEGRAPH_JOB_NAME", "daily_ingestion")
 
 MAX_ATTEMPTS = 3          # 临时失败最大重试次数（超过视为永久失败）
 _BAD = ("logo", "ogp", "icon", "favicon", "avatar", "loader", "sprite", "pixel", "blank")
@@ -113,6 +118,87 @@ def run_row(con: sqlite3.Connection, run_id: str) -> dict | None:
     d = dict(zip([c[0] for c in cur.description], row))
     d["stages"] = json.loads(d.get("stages_json") or "{}")
     return d
+
+
+# ── job_runs（调度态，契约 §1）──────────────────────────────
+
+def new_job_run_id() -> str:
+    return "job-" + datetime.now().strftime("%Y%m%d%H%M%S") + "-" + os.urandom(2).hex()
+
+
+def job_succeeded_today(con: sqlite3.Connection, today: str) -> bool:
+    """当天该 job 是否已有成功终态（重启/重复触发不补跑成功任务）。"""
+    try:
+        cur = con.execute(
+            "SELECT 1 FROM job_runs WHERE job_name = ? AND scheduled_date = ? "
+            "AND status = 'succeeded' LIMIT 1",
+            (JOB_NAME, today),
+        )
+        return cur.fetchone() is not None
+    except sqlite3.Error:
+        return False  # 表/列异常时不阻断（迁移会在 preflight 补齐）
+
+
+def job_run_attach(con: sqlite3.Connection, run: dict, today: str) -> str:
+    """把本次 ingestion 关联到 job_runs 行并置 running。
+
+    scheduler 拉起时传 TASTEGRAPH_JOB_RUN_ID（行由 scheduler 预建）；
+    否则自建一行。返回 job_run_id。
+    """
+    job_run_id = os.environ.get("TASTEGRAPH_JOB_RUN_ID", "") or new_job_run_id()
+    ts = now_iso()
+    log_path = os.environ.get("TASTEGRAPH_JOB_LOG_PATH", "")
+    con.execute(
+        """INSERT INTO job_runs
+        (id, job_name, scheduled_for, scheduled_date, started_at, finished_at,
+         status, summary_json, run_id, error_summary, pid, heartbeat_at, log_path)
+        VALUES (?,?,?,?,?,NULL,'running','{}',?, '', ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+            run_id=excluded.run_id, status='running', pid=excluded.pid,
+            heartbeat_at=excluded.heartbeat_at, started_at=COALESCE(job_runs.started_at, excluded.started_at),
+            log_path=COALESCE(NULLIF(excluded.log_path,''), job_runs.log_path)""",
+        (job_run_id, JOB_NAME, run["scheduled_for"], today, ts,
+         run["id"], os.getpid(), ts, log_path),
+    )
+    con.commit()
+    return job_run_id
+
+
+def job_run_heartbeat(con: sqlite3.Connection, job_run_id: str, run: dict) -> None:
+    try:
+        con.execute(
+            "UPDATE job_runs SET heartbeat_at=?, run_id=?, pid=? WHERE id=?",
+            (now_iso(), run["id"], os.getpid(), job_run_id),
+        )
+        con.commit()
+    except sqlite3.Error:
+        pass
+
+
+def job_run_finish(con: sqlite3.Connection, job_run_id: str, run: dict, summary: dict) -> None:
+    """终态回写：succeeded/partial 都是有效终态。"""
+    try:
+        con.execute(
+            "UPDATE job_runs SET status=?, finished_at=?, error_summary=?, "
+            "run_id=?, heartbeat_at=?, summary_json=? WHERE id=?",
+            (run["status"], now_iso(), run.get("error_summary", ""), run["id"], now_iso(),
+             json.dumps(summary, ensure_ascii=False)[:4000], job_run_id),
+        )
+        con.commit()
+    except sqlite3.Error as e:
+        print(f"[ingest] job_runs 终态回写失败（不阻断）: {e}")
+
+
+def write_lock_meta(run_id: str = "") -> None:
+    """锁文件内写 pid/心跳（fcntl 锁已持有时调用），供外部识别僵死实例。"""
+    try:
+        LOCK_PATH.write_text(json.dumps({
+            "pid": os.getpid(),
+            "run_id": run_id,
+            "heartbeat_at": now_iso(),
+        }, ensure_ascii=False), encoding="utf-8")
+    except OSError:
+        pass
 
 
 # ── preflight ───────────────────────────────────────────────
@@ -366,6 +452,8 @@ def main() -> int:
     ap.add_argument("--rate-limit", type=int, default=400)
     ap.add_argument("--max-discovered", type=int, default=200)
     ap.add_argument("--crawl-timeout", type=int, default=21600)
+    ap.add_argument("--force", action="store_true",
+                    help="当天已成功也强制重跑（默认成功日跳过，重启不补跑）")
     args = ap.parse_args()
 
     # ── 运行锁：已有实例立即退出 ──
@@ -375,6 +463,7 @@ def main() -> int:
     except OSError:
         print("[ingest] 已有采集实例在运行，立即退出。")
         return 2
+    write_lock_meta()
 
     con = sqlite3.connect(str(DB_PATH))
     con.execute("PRAGMA busy_timeout=5000")
@@ -397,6 +486,12 @@ def main() -> int:
 
     today = datetime.now().strftime("%Y-%m-%d")
     sources = con.execute("SELECT id, url FROM sources").fetchall()
+
+    # ── 当天已成功 → 幂等跳过（重启/重复触发不补跑成功任务；--force 可覆盖）──
+    if args.stage == "all" and not args.force and job_succeeded_today(con, today):
+        print(f"[ingest] {JOB_NAME} 今天已成功完成（job_runs 终态 succeeded），跳过。"
+              "如需重跑加 --force。")
+        return 0
 
     # ── run 实例：--resume 复用当天未完结 run，否则新建 ──
     run = None
@@ -431,6 +526,11 @@ def main() -> int:
     stages = run["stages"]
     save_run(con, run)
 
+    # ── 关联 job_runs（scheduler 预建行或本进程自建）──
+    job_run_id = job_run_attach(con, run, today)
+    write_lock_meta(run["id"])
+    print(f"[ingest] job_runs 关联: {job_run_id}")
+
     errors_acc: list[str] = []
     ctx: dict = {}
 
@@ -438,6 +538,8 @@ def main() -> int:
         stages[name] = "done"
         run["stages"] = stages
         save_run(con, run)
+        write_lock_meta(run["id"])
+        job_run_heartbeat(con, job_run_id, run)
 
     # ── crawl ──
     if args.stage in ("all", "crawl"):
@@ -507,6 +609,7 @@ def main() -> int:
         save_run(con, run)
 
         summary = {
+            "job_run_id": job_run_id,
             "run_id": run["id"],
             "scheduled_for": run["scheduled_for"],
             "status": run["status"],
@@ -526,6 +629,7 @@ def main() -> int:
                                encoding="utf-8")
         print(json.dumps(summary, ensure_ascii=False, indent=2))
         print(f"[ingest] 摘要已写: {STATUS_PATH}")
+        job_run_finish(con, job_run_id, run, summary)
 
     con.close()
     return 0  # succeeded 与 partial 都是有效终态；硬失败已在锁/preflight/迁移处非零返回
