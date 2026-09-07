@@ -31,8 +31,21 @@ LOGS_DIR = DATA_DIR / "logs"
 
 # ── Server ───────────────────────────────────────────────────
 
-HOST = os.environ.get("TASTEGRAPH_HOST", "0.0.0.0")
+# 默认环回（仅本机）。Tailscale/局域网访问显式设 TASTEGRAPH_HOST=0.0.0.0
+# 或 tailscale IP（见 docs/operations.md §7）。
+HOST = os.environ.get("TASTEGRAPH_HOST", "127.0.0.1")
 PORT = int(os.environ.get("TASTEGRAPH_PORT", "8787"))
+
+# 生产默认不 reload（uvicorn reload 仅开发用）；开发时设 TASTEGRAPH_RELOAD=1。
+RELOAD = bool(os.environ.get("TASTEGRAPH_RELOAD", ""))
+
+# CORS 白名单：逗号分隔，如 "http://mini.tailnet:8787,http://192.168.1.10:8787"。
+# 默认空 = 同源 only（前端与 API 同源，服务端代理跨域），永不允许 "*"。
+ALLOWED_ORIGINS = [
+    o.strip().rstrip("/")
+    for o in os.environ.get("TASTEGRAPH_ALLOWED_ORIGINS", "").split(",")
+    if o.strip()
+]
 
 # ── External APIs ────────────────────────────────────────────
 

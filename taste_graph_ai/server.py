@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from taste_graph_ai.api.router import api_router
-from taste_graph_ai.config import HOST, PORT, ensure_dirs
+from taste_graph_ai.config import ALLOWED_ORIGINS, HOST, PORT, RELOAD, ensure_dirs
 from taste_graph_ai.container import get_container
 from taste_graph_ai.infrastructure.db.connection import init_db
 
@@ -29,11 +29,15 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# CORS：默认空白名单 = 同源 only（前端静态文件与 API 同源；跨域访问走
+# queue_server 的服务端代理）。需要 Tailscale/局域网跨域时设
+# TASTEGRAPH_ALLOWED_ORIGINS 逗号分隔白名单，永不允许 "*"。
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type"],
 )
 
 app.include_router(api_router)
@@ -66,7 +70,7 @@ def main():
         "taste_graph_ai.server:app",
         host=HOST,
         port=PORT,
-        reload=True,
+        reload=RELOAD,  # 生产默认 False；开发设 TASTEGRAPH_RELOAD=1
     )
 
 

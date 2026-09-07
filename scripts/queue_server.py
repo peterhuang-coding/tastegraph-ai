@@ -24,7 +24,24 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 POSTS_DIR = BASE_DIR / "posts"
 PUBLISH_LOG_PATH = BASE_DIR / "data" / "publish_log.json"
 PORT = int(os.environ.get("QUEUE_PORT", "8765"))
-UPSTREAM_API = "http://127.0.0.1:8787"  # 图谱/周报/候选池 API (taste_graph_ai server)
+# 绑定地址：默认环回（仅本机）。Tailscale/局域网访问设 QUEUE_HOST=0.0.0.0 或
+# tailscale IP，并配 TASTEGRAPH_ALLOWED_ORIGINS 白名单（见 docs/operations.md §7）。
+HOST = os.environ.get("QUEUE_HOST", os.environ.get("TASTEGRAPH_HOST", "127.0.0.1"))
+# CORS 白名单：逗号分隔，如 "http://mini.tailnet:8765,http://192.168.1.10:8765"。
+# 默认空 = 不发 Access-Control-Allow-Origin（同源 only），永不返回 "*"。
+ALLOWED_ORIGINS = [
+    o.strip().rstrip("/")
+    for o in os.environ.get("TASTEGRAPH_ALLOWED_ORIGINS", "").split(",")
+    if o.strip()
+]
+UPSTREAM_API = os.environ.get("TASTEGRAPH_UPSTREAM_API", "http://127.0.0.1:8787")  # 图谱/周报/候选池 API
+
+
+def _cors_origin_for(origin: str | None) -> str | None:
+    """请求 Origin 命中白名单才回该 origin；默认白名单为空 → 跨域一律不带 CORS 头。"""
+    if origin and origin.rstrip("/") in ALLOWED_ORIGINS:
+        return origin
+    return None
 
 _TREND_CSS = """
 :root { --bg:#f5f5f7; --card:#fff; --ink:#1d1d1f; --mut:#6e6e73; --line:#e5e5ea; --green:#1a6b4f; }
@@ -212,7 +229,7 @@ class QueueHandler(http.server.SimpleHTTPRequestHandler):
                     body = resp.read()
                 self.send_response(resp.status)
                 self.send_header("Content-Type", resp.headers.get("Content-Type", "application/json"))
-                self.send_header("Access-Control-Allow-Origin", "*")
+                self._send_cors()
                 self.send_header("Content-Length", str(len(body)))
                 self.end_headers()
                 self.wfile.write(body)
@@ -416,7 +433,7 @@ class QueueHandler(http.server.SimpleHTTPRequestHandler):
                     body = resp.read()
                 self.send_response(resp.status)
                 self.send_header("Content-Type", resp.headers.get("Content-Type", "application/json"))
-                self.send_header("Access-Control-Allow-Origin", "*")
+                self._send_cors()
                 self.send_header("Content-Length", str(len(body)))
                 self.end_headers()
                 self.wfile.write(body)
@@ -536,11 +553,31 @@ class QueueHandler(http.server.SimpleHTTPRequestHandler):
             timeout=5,
         )
 
+    def _send_cors(self):
+        """命中白名单的 Origin 才回 CORS 头；默认无白名单 = 同源 only。"""
+        origin = _cors_origin_for(self.headers.get("Origin"))
+        if origin:
+            self.send_header("Access-Control-Allow-Origin", origin)
+            self.send_header("Vary", "Origin")
+
+    def do_OPTIONS(self):
+        origin = _cors_origin_for(self.headers.get("Origin"))
+        if origin:
+            self.send_response(204)
+            self.send_header("Access-Control-Allow-Origin", origin)
+            self.send_header("Vary", "Origin")
+            self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+            self.send_header("Access-Control-Allow-Headers", "Content-Type")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+        else:
+            self._json({"ok": False, "error": "origin not allowed"}, status=403)
+
     def _json(self, data: dict, status: int = 200):
         body = json.dumps(data, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
-        self.send_header("Access-Control-Allow-Origin", "*")
+        self._send_cors()
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
@@ -572,11 +609,15 @@ def main():
     print(f"   Click 📋 on any card → copies image to clipboard → Cmd+V into XHS")
     print(f"   Press Ctrl+C to stop")
 
+    if ALLOWED_ORIGINS:
+        print(f"   CORS 白名单: {ALLOWED_ORIGINS}")
+    else:
+        print("   CORS: 同源 only（TASTEGRAPH_ALLOWED_ORIGINS 未配置）")
     server = None
     bound_port = None
     for try_port in (PORT, 8766, 8767):
         try:
-            server = http.server.ThreadingHTTPServer(("127.0.0.1", try_port), QueueHandler)
+            server = http.server.ThreadingHTTPServer((HOST, try_port), QueueHandler)
             bound_port = try_port
             break
         except OSError:
@@ -584,6 +625,7 @@ def main():
     if server is None:
         print("No free port (8765-8767). Stop another service first.")
         sys.exit(1)
+    print(f"   绑定: {HOST}:{bound_port}（环回=仅本机；Tailscale 见 operations.md §7）")
     print(f"   工作台: http://localhost:{bound_port}/")
     print(f"   编辑队列: http://localhost:{bound_port}/posts/{latest.name}/QUEUE.html")
     print(f"   发布登记: http://localhost:{bound_port}/publish-log")
