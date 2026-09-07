@@ -28,7 +28,15 @@ MIGRATIONS: list[tuple[int, str, str]] = [
     (4, "create_metrics_snapshots", "MetricsSnapshot 窗口快照（契约 §1）"),
     (5, "create_job_runs", "JobRun 调度器运行态（契约 §1）"),
     (6, "add_daily_packs_dir_path", "daily_packs 补 dir_path 列（目录路径与 id 分离）"),
+    (7, "add_crawl_runs_stages_json", "crawl_runs 补 stages_json（阶段幂等标记，--resume 依据）"),
+    (8, "add_images_content_hash", "images 补 content_hash（内容 checksum 去重，契约 §1）"),
 ]
+
+ADD_COLUMNS = {
+    "add_daily_packs_dir_path": ("daily_packs", "dir_path", "TEXT DEFAULT ''"),
+    "add_crawl_runs_stages_json": ("crawl_runs", "stages_json", "TEXT DEFAULT '{}'"),
+    "add_images_content_hash": ("images", "content_hash", "TEXT DEFAULT ''"),
+}
 
 SQL = {
     "create_schema_migrations": """
@@ -120,10 +128,11 @@ def apply_migrations(con: sqlite3.Connection) -> list[dict]:
             report.append({"version": version, "name": name, "status": "skipped"})
             continue
         try:
-            if name == "add_daily_packs_dir_path":
-                cols = table_columns(con, "daily_packs")
-                if "dir_path" not in cols:
-                    con.execute("ALTER TABLE daily_packs ADD COLUMN dir_path TEXT DEFAULT ''")
+            if name in ADD_COLUMNS:
+                table, col, default = ADD_COLUMNS[name]
+                cols = table_columns(con, table)
+                if col not in cols:
+                    con.execute(f"ALTER TABLE {table} ADD COLUMN {col} {default}")
                 status = "applied"
             else:
                 con.executescript(SQL[name])

@@ -5,20 +5,18 @@
   "_publish_disabled_by": "老板 (手动全面关停所有 XHS 自动化)",
   "tasks": [
     {
-      "name": "crawl",
-      "script": "scripts/crawl_loop_6h.py",
+      "name": "daily_ingestion",
+      "script": "scripts/daily_ingestion.py",
       "schedule": "03:00",
       "enabled": true,
-      "timeout": 18000,
+      "timeout": 21600,
       "args": [
-        "--duration-hours",
-        "4",
-        "--rate-limit",
-        "400",
-        "--max-discovered",
-        "200"
+        "--resume",
+        "--max",
+        "400"
       ],
-      "catchup_grace_minutes": 480
+      "catchup_grace_minutes": 720,
+      "_note": "唯一安全采集链路：preflight→crawl→persist→download backlog→normalize/source attach→至多一个主包→summary。取代旧 crawl(03:00)+image_download(07:30) 松散耦合。--resume 保证重启/中断后幂等恢复。绝不触碰 XHS。"
     },
     {
       "name": "daily_source_brief",
@@ -84,18 +82,6 @@
       "enabled": true,
       "timeout": 1800,
       "_note": "每周全源健康检查（8/15 一次性探测的周期化），产出 data/source-healthcheck-YYYY-MM-DD.{json,md}"
-    },
-    {
-      "name": "image_download",
-      "script": "scripts/download_images.py",
-      "schedule": "07:30",
-      "enabled": true,
-      "timeout": 2400,
-      "args": [
-        "--max",
-        "300"
-      ],
-      "_note": "爬虫 03:00 班 ~07:14 结束，07:30 把新提取的 image_urls 落盘入图谱"
     }
   ]
 }
