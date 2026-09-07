@@ -12,14 +12,16 @@
 采集入口（daily_ingestion.py preflight）与服务启动前都应调用本脚本。
 """
 import json
+import os
 import sqlite3
 import sys
 from datetime import datetime
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-DB_PATH = BASE_DIR / "data" / "taste_graph.db"
-REPORT_DIR = BASE_DIR / "data"
+# TASTEGRAPH_DB / TASTEGRAPH_MIGRATION_REPORT_DIR 仅用于 /tmp 副本演练；生产默认库在 data/ 下。
+DB_PATH = Path(os.environ.get("TASTEGRAPH_DB", str(BASE_DIR / "data" / "taste_graph.db")))
+REPORT_DIR = Path(os.environ.get("TASTEGRAPH_MIGRATION_REPORT_DIR", str(BASE_DIR / "data")))
 
 MIGRATIONS: list[tuple[int, str, str]] = [
     (1, "create_schema_migrations", "迁移登记表"),
@@ -30,12 +32,30 @@ MIGRATIONS: list[tuple[int, str, str]] = [
     (6, "add_daily_packs_dir_path", "daily_packs 补 dir_path 列（目录路径与 id 分离）"),
     (7, "add_crawl_runs_stages_json", "crawl_runs 补 stages_json（阶段幂等标记，--resume 依据）"),
     (8, "add_images_content_hash", "images 补 content_hash（内容 checksum 去重，契约 §1）"),
+    (9, "extend_job_runs_persistence", "job_runs 补 run_id/scheduled_date/error_summary/pid/heartbeat_at/log_path（调度状态持久化，契约 §1）"),
 ]
 
-ADD_COLUMNS = {
+# 值为 (表, 列, 声明) 或其列表（一个迁移补多列）。全部 PRAGMA 检查后 ADD COLUMN，幂等。
+ADD_COLUMNS: dict[str, object] = {
     "add_daily_packs_dir_path": ("daily_packs", "dir_path", "TEXT DEFAULT ''"),
     "add_crawl_runs_stages_json": ("crawl_runs", "stages_json", "TEXT DEFAULT '{}'"),
     "add_images_content_hash": ("images", "content_hash", "TEXT DEFAULT ''"),
+    "extend_job_runs_persistence": [
+        ("job_runs", "run_id", "TEXT DEFAULT ''"),
+        ("job_runs", "scheduled_date", "TEXT DEFAULT ''"),
+        ("job_runs", "error_summary", "TEXT DEFAULT ''"),
+        ("job_runs", "pid", "INTEGER DEFAULT 0"),
+        ("job_runs", "heartbeat_at", "TEXT DEFAULT ''"),
+        ("job_runs", "log_path", "TEXT DEFAULT ''"),
+    ],
+}
+
+# 列补完后执行的附加 DDL（全部 IF NOT EXISTS，幂等）。
+EXTRA_SQL = {
+    "extend_job_runs_persistence": (
+        "CREATE INDEX IF NOT EXISTS idx_job_runs_date "
+        "ON job_runs(job_name, scheduled_date, status)"
+    ),
 }
 
 SQL = {
@@ -129,14 +149,21 @@ def apply_migrations(con: sqlite3.Connection) -> list[dict]:
             continue
         try:
             if name in ADD_COLUMNS:
-                table, col, default = ADD_COLUMNS[name]
-                cols = table_columns(con, table)
-                if col not in cols:
-                    con.execute(f"ALTER TABLE {table} ADD COLUMN {col} {default}")
+                cols_spec = ADD_COLUMNS[name]
+                if isinstance(cols_spec, tuple):
+                    cols_spec = [cols_spec]
+                for table, col, decl in cols_spec:
+                    cols = table_columns(con, table)
+                    if col not in cols:
+                        con.execute(f"ALTER TABLE {table} ADD COLUMN {col} {decl}")
                 status = "applied"
-            else:
+            elif name in SQL:
                 con.executescript(SQL[name])
                 status = "applied"
+            else:
+                raise sqlite3.Error(f"迁移 {name} 无对应 SQL 定义")
+            if name in EXTRA_SQL:
+                con.execute(EXTRA_SQL[name])
             con.execute(
                 "INSERT INTO schema_migrations (version, name, description, applied_at) "
                 "VALUES (?, ?, ?, ?)",
@@ -163,6 +190,7 @@ def main() -> int:
         con.close()
 
     ts = datetime.now().strftime("%Y%m%d-%H%M%S")
+    REPORT_DIR.mkdir(parents=True, exist_ok=True)
     report_path = REPORT_DIR / f"migration_report-{ts}.json"
     payload = {
         "run_at": datetime.now().isoformat(),
