@@ -19,6 +19,10 @@ data/images/
 data/logs/
 data/exports/
 
+# Ingestion runtime artifacts (运行锁与每日摘要，每次跑生成)
+data/ingestion.lock
+data/daily_ingestion_status.json
+
 # tmp (caches, session state)
 tmp/
 
