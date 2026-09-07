@@ -46,3 +46,11 @@ data/source-healthcheck-*
 
 # Publish log (local engagement tracking)
 data/publish_log.json
+
+# Credentials & login state — NEVER track (退出 Git 2026-09-08, 会话待轮换)
+**/cookies.json
+**/cookies.state.json
+**/xhs_cookies.json
+**/storage_state*.json
+**/browser_profile/
+
