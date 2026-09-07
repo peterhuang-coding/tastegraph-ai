@@ -1337,18 +1337,26 @@ function filterByPillar(pillar, btn) {{
     }});
 }}
 
-// ── Published toggle（持久化到 localStorage，刷新不丢） ──
+// ── Published toggle：服务端发布账本为权威（契约 §3），localStorage 仅本地缓存 ──
 function togglePublished(postId) {{
     const card = document.getElementById(postId);
     const status = document.getElementById('status-' + postId);
-    if (card.classList.contains('published')) {{
-        card.classList.remove('published');
-        status.innerText = '⏳';
-        localStorage.setItem(postId + '-published', '0');
-    }} else {{
+    const on = !card.classList.contains('published');
+    if (on) {{
         card.classList.add('published');
         status.innerText = '✅';
         localStorage.setItem(postId + '-published', '1');
+        fetch('/publish-entries', {{ method: 'POST', headers: {{ 'Content-Type': 'application/json' }},
+            body: JSON.stringify({{ pack: postId, published_at: new Date().toISOString() }}) }});
+    }} else {{
+        card.classList.remove('published');
+        status.innerText = '⏳';
+        localStorage.setItem(postId + '-published', '0');
+        fetch('/publish-entries').then(r => r.json()).then(data => {{
+            const e = (data.entries || []).find(x => x.pack === postId);
+            if (e) fetch('/publish-entries', {{ method: 'POST', headers: {{ 'Content-Type': 'application/json' }},
+                body: JSON.stringify({{ delete: e.id }}) }});
+        }});
     }}
     updateCounter();
 }}
@@ -1374,6 +1382,8 @@ function markAllDone() {{
     document.querySelectorAll('.plan').forEach(c => {{
         c.classList.add('published');
         localStorage.setItem(c.id + '-published', '1');
+        fetch('/publish-entries', {{ method: 'POST', headers: {{ 'Content-Type': 'application/json' }},
+            body: JSON.stringify({{ pack: c.id, published_at: new Date().toISOString() }}) }});
     }});
     document.querySelectorAll('.status').forEach(s => s.innerText = '✅');
     updateCounter();
@@ -1401,14 +1411,30 @@ document.querySelectorAll('.plan').forEach(card => {{
     }});
 }});
 
-// ── Restore published state（F5: 已发标记刷新不丢） ──
-document.querySelectorAll('.plan').forEach(card => {{
-    if (localStorage.getItem(card.id + '-published') === '1') {{
-        card.classList.add('published');
-        document.getElementById('status-' + card.id).innerText = '✅';
+// ── Restore published state：服务端发布账本为权威，localStorage 仅离线兜底 ──
+async function restorePublished() {{
+    const apply = (published) => {{
+        document.querySelectorAll('.plan').forEach(card => {{
+            if (published.has(card.id)) {{
+                card.classList.add('published');
+                document.getElementById('status-' + card.id).innerText = '✅';
+            }}
+        }});
+        updateCounter();
+    }};
+    try {{
+        const resp = await fetch('/publish-entries');
+        const data = await resp.json();
+        apply(new Set((data.entries || []).map(e => e.pack)));
+    }} catch (e) {{
+        const local = new Set();
+        document.querySelectorAll('.plan').forEach(card => {{
+            if (localStorage.getItem(card.id + '-published') === '1') local.add(card.id);
+        }});
+        apply(local);
     }}
-}});
-updateCounter();
+}}
+restorePublished();
 
 // ── Auto-save on blur ──
 document.querySelectorAll('[contenteditable="true"]').forEach(el => {{

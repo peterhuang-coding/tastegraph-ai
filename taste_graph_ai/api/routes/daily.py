@@ -13,8 +13,8 @@ from taste_graph_ai.api.deps import (
     get_publish_repo,
     get_image_repo,
 )
-from taste_graph_ai.domain.enums import FeedbackLabel, FeedbackTargetType, ImageStatus
-from taste_graph_ai.domain.models import PublishRecord
+from taste_graph_ai.domain.enums import FeedbackLabel, FeedbackTargetType, ImageStatus, UserAction
+from taste_graph_ai.domain.models import PackImage, PublishRecord
 from taste_graph_ai.infrastructure.repos.packs import PackRepository
 from taste_graph_ai.infrastructure.repos.tasks import TaskRepository
 from taste_graph_ai.infrastructure.repos.feedback import FeedbackRepository
@@ -122,13 +122,43 @@ async def replace_image(
     image_id: str,
     body: schemas.ImageReplaceRequest,
     pack_repo: PackRepository = Depends(get_pack_repo),
+    image_repo: ImageRepository = Depends(get_image_repo),
     event_log: EventLog = Depends(get_event_log),
 ):
+    # 契约 §1 PackImage：换图原子同步 pack_images 的真实 image_id/位置/来源。
+    # 旧图标记 replaced，新图标记 selected；图注由前端随选图同步。
+    rows = await pack_repo.find_pack_images_by_image(image_id)
+    if not rows:
+        raise HTTPException(status_code=404, detail="Image not referenced by any pack")
+
+    affected = []
+    for row in rows:
+        conflict = await pack_repo.get_pack_image(row["pack_id"], body.new_image_id)
+        if conflict and conflict["position"] != row["position"]:
+            raise HTTPException(
+                status_code=409,
+                detail=f"新图已在 pack {row['pack_id']} 的第 {conflict['position']} 位",
+            )
+        affected.append(row["pack_id"])
+
+    for row in rows:
+        await pack_repo.save_pack_image(PackImage(
+            pack_id=row["pack_id"],
+            image_id=body.new_image_id,
+            position=row["position"],
+            user_action=UserAction.REPLACED,
+        ))
+        await pack_repo.delete_pack_image(row["pack_id"], image_id)
+
+    await image_repo.mark_many_status([image_id], ImageStatus.REPLACED)
+    await image_repo.mark_many_status([body.new_image_id], ImageStatus.SELECTED)
+
     event_log.append("image.replaced", {
         "old_image_id": image_id,
         "new_image_id": body.new_image_id,
+        "affected_packs": affected,
     })
-    return {"status": "ok", "new_image_id": body.new_image_id}
+    return {"status": "ok", "new_image_id": body.new_image_id, "affected_packs": affected}
 
 
 @router.post("/{pack_id}/export", response_model=schemas.ExportResponse)

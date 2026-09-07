@@ -544,7 +544,7 @@ def main() -> int:
                 "status": "consolidated", "error": "",
                 "page_title": "", "page_description": "", "og_image": "",
                 "page_author": "", "page_image_count": 0, "page_text_length": 0,
-                "image_urls": [], "alt_texts": [],
+                "image_urls": [], "alt_texts": [], "images": [],
             }
 
             if url and url.startswith("http"):
@@ -565,9 +565,15 @@ def main() -> int:
                     record["page_author"] = meta.get("author", "")
                     record["page_image_count"] = meta.get("image_count", 0)
                     record["page_text_length"] = len(meta.get("visible_text", ""))
-                    # New: full image URL array (was: only alt_texts)
-                    record["image_urls"] = [im["src"] for im in meta.get("images", [])]
-                    record["alt_texts"] = meta.get("alt_texts", [])
+                    # 契约形态：url 与 alt 同对象（docs/data-contract.md §0.4）。
+                    # image_urls/alt_texts 仅作 legacy 兼容镜像。
+                    _alts = meta.get("alt_texts") or []
+                    record["images"] = [
+                        {"url": im["src"], "alt": _alts[i] if i < len(_alts) else ""}
+                        for i, im in enumerate(meta.get("images", []))
+                    ]
+                    record["image_urls"] = [im["url"] for im in record["images"]]
+                    record["alt_texts"] = [im["alt"] for im in record["images"]]
                     if meta.get("visible_text") and not record.get("why"):
                         record["why"] = meta["visible_text"][:300]
                     if meta.get("title") and not record["title"]:

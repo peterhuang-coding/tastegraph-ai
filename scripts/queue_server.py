@@ -433,6 +433,9 @@ class QueueHandler(http.server.SimpleHTTPRequestHandler):
         except Exception as e:
             self._json({"ok": False, "error": str(e)}, status=400)
             return
+        # 契约 §0.3：发布时间唯一字段 published_at（兼容旧前端发的 time）
+        if "time" in payload and "published_at" not in payload:
+            payload["published_at"] = payload["time"]
         try:
             entries = json.loads(PUBLISH_LOG_PATH.read_text(encoding="utf-8"))
         except Exception:
@@ -458,9 +461,10 @@ class QueueHandler(http.server.SimpleHTTPRequestHandler):
                 return 0
 
         if not payload.get("delete"):
-            likes = _num(payload.get("l24")) + _num(payload.get("l48"))
-            saves = _num(payload.get("s24")) + _num(payload.get("s48"))
-            comments = _num(payload.get("c24")) + _num(payload.get("c48"))
+            # 契约 §0.5：24h/48h 是累计快照（48h 含 24h），最新窗口优先，绝不相加。
+            likes = _num(payload.get("l48")) if payload.get("l48") not in (None, "") else _num(payload.get("l24"))
+            saves = _num(payload.get("s48")) if payload.get("s48") not in (None, "") else _num(payload.get("s24"))
+            comments = _num(payload.get("c48")) if payload.get("c48") not in (None, "") else _num(payload.get("c24"))
             if likes or saves or comments:
                 try:
                     metrics = {

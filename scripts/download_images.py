@@ -53,15 +53,21 @@ def load_urls(all_runs: bool) -> list[dict]:
                 continue
             if e.get("status") != "fetched":
                 continue
-            alts = e.get("alt_texts") or []
-            for i, u in enumerate(e.get("image_urls") or []):
+            imgs = e.get("images") or []  # 契约形态: [{url, alt}]，alt 与 url 同对象
+            if not imgs:
+                # legacy 兼容: image_urls[]/alt_texts[] 两数组按下标配对（契约已弃用）
+                alts = e.get("alt_texts") or []
+                imgs = [{"url": u, "alt": (alts[i] if i < len(alts) else "") or ""}
+                        for i, u in enumerate(e.get("image_urls") or [])]
+            for im in imgs:
+                u = im.get("url") or ""
                 if u in seen or not u.startswith("http"):
                     continue
                 if any(b in u.lower() for b in _BAD):
                     continue
                 seen[u] = {
                     "url": u,
-                    "alt": (alts[i] if i < len(alts) else "") or "",
+                    "alt": im.get("alt") or "",
                     "page_url": e.get("url", ""),
                 }
     print(f"候选 URL: {len(seen)}")
@@ -71,6 +77,27 @@ def load_urls(all_runs: bool) -> list[dict]:
 def already_have(con: sqlite3.Connection, url_md5: str) -> bool:
     row = con.execute("SELECT COUNT(*) FROM images WHERE id = ?", (url_md5,)).fetchone()
     return bool(row and row[0])
+
+
+def _norm_url(u: str) -> str:
+    """规范化 URL：去 query/hash/尾部斜杠，host 小写（契约 §1 去重/溯源用）。"""
+    return u.split("?", 1)[0].split("#", 1)[0].rstrip("/").lower()
+
+
+def resolve_source(page_url: str, sources: list[tuple[str, str]]) -> str | None:
+    """按 page_url 与 sources.url 的最长前缀匹配解析 source_id（docs/data-contract.md §4-1）。
+
+    解析失败返回 None —— 调用方必须记录事件，禁止静默写空参与来源评分。
+    """
+    if not page_url:
+        return None
+    pu = _norm_url(page_url)
+    best, best_len = None, 0
+    for sid, surl in sources:
+        su = _norm_url(surl)
+        if su and pu.startswith(su) and len(su) > best_len:
+            best, best_len = sid, len(su)
+    return best
 
 
 def download(url: str, dest: Path) -> bool:
@@ -103,7 +130,9 @@ def main() -> None:
     con.execute("PRAGMA busy_timeout=5000")
 
     urls = load_urls(args.all)
+    sources = con.execute("SELECT id, url FROM sources").fetchall()
     done = 0
+    unresolved = 0
     for item in urls:
         if done >= args.max:
             break
@@ -131,12 +160,22 @@ def main() -> None:
                 dest.unlink(missing_ok=True)
                 continue
         keywords = [a.strip()[:40] for a in (item["alt"] or "").split("|") if a.strip()][:5]
+        source_id = resolve_source(item["page_url"], sources)
+        if source_id is None:
+            # 契约 §4-1：解析失败必须记录，不允许静默写空
+            unresolved += 1
+            con.execute(
+                "INSERT INTO event_log (ts, event_type, data_json) "
+                "VALUES (datetime('now'), 'ingest.source_unresolved', ?)",
+                (json.dumps({"page_url": item["page_url"], "image_url": url},
+                            ensure_ascii=False),),
+            )
         try:
             con.execute(
                 "INSERT OR IGNORE INTO images (id, source_id, url, page_url, local_path, "
                 "thumbnail_path, keywords_json, graph_score, visual_score, final_score, status, created_at) "
-                "VALUES (?, NULL, ?, ?, ?, '', ?, 0.0, 0.0, 0.3, 'pending', datetime('now'))",
-                (uid, url, item["page_url"], str(dest), json.dumps(keywords, ensure_ascii=False)),
+                "VALUES (?, ?, ?, ?, ?, '', ?, 0.0, 0.0, 0.3, 'pending', datetime('now'))",
+                (uid, source_id, url, item["page_url"], str(dest), json.dumps(keywords, ensure_ascii=False)),
             )
             con.commit()
         except sqlite3.Error:
@@ -150,6 +189,8 @@ def main() -> None:
 
     con.close()
     print(f"✅ 本次下载 {done} 张 → {out_dir}")
+    if unresolved:
+        print(f"⚠ {unresolved} 张无法解析 source（已记 ingest.source_unresolved 事件）")
 
 
 if __name__ == "__main__":

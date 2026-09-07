@@ -115,7 +115,7 @@ async def create_curated_pack(
 
     today = date.today().isoformat()
     pack = DailyPack(
-        id=uuid.uuid4().hex[:12],
+        id=uuid.uuid4().hex[:16],
         date=today,
         theme=body.theme,
         title_options=[body.title] if body.title else [],

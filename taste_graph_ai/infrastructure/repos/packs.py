@@ -77,6 +77,29 @@ class PackRepository:
         )
         await self.db.commit()
 
+    async def find_pack_images_by_image(self, image_id: str) -> list[dict]:
+        cursor = await self.db.execute(
+            "SELECT pack_id, image_id, position, user_action FROM pack_images WHERE image_id = ?",
+            (image_id,),
+        )
+        return [dict(r) for r in await cursor.fetchall()]
+
+    async def get_pack_image(self, pack_id: str, image_id: str) -> Optional[dict]:
+        cursor = await self.db.execute(
+            "SELECT pack_id, image_id, position, user_action FROM pack_images "
+            "WHERE pack_id = ? AND image_id = ?",
+            (pack_id, image_id),
+        )
+        row = await cursor.fetchone()
+        return dict(row) if row else None
+
+    async def delete_pack_image(self, pack_id: str, image_id: str) -> None:
+        await self.db.execute(
+            "DELETE FROM pack_images WHERE pack_id = ? AND image_id = ?",
+            (pack_id, image_id),
+        )
+        await self.db.commit()
+
     async def get_latest_packs(self, limit: int = 20) -> list[DailyPack]:
         cursor = await self.db.execute(
             "SELECT * FROM daily_packs ORDER BY date DESC LIMIT ?", (limit,)

@@ -60,6 +60,7 @@ class DailyPackResponse(BaseModel):
     images: list[PackImageResponse] = []
     created_at: str
     selected_at: Optional[str] = None
+    published_at: Optional[str] = None
 
 class DailyTodayResponse(BaseModel):
     packs: list[DailyPackResponse]
