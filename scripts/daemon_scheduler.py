@@ -10,12 +10,19 @@ tape — 统一定时调度器
   python3 scripts/daemon_scheduler.py --run backup # 立即执行指定任务
 
 配置: config/schedule.json
-日志: data/events.log
+事件日志: data/events.log（5MB 轮转，保留 .1）
+worker 日志: data/logs/<job>-<ts>.log（14 天清理）
+调度状态: job_runs 表（契约 §1）— “今天是否已跑”以数据库为准，重启不补跑成功任务。
+
+守护模式下任务以 detached 子进程运行（start_new_session），长 crawl 不阻塞
+调度循环；worker pid/心跳落 job_runs，进程消失自动标记 failed，下次触发
+以 --resume 幂等补跑。运行锁（daily_ingestion fcntl flock）是并发终极防线。
 """
 
 import argparse
 import json
 import os
+import sqlite3
 import subprocess
 import sys
 import time
@@ -24,11 +31,23 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 CONFIG_FILE = BASE_DIR / "config" / "schedule.json"
-EVENTS_LOG = BASE_DIR / "data" / "events.log"
+DATA_DIR = BASE_DIR / "data"
+EVENTS_LOG = DATA_DIR / "events.log"
+LOGS_DIR = DATA_DIR / "logs"
+# TASTEGRAPH_DB 仅用于 /tmp 副本演练；生产默认 data/taste_graph.db。
+DB_PATH = Path(os.environ.get("TASTEGRAPH_DB", str(DATA_DIR / "taste_graph.db")))
 
 CHECK_INTERVAL = 300  # 5 分钟
 MAX_RETRIES = 3
-RETRY_BASE_DELAY = 10  # 指数退避基数（秒）
+RETRY_BASE_DELAY = 10  # 指数退避基数（秒，仅 --run/--run-all 前台模式）
+LOG_RETENTION_DAYS = 14          # data/logs/ 旧日志保留天数
+EVENTS_LOG_MAX_BYTES = 5 << 20   # events.log 超过 5MB 轮转为 .1
+RETRY_BACKOFF_MINUTES = 30       # 失败任务再次触发的最小间隔（任务可覆盖）
+TERMINAL_STATUSES = ("succeeded", "partial", "skipped")  # 当天不再补跑的终态
+
+
+def now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
 
 
 def load_config() -> dict:
@@ -139,10 +158,250 @@ def log_event(event_type: str, data: dict) -> None:
         print(f"[scheduler] 写入日志失败: {exc}")
 
 
-def run_task(task: dict, run_args: list[str] | None = None) -> bool:
-    """通过 subprocess 执行单个任务。
+# ── job_runs 持久化（契约 §1：今天是否已跑以数据库为准）────────
 
-    支持重试（指数退避），最多 MAX_RETRIES 次。
+def open_db() -> sqlite3.Connection:
+    con = sqlite3.connect(str(DB_PATH))
+    con.execute("PRAGMA busy_timeout=5000")
+    return con
+
+
+def ensure_schema(con: sqlite3.Connection) -> None:
+    """服务启动前跑幂等迁移（契约 §0.6：采集入口与服务启动前都应迁移）。"""
+    sys.path.insert(0, str(BASE_DIR / "scripts"))
+    import migrations
+    migrations.DB_PATH = DB_PATH
+    migrations.REPORT_DIR = DATA_DIR
+    report = migrations.apply_migrations(con)
+    failed = [e for e in report if e["status"] == "failed"]
+    if failed:
+        print(f"[scheduler] 迁移失败: {failed}")
+        log_event("scheduler.migration_failed", {"entries": failed})
+
+
+def pid_alive(pid: int) -> bool:
+    if not pid:
+        return False
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    except OSError:
+        return False
+    return True
+
+
+def pid_runs_script(pid: int, script_hint: str) -> bool:
+    """pid 存活且命令行仍包含本任务脚本名（防 pid 复用误判）。"""
+    if not pid_alive(pid):
+        return False
+    try:
+        out = subprocess.run(["ps", "-p", str(pid), "-o", "command="],
+                             capture_output=True, text=True, timeout=5).stdout.strip()
+    except OSError:
+        return True  # ps 不可用时退回 pid 判断
+    return script_hint in out if out else False
+
+
+def new_job_run_id() -> str:
+    return "job-" + datetime.now().strftime("%Y%m%d%H%M%S") + "-" + os.urandom(2).hex()
+
+
+def latest_job_row(con: sqlite3.Connection, name: str, today: str, slot: str) -> dict | None:
+    """该 (job, 日期, 时点) 最新一行。slot 如 "03:00"，匹配 scheduled_for 的时分。"""
+    cur = con.execute(
+        "SELECT * FROM job_runs WHERE job_name=? AND scheduled_date=? "
+        "AND scheduled_for LIKE ? ORDER BY started_at DESC LIMIT 1",
+        (name, today, f"{today}T{slot}:%"),
+    )
+    row = cur.fetchone()
+    if not row:
+        return None
+    return dict(zip([c[0] for c in cur.description], row))
+
+
+def mark_dead(con: sqlite3.Connection, job_id: str, pid: int, name: str) -> None:
+    con.execute(
+        "UPDATE job_runs SET status='failed', finished_at=?, error_summary=? WHERE id=?",
+        (now_iso(), f"worker 进程已消失（pid={pid}），中断；下次触发以 --resume 幂等补跑", job_id),
+    )
+    con.commit()
+    log_event("scheduler.reap_dead", {"job": name, "pid": pid, "job_run_id": job_id})
+
+
+def reap_dead_runs(con: sqlite3.Connection, tasks: list[dict]) -> int:
+    """status=running 但 worker 进程已消失 → 标记 failed，允许补跑。"""
+    script_by_name = {t["name"]: Path(t.get("script", "")).name for t in tasks}
+    rows = con.execute(
+        "SELECT id, job_name, pid FROM job_runs WHERE status='running'"
+    ).fetchall()
+    reaped = 0
+    for job_id, name, pid in rows:
+        hint = script_by_name.get(name, "")
+        dead = (not pid_runs_script(pid, hint)) if hint else (not pid_alive(pid))
+        if dead:
+            mark_dead(con, job_id, pid, name)
+            reaped += 1
+    return reaped
+
+
+def already_done(con: sqlite3.Connection, task: dict, slot: str, today: str) -> bool:
+    """今天该时点是否已处理：成功终态/仍在运行→跳过；失败在退避期内→跳过。"""
+    row = latest_job_row(con, task["name"], today, slot)
+    if row is None:
+        return False
+    status = row.get("status")
+    if status in TERMINAL_STATUSES:
+        return True
+    if status == "running":
+        hint = Path(task.get("script", "")).name
+        alive = pid_runs_script(row.get("pid", 0), hint) if hint else pid_alive(row.get("pid", 0))
+        if alive:
+            return True  # 长 crawl 还在跑，不重复触发
+        mark_dead(con, row["id"], row.get("pid", 0), task["name"])
+        return False
+    if status == "failed":
+        backoff = int(task.get("retry_backoff_minutes", RETRY_BACKOFF_MINUTES))
+        ts = row.get("finished_at") or row.get("started_at")
+        if ts:
+            try:
+                dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=timezone.utc)
+                if datetime.now(timezone.utc) - dt < timedelta(minutes=backoff):
+                    return True
+            except ValueError:
+                pass
+        return False
+    return False  # pending/未知 → 允许触发
+
+
+# ── detached worker ─────────────────────────────────────────
+
+def tail_log(path: Path, max_chars: int = 400) -> str:
+    try:
+        data = path.read_bytes()[-max_chars:].decode("utf-8", errors="ignore")
+        return " ".join(data.split())[:max_chars]
+    except OSError:
+        return ""
+
+
+def spawn_worker(con: sqlite3.Connection, task: dict, slot: str, today: str,
+                 target: datetime) -> dict | None:
+    """detached 子进程执行任务，完全脱离调度循环（长任务不阻塞）。
+
+    job_runs 行先建（running + log_path），pid 在 Popen 后回写；
+    TASTEGRAPH_JOB_RUN_ID 传给 worker，daily_ingestion 会自行回写终态。
+    """
+    script_path = BASE_DIR / task["script"]
+    if not script_path.exists():
+        print(f"[scheduler] 脚本不存在: {script_path}")
+        log_event("scheduler.task_error", {"task": task["name"], "error": "script not found"})
+        return None
+    LOGS_DIR.mkdir(parents=True, exist_ok=True)
+    ts = datetime.now().strftime("%Y%m%d-%H%M%S")
+    log_path = LOGS_DIR / f"{task['name']}-{ts}.log"
+    job_id = new_job_run_id()
+    con.execute(
+        "INSERT INTO job_runs (id, job_name, scheduled_for, scheduled_date, started_at, "
+        "status, summary_json, run_id, error_summary, pid, heartbeat_at, log_path) "
+        "VALUES (?,?,?,?,?, 'running', '{}', '', '', 0, ?, ?)",
+        (job_id, task["name"], target.isoformat(), today, now_iso(), now_iso(), str(log_path)),
+    )
+    con.commit()
+
+    env = os.environ.copy()
+    env["TASTEGRAPH_JOB_RUN_ID"] = job_id
+    env["TASTEGRAPH_JOB_NAME"] = task["name"]
+    env["TASTEGRAPH_JOB_LOG_PATH"] = str(log_path)
+    env["PYTHONUNBUFFERED"] = "1"
+    cmd = [sys.executable, "-u", str(script_path)] + task.get("args", [])
+    log_f = open(log_path, "ab")
+    try:
+        proc = subprocess.Popen(
+            cmd, cwd=str(BASE_DIR), stdin=subprocess.DEVNULL,
+            stdout=log_f, stderr=subprocess.STDOUT,
+            start_new_session=True, env=env,
+        )
+    except OSError as exc:
+        log_f.close()
+        con.execute(
+            "UPDATE job_runs SET status='failed', finished_at=?, error_summary=? WHERE id=?",
+            (now_iso(), f"spawn 失败: {exc}"[:200], job_id),
+        )
+        con.commit()
+        print(f"[scheduler] [{task['name']}] spawn 失败: {exc}")
+        return None
+    con.execute("UPDATE job_runs SET pid=? WHERE id=?", (proc.pid, job_id))
+    con.commit()
+    print(f"[scheduler] [{task['name']}] detached worker pid={proc.pid} 日志={log_path.name}")
+    log_event("scheduler.spawn", {
+        "task": task["name"], "slot": slot, "pid": proc.pid,
+        "job_run_id": job_id, "log": str(log_path),
+    })
+    return {"proc": proc, "job_id": job_id, "log": log_path, "log_f": log_f, "task": task}
+
+
+def poll_workers(con: sqlite3.Connection, active: dict) -> None:
+    """收集本调度进程拉起的 worker 终态；daily_ingestion 自回写终态则尊重之。"""
+    for name, w in list(active.items()):
+        rc = w["proc"].poll()
+        if rc is None:
+            continue
+        try:
+            w["log_f"].close()
+        except OSError:
+            pass
+        cur = con.execute("SELECT status, error_summary FROM job_runs WHERE id=?",
+                          (w["job_id"],)).fetchone()
+        db_status = cur[0] if cur else None
+        if db_status in TERMINAL_STATUSES:
+            status, err = db_status, (cur[1] if cur else "")
+        elif rc == 0:
+            status, err = "succeeded", ""
+        elif rc == 2:  # daily_ingestion 锁竞争：已有实例在跑
+            status, err = "skipped", "已有实例持锁运行，跳过"
+        else:
+            status = "failed"
+            err = f"exit={rc}; " + tail_log(w["log"])
+        if db_status == "running" or db_status is None:
+            con.execute(
+                "UPDATE job_runs SET status=?, finished_at=?, error_summary=? "
+                "WHERE id=? AND status='running'",
+                (status, now_iso(), err[:400], w["job_id"]),
+            )
+            con.commit()
+        print(f"[scheduler] [{name}] worker 退出 rc={rc} → {status}")
+        log_event("scheduler.worker_exit", {"task": name, "rc": rc, "status": status})
+        del active[name]
+
+
+# ── 日志轮转 ────────────────────────────────────────────────
+
+def rotate_logs() -> None:
+    """data/logs/*.log 按 14 天清理；events.log 超 5MB 轮转为 .1。"""
+    cutoff = time.time() - LOG_RETENTION_DAYS * 86400
+    if LOGS_DIR.is_dir():
+        for p in LOGS_DIR.glob("*.log"):
+            try:
+                if p.is_file() and p.stat().st_mtime < cutoff:
+                    p.unlink()
+                    print(f"[scheduler] 轮转删除旧日志: {p.name}")
+            except OSError:
+                pass
+    try:
+        if EVENTS_LOG.exists() and EVENTS_LOG.stat().st_size > EVENTS_LOG_MAX_BYTES:
+            EVENTS_LOG.replace(EVENTS_LOG.with_name("events.log.1"))
+    except OSError:
+        pass
+
+
+def run_task(task: dict, run_args: list[str] | None = None) -> bool:
+    """前台同步执行单个任务（仅 --run/--run-all 手动模式）。
+
+    支持重试（指数退避），最多 MAX_RETRIES 次。守护模式走 spawn_worker。
     返回 True 表示成功，False 表示所有重试均失败。
     """
     script = task["script"]
@@ -263,36 +522,63 @@ def due_targets(task: dict, now: datetime) -> list[tuple[str, datetime]]:
 
 
 def run_daemon(config: dict) -> None:
-    """守护进程主循环：每 5 分钟检查一次任务注册表。"""
-    print(f"[scheduler] 调度器已启动 (检查间隔: {CHECK_INTERVAL}s)")
+    """守护进程主循环：每 5 分钟检查一次任务注册表。
+
+    - “今天是否已跑”查 job_runs 表（重启不补跑成功任务）
+    - 任务以 detached worker 运行，长 crawl 不阻塞循环
+    - running 但进程已死的行自动 reap 为 failed，下次触发 --resume 补跑
+    - 机器睡眠错过触发窗口，醒来后补跑未超宽限期的任务（默认 3h，
+      schedule.json 可用 catchup_grace_minutes 覆盖）
+    """
+    print(f"[scheduler] 调度器已启动 (检查间隔: {CHECK_INTERVAL}s, DB: {DB_PATH})")
+    con = open_db()
+    ensure_schema(con)
     log_event("scheduler.start", {"check_interval": CHECK_INTERVAL})
 
-    # last_run 按 (任务, 时点) 记录今天是否已执行，防止重复触发。
-    # 机器睡眠会错过触发窗口，因此醒来后补跑当天错过且未超宽限期的任务
-    # （默认 3 小时，可在 schedule.json 用 catchup_grace_minutes 覆盖）。
-    last_run: dict[tuple[str, str], datetime.date] = {}
+    active: dict[str, dict] = {}  # job_name → worker 句柄（本调度进程生命周期内）
 
     while True:
-        # 每轮重读配置：schedule.json 改动无需重启 daemon 即生效
-        config = load_config()
-        tasks = get_tasks(config)
+        try:
+            # 每轮重读配置：schedule.json 改动无需重启 daemon 即生效
+            config = load_config()
+            tasks = get_tasks(config)
 
-        for task in tasks:
-            name = task["name"]
-            now = datetime.now()  # 每任务刷新，长任务后不用旧时间判断
-            for t_str, target in due_targets(task, now):
-                key = (name, t_str)
-                if last_run.get(key) == now.date():
-                    continue
-                grace = timedelta(minutes=task.get("catchup_grace_minutes", 180))
-                if now - target > grace:
-                    continue
+            poll_workers(con, active)
+            reap_dead_runs(con, tasks)
 
-                print(f"[scheduler] 触发任务: {name} ({t_str})")
-                log_event("scheduler.trigger", {"task": name, "time": t_str})
-                last_run[key] = now.date()
-                run_task(task)
-                break
+            for task in tasks:
+                name = task["name"]
+                if name in active:
+                    continue  # 本进程已拉起且在跑
+                now = datetime.now()  # 每任务刷新，长任务后不用旧时间判断
+                today = now.strftime("%Y-%m-%d")
+                for t_str, target in due_targets(task, now):
+                    grace = timedelta(minutes=task.get("catchup_grace_minutes", 180))
+                    if now - target > grace:
+                        continue
+                    if already_done(con, task, t_str, today):
+                        continue
+
+                    print(f"[scheduler] 触发任务: {name} ({t_str})")
+                    log_event("scheduler.trigger", {"task": name, "time": t_str})
+                    worker = spawn_worker(con, task, t_str, today, target)
+                    if worker:
+                        active[name] = worker
+                    break
+
+            rotate_logs()
+        except sqlite3.Error as exc:
+            print(f"[scheduler] 数据库错误: {exc}，5s 后重连")
+            log_event("scheduler.db_error", {"error": str(exc)[:200]})
+            try:
+                con.close()
+            except sqlite3.Error:
+                pass
+            time.sleep(5)
+            try:
+                con = open_db()
+            except sqlite3.Error as exc2:
+                print(f"[scheduler] 重连失败: {exc2}")
 
         time.sleep(CHECK_INTERVAL)
 
