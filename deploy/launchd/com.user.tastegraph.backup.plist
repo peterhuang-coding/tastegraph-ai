@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  TasteGraph 每日数据库备份。
+
+  行为:
+    - 每天 04:00 跑 python3 scripts/backup_db.py
+      （SQLite Online Backup API → data/backups/，integrity_check + 行数校验，
+        保留 14 天/30 份；旧 scripts/backup.py 文件拷贝不保证 WAL 一致性，已弃用）
+    - 采集班 03:00 开始；在线备份与写入并发安全，04:00 拿到的是一致快照。
+    - 机器睡眠错过 04:00 → 醒来后 launchd 补跑。
+    - 不 RunAtLoad：登录/开机不额外备份，避免与采集补跑撞车。
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.user.tastegraph.backup</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/anaconda3/bin/python3</string>
+        <string>-u</string>
+        <string>/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/scripts/backup_db.py</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PYTHONUNBUFFERED</key>
+        <string>1</string>
+        <key>PATH</key>
+        <string>/opt/anaconda3/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin</string>
+        <key>HOME</key>
+        <string>/Users/peter_mini</string>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <false/>
+
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>4</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>/Users/peter_mini/Library/Logs/TasteGraph/backup.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/peter_mini/Library/Logs/TasteGraph/backup.err</string>
+</dict>
+</plist>

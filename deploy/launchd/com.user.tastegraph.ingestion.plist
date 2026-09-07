@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  TasteGraph 每日安全采集（唯一采集入口）。
+
+  行为:
+    - 每天 03:00 跑 python3 scripts/daily_ingestion.py --resume
+    - RunAtLoad: 开机/登录/launchd 重新加载后立即跑一次；
+      当天已成功（job_runs 终态 succeeded）时进程自行幂等退出，不重复补跑。
+    - 机器睡眠错过 03:00 → 醒来后 launchd 补跑。
+    - 中断/失败后 --resume 按 run_id + stages_json 幂等续跑。
+    - 不设 KeepAlive：采集是一次性班任务，锁竞争（exit 2）不应触发重启风暴；
+      失败恢复靠 --resume + 下一轮触发，长 crawl 不会被 launchd 杀。
+
+  安全:
+    - 只做采集/下载/候选包生成，绝不登录/发布/互动（XHS 自动化永久封停）。
+    - 安装步骤见 deploy/launchd/README.md，本文件入库但不要在未经老板确认时 load。
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.user.tastegraph.ingestion</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/anaconda3/bin/python3</string>
+        <string>-u</string>
+        <string>/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/scripts/daily_ingestion.py</string>
+        <string>--resume</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PYTHONUNBUFFERED</key>
+        <string>1</string>
+        <key>PATH</key>
+        <string>/opt/anaconda3/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin</string>
+        <key>HOME</key>
+        <string>/Users/peter_mini</string>
+        <key>TASTEGRAPH_JOB_NAME</key>
+        <string>daily_ingestion</string>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>3</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>/Users/peter_mini/Library/Logs/TasteGraph/ingestion.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/peter_mini/Library/Logs/TasteGraph/ingestion.err</string>
+</dict>
+</plist>

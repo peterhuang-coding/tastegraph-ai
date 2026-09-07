@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  TasteGraph 工作台（QUEUE 编辑台 / 发布登记 / 源面板）。
+
+  行为:
+    - KeepAlive: 进程退出自动重启（崩溃/开机后恢复）。
+    - 绑定 127.0.0.1:8765（默认环回，仅本机）。
+    - Tailscale/局域网访问: 加环境变量
+        QUEUE_HOST = 0.0.0.0            （或 tailscale IP）
+        TASTEGRAPH_ALLOWED_ORIGINS = http://<tailscale名或IP>:8765
+      详见 docs/operations.md §7。CORS 默认同源 only，永不返回 "*"。
+
+  安全:
+    - 本服务只读写本地 posts/data，不登录不发布；发布动作永远人工完成。
+    - 安装步骤见 deploy/launchd/README.md。
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.user.tastegraph.queue</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/anaconda3/bin/python3</string>
+        <string>-u</string>
+        <string>/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound/scripts/queue_server.py</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Volumes/SanDisk2TB/自媒体作品/小红书起号/moodboard-hidden-ny-jjjjound</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PYTHONUNBUFFERED</key>
+        <string>1</string>
+        <key>PATH</key>
+        <string>/opt/anaconda3/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin</string>
+        <key>HOME</key>
+        <string>/Users/peter_mini</string>
+        <key>QUEUE_HOST</key>
+        <string>127.0.0.1</string>
+        <key>QUEUE_PORT</key>
+        <string>8765</string>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/peter_mini/Library/Logs/TasteGraph/queue.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/peter_mini/Library/Logs/TasteGraph/queue.err</string>
+</dict>
+</plist>
