@@ -179,11 +179,6 @@ class ExportResponse(BaseModel):
     theme: str = ""
     caption: str = ""
 
-class AutoPublishResponse(BaseModel):
-    success: bool
-    post_url: str = ""
-    error: str = ""
-
 
 # ── Curation ───────────────────────────────────────────────────
 

@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
 
 from taste_graph_ai.api import schemas
 from taste_graph_ai.api.deps import (
@@ -102,7 +102,6 @@ async def trigger_generate(
 
 @router.post("/full", response_model=schemas.PipelineResult)
 async def trigger_full(
-    auto_publish: bool = False,
     source_repo: SourceRepository = Depends(get_source_repo),
     pack_repo: PackRepository = Depends(get_pack_repo),
     task_repo: TaskRepository = Depends(get_task_repo),
@@ -131,32 +130,12 @@ async def trigger_full(
 
         await ai.close()
 
-        # 5. Optional auto-publish (best-scoring pack) via CDP
-        auto_pub_result = ""
-        if auto_publish and packs:
-            from taste_graph_ai.cdp_adapter import publish_via_cdp
-            best = max(packs, key=lambda p: p.taste_score)
-            try:
-                imgs = await pack_repo.get_pack_images(best.id)
-                paths = [i["local_path"] for i in imgs if i.get("local_path")]
-                if paths:
-                    title = best.title_options[0] if best.title_options else best.theme
-                    caption = best.caption or best.theme
-                    result = publish_via_cdp(title=title, content=caption, image_paths=paths)
-                    if result.get("success"):
-                        post_url = result.get("post_url", "")
-                        best.publish()
-                        await pack_repo.save(best)
-                        auto_pub_result = f" | CDP published: {post_url}"
-                    else:
-                        auto_pub_result = f" | CDP publish failed: {result.get('message', 'unknown')}"
-            except Exception as e:
-                auto_pub_result = f" | Auto-publish failed: {e}"
-                event_log.append("pipeline.auto_publish_error", {"error": str(e)})
+        # 自动发布永久禁用（2026-07-29 老板关停）：策展产物只导出/打包，
+        # 由人工发布后在发布账本登记；浏览器自动化发布适配层已归档，无运行时调用。
 
         return schemas.PipelineResult(
             success=True,
-            message=f"Pipeline complete: {len(new_sources)} sources, {img_count} images, {len(tasks)} tasks, {len(packs)} packs{auto_pub_result}",
+            message=f"Pipeline complete: {len(new_sources)} sources, {img_count} images, {len(tasks)} tasks, {len(packs)} packs",
             data={
                 "new_sources": len(new_sources),
                 "images": img_count,
@@ -170,106 +149,3 @@ async def trigger_full(
             success=False,
             message=f"Pipeline failed: {e}",
         )
-
-
-class CDPPublishRequest(BaseModel):
-    pack_id: str = ""
-    title: str = ""
-    content: str = ""
-    image_paths: list[str] = []
-
-
-@router.post("/cdp-publish", response_model=schemas.PipelineResult)
-async def trigger_cdp_publish(
-    body: CDPPublishRequest,
-    request: Request,
-    pack_repo: PackRepository = Depends(get_pack_repo),
-    event_log: EventLog = Depends(get_event_log),
-):
-    """Publish directly via CDP browser automation.
-
-    Two modes:
-    1. Provide pack_id — loads title/content/images from the pack in DB.
-    2. Provide title/content/image_paths directly (for manual / curated packs).
-
-    SAFETY (2026-07-29): If config/schedule.json has _publish_disabled=true,
-    this endpoint refuses with 403 unless caller sends header:
-        X-Publish-Override: I-UNDERSTAND-RISK
-    Defense against accidental API calls / old scripts / leftover cron.
-    """
-    # ── safety gate ─────────────────────────────────────────
-    import json
-    from pathlib import Path as _Path
-    schedule_file = _Path(__file__).resolve().parents[3] / "config" / "schedule.json"
-    if schedule_file.exists():
-        try:
-            cfg = json.loads(schedule_file.read_text())
-            if cfg.get("_publish_disabled") is True:
-                override = request.headers.get("X-Publish-Override", "")
-                if override != "I-UNDERSTAND-RISK":
-                    reason = cfg.get("_publish_disabled_reason", "publishing disabled")
-                    raise HTTPException(
-                        status_code=403,
-                        detail=f"XHS publish blocked: {reason}. "
-                               f"To override, send header X-Publish-Override: I-UNDERSTAND-RISK",
-                    )
-        except HTTPException:
-            raise
-        except Exception:
-            pass
-
-    from taste_graph_ai.cdp_adapter import publish_via_cdp, is_chrome_ready
-
-    if not is_chrome_ready():
-        raise HTTPException(
-            status_code=503,
-            detail="Chrome with remote debugging (port 9222) is not running. "
-                   "Start Chrome with: chrome --remote-debugging-port=9222",
-        )
-
-    pack_id = body.pack_id
-    title = body.title
-    content = body.content
-    image_paths = body.image_paths
-
-    if pack_id:
-        pack = await pack_repo.get_by_id(pack_id)
-        if not pack:
-            raise HTTPException(status_code=404, detail="Pack not found")
-        imgs = await pack_repo.get_pack_images(pack_id)
-        paths = [i["local_path"] for i in imgs if i.get("local_path")]
-        if not paths:
-            raise HTTPException(status_code=400, detail="Pack has no local images")
-        title = pack.title_options[0] if pack.title_options else pack.theme
-        content = pack.caption or pack.theme
-    else:
-        if not title or not content or not image_paths:
-            raise HTTPException(
-                status_code=400,
-                detail="Provide pack_id or (title + content + image_paths)",
-            )
-        paths = image_paths
-
-    result = publish_via_cdp(title=title, content=content, image_paths=paths)
-
-    if result.get("success"):
-        if pack_id:
-            pack = await pack_repo.get_by_id(pack_id)
-            if pack:
-                pack.publish()
-                await pack_repo.save(pack)
-        event_log.append("pipeline.cdp_publish_ok", {
-            "pack_id": pack_id,
-            "post_url": result.get("post_url", ""),
-        })
-    else:
-        event_log.append("pipeline.cdp_publish_error", {
-            "pack_id": pack_id,
-            "error": result.get("message", "unknown"),
-        })
-
-    return schemas.PipelineResult(
-        success=result.get("success", False),
-        message=result.get("message", ""),
-        data={"post_url": result.get("post_url", "")},
-    )

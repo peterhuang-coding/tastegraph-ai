@@ -18,7 +18,6 @@ const HealthTab = {
     const cards = [
       this._serverCard(data.server),
       this._daemonsCard(data.daemons),
-      this._cdpCard(data.cdp),
       this._databaseCard(data.database),
       this._gitCard(data.git),
       this._dataDirsCard(data.dataDirs),
@@ -68,20 +67,6 @@ const HealthTab = {
       summary,
       level,
       detail: daemons,
-    });
-  },
-
-  _cdpCard(cdp) {
-    const level = cdp.reachable ? 'ok' : 'err';
-    const summary = cdp.reachable
-      ? `已连接 · ${(cdp.browser || '').slice(0, 40)}`
-      : 'CDP 端口 9222 不可达';
-    return this._card({
-      icon: '🌐',
-      title: 'Chrome DevTools',
-      summary,
-      level,
-      detail: cdp,
     });
   },
 

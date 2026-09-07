@@ -228,22 +228,6 @@ async def publish_pack(
     return {"status": "ok"}
 
 
-@router.post("/{pack_id}/auto-publish", response_model=schemas.AutoPublishResponse)
-async def auto_publish_pack(
-    pack_id: str,
-    pack_repo: PackRepository = Depends(get_pack_repo),
-    publish_repo: PublishHistoryRepository = Depends(get_publish_repo),
-    event_log: EventLog = Depends(get_event_log),
-):
-    # LEGACY / DISABLED — 老板于 2026-07-29 关停全部 XHS 自动发布（账号封禁）。
-    # 工作台按钮已移除（2026-09-08）；此端点保留占位，任何调用一律拒绝，
-    # 防止旧脚本/缓存页面误触发真实发布。
-    raise HTTPException(
-        status_code=403,
-        detail="自动发布已永久禁用（2026-07-29 老板关停）。请在工作台导出发布包后人工发布。",
-    )
-
-
 def _pack_to_response(pack, images: list[dict]) -> schemas.DailyPackResponse:
     from pathlib import Path
     enriched = []

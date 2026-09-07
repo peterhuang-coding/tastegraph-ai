@@ -20,12 +20,10 @@ const Tasks = {
     };
 
     container.innerHTML = tasks.map(t => {
-      const isPublish = t.task_type === 'publish_pack';
-      const gotoBtn = t.action_url && !isPublish
+      // 自动发布永久禁用（2026-07-29）：publish_pack 任务只提供「前往」人工策展，
+      // 不再有任何发布按钮。
+      const gotoBtn = t.action_url
         ? `<button class="btn btn-ghost btn-sm" onclick="Tasks.goto('${t.action_url}')">前往</button>`
-        : '';
-      const publishBtn = isPublish
-        ? `<button class="btn btn-accent btn-sm" onclick="Tasks.cdpPublish('${t.id}', '${t.action_url || ''}')">发布</button>`
         : '';
       return `
       <div class="task-item priority-${t.priority}" id="task-${t.id}">
@@ -36,7 +34,6 @@ const Tasks = {
         </div>
         <div class="task-actions">
           ${gotoBtn}
-          ${publishBtn}
           <button class="btn btn-success btn-sm" onclick="Tasks.complete('${t.id}')">完成</button>
           <button class="btn btn-ghost btn-sm" onclick="Tasks.dismiss('${t.id}')">忽略</button>
         </div>
@@ -58,26 +55,6 @@ const Tasks = {
       App.toast('任务已忽略');
       App.loadTaskBar();
     } catch(e) { App.toast('操作失败', 'error'); }
-  },
-
-  async cdpPublish(taskId, actionUrl) {
-    // Extract pack_id from action_url query string
-    const match = actionUrl && actionUrl.match(/pack_id=([^&]+)/);
-    const packId = match ? match[1] : '';
-    if (!packId) { App.toast('无法解析 pack ID', 'error'); return; }
-
-    try {
-      App.toast('正在通过浏览器发布...', 'info');
-      const result = await API.post('/api/v1/pipeline/cdp-publish', { pack_id: packId });
-      if (result.success) {
-        App.toast(`发布成功！${result.data?.post_url || ''}`, 'success');
-        Tasks.complete(taskId);
-      } else {
-        App.toast(`发布失败: ${result.message}`, 'error');
-      }
-    } catch (e) {
-      App.toast(`发布请求失败: ${e.message || e}`, 'error');
-    }
   },
 
   goto(url) {

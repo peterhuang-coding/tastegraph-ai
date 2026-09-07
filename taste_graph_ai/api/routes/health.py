@@ -147,25 +147,6 @@ def _collect_daemons(errors: list[str]) -> list[dict[str, Any]]:
     return daemons
 
 
-def _collect_cdp(errors: list[str]) -> dict[str, Any]:
-    """Probe Chrome DevTools Protocol on localhost:9222."""
-    rc, out, err = _safe_run(
-        ["curl", "-s", "--max-time", "2", "http://localhost:9222/json/version"],
-        timeout=4,
-    )
-    if rc != 0 or not out.strip():
-        errors.append("cdp: port 9222 unreachable")
-        return {"reachable": False, "browser": None}
-    # Response is JSON-ish; extract Browser field with a tiny regex to avoid hard dep
-    import json as _json
-    try:
-        data = _json.loads(out)
-        browser = data.get("Browser") or data.get("browser")
-    except Exception:
-        browser = out.strip().splitlines()[0] if out.strip() else None
-    return {"reachable": True, "browser": browser}
-
-
 def _collect_database(errors: list[str]) -> dict[str, Any]:
     path = str(DB_FILE)
     size_mb: float | None = None
@@ -292,7 +273,6 @@ async def health_detailed() -> dict[str, Any]:
         errors.append(f"server.cpu: {e}")
 
     daemons = _collect_daemons(errors)
-    cdp = _collect_cdp(errors)
     database = _collect_database(errors)
     git_info = _collect_git(errors)
     data_dirs = _collect_data_dirs(errors)
@@ -300,7 +280,6 @@ async def health_detailed() -> dict[str, Any]:
     return {
         "server": server,
         "daemons": daemons,
-        "cdp": cdp,
         "database": database,
         "git": git_info,
         "dataDirs": data_dirs,

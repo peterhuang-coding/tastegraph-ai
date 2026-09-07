@@ -39,6 +39,16 @@ PACK_COUNT_OVERRIDE = 5         # generate more packs with more images
 
 
 async def run():
+    # 自动发布永久禁用（2026-07-29 老板关停全部 XHS 自动化）。
+    # 保留 --auto-publish 参数识别但立即拒绝，防止旧脚本/缓存调用误触发。
+    if "--auto-publish" in sys.argv:
+        print(
+            "❌ 自动发布永久禁用（2026-07-29 关停）。\n"
+            "   正确流程：工作台导出/下载发布包 → 人工发布 → 发布账本登记。",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+
     ensure_dirs()
     await init_db()
     get_container()  # Init graph
@@ -89,26 +99,8 @@ async def run():
         for t in tasks:
             print(f"  Task: [{t.priority.value}] {t.title}")
 
-        # 5. Optional auto-publish (if --auto-publish passed)
-        if "--auto-publish" in sys.argv and packs:
-            print("[5/5] Auto-publishing best pack via CDP...")
-            try:
-                from taste_graph_ai.cdp_adapter import publish_via_cdp
-                best = max(packs, key=lambda p: p.taste_score)
-                imgs = await pack_repo.get_pack_images(best.id)
-                paths = [i["local_path"] for i in imgs if i.get("local_path")]
-                if paths:
-                    title = best.title_options[0] if best.title_options else best.theme
-                    caption = best.caption or best.theme
-                    result = publish_via_cdp(title=title, content=caption, image_paths=paths)
-                    if result.get("success"):
-                        best.publish()
-                        await pack_repo.save(best)
-                        print(f"  Published: {result.get('post_url', '')}")
-                    else:
-                        print(f"  CDP publish failed: {result.get('message', 'unknown')}")
-            except Exception as e:
-                print(f"  Auto-publish failed: {e}")
+        # 自动发布永久禁用（2026-07-29）：--auto-publish 在 run() 入口直接拒绝退出，
+        # 此处不再有任何发布步骤。产物 = daily packs，人工策展后导出、人工发布。
 
         event_log.append("pipeline.completed", {
             "new_sources": len(new_sources),

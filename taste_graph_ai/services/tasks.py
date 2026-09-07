@@ -85,6 +85,8 @@ class TaskService:
             ))
 
         # 6. Ready-to-publish packs (selected but not yet published)
+        # 自动发布永久禁用（2026-07-29）：任务只引导到人工策展/导出流程，
+        # 不再链接任何发布端点；人工发布后在发布账本登记。
         today = date.today().isoformat()
         today_packs = await self.pack_repo.get_today_packs(today)
         ready = [p for p in today_packs if p.status.value == "selected"]
@@ -92,10 +94,11 @@ class TaskService:
             best = max(ready, key=lambda p: p.taste_score)
             tasks.append(self._make_task(
                 TaskType.PUBLISH_PACK,
-                f"「{best.theme}」已就绪，可以发布",
-                f"品味分 {best.taste_score:.0f}，{len(ready)} 个 pack 待发布。",
+                f"「{best.theme}」已就绪，导出后人工发布",
+                f"品味分 {best.taste_score:.0f}，{len(ready)} 个 pack 待导出。"
+                "在编辑台下载发布包，人工发布后到发布账本登记。",
                 TaskPriority.HIGH,
-                f"/api/v1/pipeline/cdp-publish?pack_id={best.id}",
+                f"/daily?pack_id={best.id}",
             ))
 
         return tasks[:3]  # Cap at 3
