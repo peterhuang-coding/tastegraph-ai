@@ -59,9 +59,12 @@
     },
     {
       "name": "backup",
-      "script": "scripts/backup.py",
+      "script": "scripts/backup_db.py",
       "schedule": "04:00",
-      "enabled": true
+      "enabled": true,
+      "timeout": 600,
+      "retry_backoff_minutes": 60,
+      "_note": "SQLite Online Backup API 一致快照 → data/backups/，integrity_check + 行数校验，保留 14 天/30 份。采集 03:00 班之后跑。"
     },
     {
       "name": "cleanup",
