@@ -3,6 +3,32 @@
 > **个人视觉采样系统**。52 sources · 9 images per pack · One editor.
 > 项目身份见 [`VISION.md`](../VISION.md)。
 
+> **常驻模型（2026-09-08 Phase 3 起）**：唯一采集入口是
+> `scripts/daily_ingestion.py --resume`（幂等、可恢复、状态落库）。
+> launchd 服务项在 `deploy/launchd/`（**只入库，人工安装**）：
+> 每日 03:00 采集、04:00 备份、工作台 KeepAlive。调度“今天是否已跑”以
+> `job_runs` 表为准，重启不补跑成功任务。自动发布/登录/互动**永久封停**。
+
+---
+
+## 0. 常驻服务与每日采集（新）
+
+| 项 | 入口 | 说明 |
+|---|---|---|
+| 每日采集 | `python3 scripts/daily_ingestion.py --resume` | preflight→crawl→persist→download→pack→summary；运行锁 + 阶段幂等 + 双去重；当天已成功则跳过（`--force` 强制） |
+| 每日备份 | `python3 scripts/backup_db.py` | SQLite 在线备份 → `data/backups/`，integrity_check + 行数校验，保留 14 天/30 份 |
+| 工作台 | `python3 scripts/queue_server.py` | 编辑台/发布登记/源面板，默认 `127.0.0.1:8765` |
+| 图谱控制台 | `python3 -m taste_graph_ai.server` | 8787，默认环回、不 reload、CORS 白名单 |
+| （可选）tape 多任务调度 | `python3 scripts/daemon_scheduler.py` | job_runs 持久化 + detached worker；launchd 直挂采集后一般不需要 |
+
+launchd 安装/切换/卸载步骤见 [`deploy/launchd/README.md`](../deploy/launchd/README.md)。
+**仓库内任何脚本都不执行 launchctl**；加载/卸载是老板的人工动作。
+
+采集状态：
+- 结构化摘要 `data/daily_ingestion_status.json`（明早验收看这个）
+- 运行实例 `crawl_runs` 表、调度态 `job_runs` 表
+- worker 日志 `data/logs/<job>-<ts>.log`（保留 14 天）、事件 `data/events.log`
+
 ---
 
 ## 1. 快速开始
@@ -122,11 +148,15 @@ python3 scripts/weekly.py    # 或对应脚本
 | Home tab 今日采样 | 浏览 AI 精筛 pack |
 | curation tab | 手动换图 / 调 pack |
 
-### 4.4 调度
-| 脚本 | 用途 |
+### 4.4 调度与常驻
+| 脚本 / 文件 | 用途 |
 |---|---|
-| `config/schedule.json` | 任务定义(**daemon 已删,实际不自动跑**) |
-| `scripts/launch_dashboard.sh` | 启动 web server + 11 tab |
+| `scripts/daily_ingestion.py` | **唯一采集入口**，`--resume` 幂等恢复（launchd 每日 03:00） |
+| `scripts/backup_db.py` | SQLite 在线备份（launchd 每日 04:00） |
+| `scripts/daemon_scheduler.py` | 可选 tape 多任务循环（job_runs 持久化 + detached worker + 日志轮转） |
+| `config/schedule.json` | daemon_scheduler 的任务定义（launchd 直挂采集/备份时不依赖它） |
+| `deploy/launchd/*.plist` | launchd 服务项（入库不自动装，安装见 README） |
+| `scripts/launch_dashboard.sh` | 启动 8787 web server + 11 tab（只起控制台，不复活任何 plist） |
 
 ### 4.5 历史/已封存(不要用)
 | 脚本 | 状态 |
@@ -147,10 +177,13 @@ python3 scripts/weekly.py    # 或对应脚本
 - 后端 `/cdp-publish` 默认 403,需要 `I-UNDERSTAND-RISK` header 才能手动 override
 - UI 双确认(精确输入"确认发布"才能触发)
 
-### 🟡 调度脱钩
-- 8/1 起无 launchd daemon
-- `schedule.json` 写 6 个 enabled 任务,但**实际不会自动跑**
-- 所有任务必须手动触发(或重新起 daemon,见 §6.4)
+### 🟡 调度状态持久化（Phase 3）
+- “今天是否已跑”以 `job_runs` 表为准（契约 §1），**不依赖进程内存**
+- 重启/重复触发不补跑当天已成功任务；`running` 但 worker 进程消失自动标记
+  `failed`，下次触发 `--resume` 幂等补跑；失败任务 30 分钟退避（可配 `retry_backoff_minutes`）
+- 长 crawl 在 detached 子进程跑，不阻塞调度循环；运行锁（fcntl flock）是并发终极防线
+- launchd 切换是**人工一次性动作**（`deploy/launchd/README.md`）；切之前旧
+  `com.user.tastegraph.daemon` 仍在跑，属正常，不要同时双跑采集
 
 ### 🟢 SKIP_DOMAINS(源质量控制)
 - 硬跳过 IKEA / Taobao / Tmall / Amazon / eBay / AliExpress / Pinterest / Instagram / TikTok / Reddit / Facebook / Twitter
@@ -177,14 +210,46 @@ NO_PROXY=localhost,127.0.0.1 curl ... # 本地调用要加 NO_PROXY
 ### 6.3 图谱 tab 看不到
 点导航栏最右边「⚙️ 系统」按钮展开 admin tab(图谱 / 趋势 / 爬虫等都在内)。
 
-### 6.4 想恢复自动调度
+### 6.4 采集中断 / 想手动补跑
 ```bash
-# 写一个新 launchd plist,只挂非 XHS 任务(纯爬虫 / 备份 / trend_report)
-# 见 config/schedule.json 的 enabled=true 任务清单
-# 注意:crawl / daily_source_brief / pack_generation / backup / cleanup / trend_report
+# 看状态与日志
+cat data/daily_ingestion_status.json      # 最近一次结构化摘要
+ls -t data/logs/ | head                   # worker 日志（保留 14 天）
+tail -f data/logs/daily_ingestion-*.log
+
+# 幂等恢复（已完成阶段自动跳过，未完成续跑）
+python3 scripts/daily_ingestion.py --resume
+
+# 当天已成功但想强制重跑
+python3 scripts/daily_ingestion.py --resume --force
+
+# 短跑调试（只下载 50 项，不爬新页）
+python3 scripts/daily_ingestion.py --stage download --max 50
+```
+“已有采集实例在运行，立即退出”（exit 2）= 锁被占用；若确认没有活进程，
+检查 `data/ingestion.lock` 对应 pid 是否僵死（`ps -p <pid>`），僵死时锁会在
+进程退出后由 OS 释放，`job_runs` 里的 running 行会被调度器 reap 为 failed。
+
+### 6.5 备份与恢复
+```bash
+python3 scripts/backup_db.py              # 在线备份 → data/backups/taste_graph-<ts>.db
+cat data/backups/latest_backup.json       # 最近一次校验结果
+# 恢复（先停服务，再拷贝；.db 是一致快照）
+cp data/backups/taste_graph-<ts>.db data/taste_graph.db
+```
+旧 `scripts/backup.py` 是文件拷贝（WAL 未 checkpoint 时可能丢最新写入），
+已被 `backup_db.py`（SQLite Online Backup API + integrity_check + 行数比对）取代。
+
+### 6.6 launchd 服务
+```bash
+# 状态（不修改任何东西）
+launchctl print gui/$(id -u)/com.user.tastegraph.ingestion | head -20
+launchctl print gui/$(id -u)/com.user.tastegraph.queue | head -20
+tail -f ~/Library/Logs/TasteGraph/ingestion.log
+# 安装/卸载：deploy/launchd/README.md（人工执行，仓库脚本不碰 launchctl）
 ```
 
-### 6.5 Git push 失败 7890 proxy 死
+### 6.7 Git push 失败 7890 proxy 死
 ```bash
 # 全局配置 7890 已死,用 7897 override:
 git -c http.proxy=http://127.0.0.1:7897 \
@@ -194,31 +259,65 @@ git -c http.proxy=http://127.0.0.1:7897 \
 
 ---
 
-## 7. 目录结构(精简)
+## 7. 网络暴露、CORS 与最小认证
+
+**默认全部绑环回（127.0.0.1）**，只在本机浏览器访问：
+
+| 服务 | 端口 | 绑定变量 | CORS 变量 |
+|---|---|---|---|
+| 工作台 queue_server | 8765 | `QUEUE_HOST`（默认 127.0.0.1） | `TASTEGRAPH_ALLOWED_ORIGINS` |
+| 图谱 FastAPI | 8787 | `TASTEGRAPH_HOST`（默认 127.0.0.1） | `TASTEGRAPH_ALLOWED_ORIGINS` |
+
+- **CORS 默认空白名单 = 同源 only**，两个服务都**永不返回 `Access-Control-Allow-Origin: *`**。
+  跨域需求走 queue_server 的服务端代理（`/api/*` → 8787），浏览器不直接跨域。
+- FastAPI 生产默认**不 reload**（开发设 `TASTEGRAPH_RELOAD=1`）。
+- **没有内建账号/密码认证**。安全边界 = 网络可达性：
+  - 环回：只有本机能访问。
+  - Tailscale：设 `QUEUE_HOST=0.0.0.0`（或 tailscale IP）+ `TASTEGRAPH_ALLOWED_ORIGINS=http://<tailscale名>:8765`，
+    暴露面 = tailnet 内设备（Tailscale 自带 mTLS + ACL）。**不要**绑公网 IP，不要做端口转发。
+  - 局域网：同上但暴露面 = 同一 Wi-Fi 所有设备，仅在可信网络用。
+- queue_server 有文件写/剪贴板/Finder 端点（`/save-file`、`/replace-image`、`/copy-image`、
+  `/open-folder`），这些在绑环回时只响应本机；一旦绑 0.0.0.0，同网段任何人都能调用 ——
+  所以远程访问**只用 Tailscale，不用裸 0.0.0.0 + 公网**。
+
+## 8. 目录结构(精简)
 
 ```
 moodboard-hidden-ny-jjjjound/
 ├── VISION.md                # 项目身份 — 必读
 ├── README.md                # 系统简介 + 源 moodboard 设计参考
 ├── docs/
+│   ├── data-contract.md     # 数据契约（表/枚举/迁移，改库先改这里）
 │   ├── voice.md             # voice 系统(taste_ip_system)
 │   └── operations.md        # 本文件
-├── research/aesthetic-os/   # 19 份 research(MIGRATION.md 有说明)
+├── deploy/
+│   └── launchd/             # launchd 服务项（入库不自动装；README 有安装步骤）
+│       ├── com.user.tastegraph.ingestion.plist   # 每日 03:00 采集
+│       ├── com.user.tastegraph.backup.plist      # 每日 04:00 备份
+│       └── com.user.tastegraph.queue.plist       # 工作台 KeepAlive
 ├── scripts/
-│   ├── run_24h_crawl.sh     # 24h 长跑
-│   ├── audit_crawl.py       # 质量审计
-│   ├── crawl_status.sh      # 状态快照
-│   ├── daily_source_brief.py
-│   ├── crawl_loop_6h.py     # 单次爬取循环
-│   └── launch_dashboard.sh  # 启 web server
+│   ├── daily_ingestion.py   # ★ 唯一安全采集入口（--resume 幂等）
+│   ├── backup_db.py         # SQLite 在线备份 + 校验
+│   ├── daemon_scheduler.py  # 可选 tape 调度（job_runs 持久化 + detached worker）
+│   ├── migrations.py        # 幂等迁移（v1-v9）
+│   ├── queue_server.py      # 工作台 HTTP（8765，默认环回）
+│   ├── run_24h_crawl.sh     # 24h 长跑（手动）
+│   └── launch_dashboard.sh  # 启 8787 web server
 ├── taste_graph_ai/
+│   ├── server.py / config.py# FastAPI（默认环回、不 reload、CORS 白名单）
 │   ├── api/routes/          # FastAPI 路由(graph / daily / sources ...)
 │   └── static/              # Dashboard 前端(11 tab)
-├── data/                    # 运行时数据(图谱 / DB / events.log)
+├── data/
+│   ├── taste_graph.db       # SQLite 单库（WAL）
+│   ├── daily_ingestion_status.json   # 最近采集摘要（明早验收）
+│   ├── events.log           # 调度事件（5MB 轮转）
+│   ├── logs/                # worker 日志（14 天清理，gitignore）
+│   ├── backups/             # DB 在线备份（14 天/30 份，gitignore）
+│   └── images/              # 下载图片实体（gitignore）
 ├── posts/                   # daily packs 输出
-├── runs/                    # crawl 输出 + 24h pid/log
+├── runs/                    # crawl 输出（loop_*/output.jsonl）
 └── config/
-    ├── schedule.json        # 任务定义
+    ├── schedule.json        # daemon_scheduler 任务定义
     └── link_sources.json    # 52 源
 ```
 
@@ -243,10 +342,10 @@ tail -f runs/crawl_24h_<ts>.log        # 实时日志
 
 # 周期
 python3 scripts/daily_source_brief.py  # 生成 SOURCES.html(需手动)
-python3 scripts/backup.py              # 备份
+python3 scripts/backup_db.py           # SQLite 在线备份（校验 + 14 天保留）
 python3 scripts/cleanup_stale_data.py  # 清理 30 天未用
 ```
 
 ---
 
-**最后更新**:2026-08-15(moodboard. 身份重塑,与 VISION.md 同步)
+**最后更新**:2026-09-08（Phase 3：job_runs 持久化调度、detached worker、launchd 服务项、SQLite 在线备份、CORS/绑定加固；见 §0/§6/§7 与 deploy/launchd/）

@@ -106,17 +106,28 @@
 
 **读取口径**：取最大可用窗口（manual > 48h > 24h）的累计值；不同窗口**不得相加**。写入时先读取完整记录做 merge，再计算。
 
-### JobRun（表 `job_runs`，新增）— 调度器运行态
+### JobRun（表 `job_runs`，迁移 v5 建表，v9 补列）— 调度器运行态
 
 | 字段 | 说明 |
 |---|---|
 | id | PK |
-| job_name | crawl / image_download / pack_generation … |
+| job_name | daily_ingestion / pack_generation / backup … |
 | scheduled_for / started_at / finished_at | ISO 8601 |
 | status | pending/running/succeeded/partial/failed/skipped |
 | summary_json | 结构化摘要（计数/错误，脱敏） |
+| run_id（v9） | 关联的 crawl_runs/ingestion run id（daily_ingestion 回写） |
+| scheduled_date（v9） | `YYYY-MM-DD`，与 scheduled_for 的时分一起定位“今天某时点” |
+| error_summary（v9） | 失败原因/exit/日志尾（≤400 字符，脱敏） |
+| pid（v9） | detached worker 进程号；配合 heartbeat_at 识别“running 但进程已死” |
+| heartbeat_at（v9） | 最近心跳（每阶段 mark_stage 更新） |
+| log_path（v9） | worker 日志 `data/logs/<job>-<ts>.log` |
 
-调度器“今天是否已跑过”以本表为准，**禁止依赖进程内存**。
+索引：`idx_job_runs_name(job_name, scheduled_for)`（v5）、`idx_job_runs_date(job_name, scheduled_date, status)`（v9）。
+
+调度器“今天是否已跑过”以本表为准，**禁止依赖进程内存**：succeeded/partial/skipped
+当天不补跑；running 且 pid 存活不重复触发，pid 消失 → reap 为 failed，下次触发
+`--resume` 幂等补跑；failed 在退避期（默认 30 分钟，任务可配 `retry_backoff_minutes`）
+内不重试。daily_ingestion 启动时若当天已有 succeeded 行则直接退出（`--force` 可覆盖）。
 
 ## 2. 状态枚举（大小写敏感，迁移必须合法）
 
