@@ -205,82 +205,13 @@ async def auto_publish_pack(
     publish_repo: PublishHistoryRepository = Depends(get_publish_repo),
     event_log: EventLog = Depends(get_event_log),
 ):
-    pack = await pack_repo.get_by_id(pack_id)
-    if not pack:
-        raise HTTPException(status_code=404, detail="Pack not found")
-
-    # First export
-    images = await pack_repo.get_pack_images(pack_id)
-    if not images:
-        return schemas.AutoPublishResponse(success=False, error="No images in pack")
-
-    image_paths = [img["local_path"] for img in images if img.get("local_path")]
-    if not image_paths:
-        return schemas.AutoPublishResponse(success=False, error="No local images available")
-
-    composer = MoodboardComposer()
-    title = pack.title_options[0] if pack.title_options else pack.theme
-    export_path = composer.compose(
-        image_paths=image_paths,
-        theme=pack.theme,
-        caption=pack.caption,
-        title=title,
+    # LEGACY / DISABLED — 老板于 2026-07-29 关停全部 XHS 自动发布（账号封禁）。
+    # 工作台按钮已移除（2026-09-08）；此端点保留占位，任何调用一律拒绝，
+    # 防止旧脚本/缓存页面误触发真实发布。
+    raise HTTPException(
+        status_code=403,
+        detail="自动发布已永久禁用（2026-07-29 老板关停）。请在工作台导出发布包后人工发布。",
     )
-
-    # Use CDP publisher (not Playwright — the shadow DOM fix is only in CDP)
-    try:
-        from taste_graph_ai.cdp_adapter import publish_via_cdp, is_chrome_ready
-
-        if not is_chrome_ready():
-            return schemas.AutoPublishResponse(
-                success=False,
-                error="Chrome 未在调试模式运行。请用 chrome --remote-debugging-port=9222 启动。",
-            )
-
-        result = publish_via_cdp(
-            title=title,
-            content=pack.caption or pack.theme,
-            image_paths=image_paths,
-        )
-
-        if not result.get("success"):
-            return schemas.AutoPublishResponse(
-                success=False,
-                error=f"CDP 发布失败: {result.get('message', 'unknown')}",
-            )
-        post_url = result.get("post_url", "")
-    except ImportError as e:
-        return schemas.AutoPublishResponse(
-            success=False,
-            error=f"CDP adapter 导入失败: {e}",
-        )
-    except Exception as e:
-        event_log.append("publish.auto_failed", {"pack_id": pack_id, "error": str(e)})
-        return schemas.AutoPublishResponse(
-            success=False,
-            error=f"自动发布失败: {e}。导出文件: /exports/{export_path.name}",
-        )
-
-    # Success
-    pack.publish()
-    await pack_repo.save(pack)
-
-    now = datetime.now(timezone.utc).isoformat()
-    record = PublishRecord(
-        id=uuid.uuid4().hex[:12],
-        pack_id=pack_id,
-        published_at=now,
-        platform="xiaohongshu",
-        post_url=post_url,
-    )
-    await publish_repo.save(record)
-
-    event_log.append("pack.auto_published", {
-        "pack_id": pack_id,
-        "post_url": post_url,
-        "publish_record_id": record.id,
-    })
-    return schemas.AutoPublishResponse(success=True, post_url=post_url)
 
 
 def _pack_to_response(pack, images: list[dict]) -> schemas.DailyPackResponse:

@@ -291,7 +291,6 @@ const CurationTab = {
           </div>
           ${pack.caption ? `<textarea class="input" readonly style="margin-top:12px;min-height:80px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:12px;font-family:var(--font);font-size:14px;width:100%;resize:vertical">${App.esc(pack.caption)}</textarea>` : ''}
           <div style="display:flex;gap:8px;margin-top:16px">
-            <button class="btn btn-accent" style="flex:1" id="auto-publish-btn-${pack.id}" onclick="CurationTab.autoPublish('${pack.id}')">一键发布小红书</button>
             <button class="btn btn-success" style="flex:1" onclick="CurationTab.publishCurated('${pack.id}')">导出并发布</button>
             <button class="btn btn-ghost" onclick="CurationTab.closePreview(); CurationTab.load()">返回选图</button>
           </div>
@@ -316,23 +315,6 @@ const CurationTab = {
     } catch(e) {
       App.toast(`导出失败: ${e.message}`, 'error');
     }
-  },
-
-  async autoPublish(packId) {
-    const btn = document.getElementById(`auto-publish-btn-${packId}`);
-    if (btn) { btn.textContent = '... 发布中'; btn.disabled = true; }
-    try {
-      const result = await API.post(`/api/v1/daily/${packId}/auto-publish`);
-      if (result.success) {
-        App.toast(`发布成功！${result.post_url}`, 'success');
-        this.closePreview();
-      } else {
-        App.toast(result.error || '发布失败', 'error');
-      }
-    } catch(e) {
-      App.toast(`发布失败: ${e.message}`, 'error');
-    }
-    if (btn) { btn.textContent = '一键发布小红书'; btn.disabled = false; }
   },
 
   async loadFailures() {

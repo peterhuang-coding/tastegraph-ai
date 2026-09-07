@@ -3,13 +3,13 @@
 # Usage: bash start.sh [mode]
 #
 # Modes:
-#   (default)   Full pipeline: crawl → select → generate → serve
+#   (default)   Safe: serve the curation workbench only
+#   full        crawl → select → generate → serve
 #   publish     Skip crawl, generate publish packs from existing data
-#   serve       Only start the QUEUE review server
+#   serve       Only start the curation workbench
 #   feedback    Show weekly performance report
-#   auto-pub    Generate + auto-publish to Xiaohongshu (login first)
-#   login       Login to Xiaohongshu via QR code (first time only)
-#   scheduler   Start the scheduled publish daemon
+#
+# DISABLED (老板 2026-07-29 关停全部 XHS 自动化): auto-publish / login / scheduler
 #
 
 set -e
@@ -23,7 +23,7 @@ echo "  品味知识图谱 + 小红书内容管道"
 echo "========================================"
 echo ""
 
-MODE="${1:-auto-publish}"
+MODE="${1:-serve}"
 
 case "$MODE" in
   full)
@@ -57,31 +57,18 @@ case "$MODE" in
     python3 scripts/pipeline.py --crawl-only "$@"
     ;;
   auto-publish|auto|auto-pub)
-    echo "🤖 全自动模式：生成发布包 → 自动发布到小红书（无需审稿）"
-    echo ""
-    shift
-    count="${1:-6}"
-    # 先生成发布包（跳过 QUEUE.html 节省时间）
-    python3 scripts/pipeline.py --publish-only --count "$count"
-    # 确认生成成功后有帖子目录
-    latest_dir=$(ls -d posts/20* 2>/dev/null | sort | tail -1)
-    if [ -n "$latest_dir" ] && [ "$(ls -d "$latest_dir"/post-* 2>/dev/null | wc -l)" -gt 0 ]; then
-      echo "📤 全部自动发布中（headless 模式）..."
-      python3 scripts/auto_publish.py --all --headless
-    else
-      echo "❌ 没有生成发布包"
-    fi
+    echo "⛔ DISABLED: 自动发布已由老板于 2026-07-29 永久关停（账号封禁）。"
+    echo "   发布流程改为：工作台导出 → 人工手动发布。"
+    exit 1
     ;;
   login)
-    echo "🔐 登录模式：扫码登录小红书"
-    echo ""
-    python3 scripts/auto_publish.py --login
+    echo "⛔ DISABLED: 小红书自动登录已关停。请勿在本机维护登录态。"
+    exit 1
     ;;
   scheduler)
-    echo "⏰ 调度模式：启动定时发布调度器"
-    echo ""
-    shift
-    python3 scripts/publish_scheduler.py "$@"
+    echo "⛔ DISABLED: 定时发布调度器已关停（legacy，见 scripts/publish_scheduler.py 归档说明）。"
+    echo "   安全调度请使用 scripts/daemon_scheduler.py（config/schedule.json）。"
+    exit 1
     ;;
   *)
     echo "❌ 未知模式: $MODE"
@@ -89,20 +76,14 @@ case "$MODE" in
     echo "用法: bash start.sh [模式]"
     echo ""
     echo "模式:"
-    echo "  (空)          全流程：爬取 → 选图 → 生成 → 启动服务"
+    echo "  (空)          安全模式：只启动审稿工作台（默认）"
+    echo "  full          全流程：爬取 → 选图 → 生成 → 启动服务"
     echo "  publish       跳过爬取，直接生成发布包"
-    echo "  serve         只启动 QUEUE 审稿服务"
+    echo "  serve         只启动审稿工作台"
     echo "  feedback      查看发布效果周报"
-    echo "  auto-publish  全自动：生成 + 自动发布（无需审稿），默认模式"
-    echo "  login         扫码登录小红书"
-    echo "  scheduler     启动定时发布调度器"
     echo ""
     echo "示例:"
-    echo "  bash start.sh                   # 全流程"
-    echo "  bash start.sh login             # 首次登录"
-    echo "  bash start.sh scheduler         # 启动定时调度"
-    echo "  bash start.sh scheduler --run-now # 立即执行一次"
-    echo "  bash start.sh auto-publish       # 全自动：生成 + 自动发布（无需审稿），默认模式"
+    echo "  bash start.sh                   # 安全模式（默认）"
     echo "  bash start.sh publish --count 9 # 生成 9 篇"
     echo "  bash start.sh serve             # 只启动审稿"
     echo "  bash start.sh feedback          # 查看周报"

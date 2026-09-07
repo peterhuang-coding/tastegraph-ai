@@ -68,7 +68,6 @@ const DailyTab = {
 
         <div style="display:flex;gap:8px;margin-top:12px">
           <button class="btn btn-success btn-select" data-id="${pack.id}">✅ 选这组发布</button>
-          <button class="btn btn-accent btn-auto-publish" data-id="${pack.id}">�� 一键发布</button>
           <button class="btn btn-danger btn-reject-pack" data-id="${pack.id}">❌ 拒绝</button>
         </div>
       </div>
@@ -167,25 +166,6 @@ const DailyTab = {
           const exportResult = await API.post(`/api/v1/daily/${id}/export`);
           this.showPublishModal(id, exportResult);
         } catch(e) { App.toast(`操作失败: ${e.message}`, 'error'); }
-      });
-    });
-    container.querySelectorAll('.btn-auto-publish').forEach(btn => {
-      btn.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        const id = btn.dataset.id;
-        btn.textContent = '... 发布中';
-        btn.disabled = true;
-        try {
-          await API.post(`/api/v1/daily/${id}/select`);
-          const result = await API.post(`/api/v1/daily/${id}/auto-publish`);
-          if (result.success) {
-            App.toast(`发布成功! ${result.post_url}`, 'success');
-          } else {
-            App.toast(result.error, 'error');
-          }
-        } catch(e) { App.toast(`发布失败: ${e.message}`, 'error'); }
-        btn.textContent = '一键发布';
-        btn.disabled = false;
       });
     });
     container.querySelectorAll('.btn-reject-pack').forEach(btn => {
