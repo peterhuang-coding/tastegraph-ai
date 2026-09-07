@@ -29,6 +29,11 @@ IMAGES_DIR = DATA_DIR / "images"
 EXPORTS_DIR = DATA_DIR / "exports"
 LOGS_DIR = DATA_DIR / "logs"
 
+# modules/xhs_publisher/composer.py（/export 拼图）读 modules 配置的 XHS_EXPORTS_DIR，
+# 默认写 modules/xhs_publisher/exports/，而 FastAPI 挂载 /exports → data/exports，
+# 导致导出 URL 必 404。这里在任何入口 import composer 前把输出目录统一到 data/exports。
+os.environ.setdefault("XHS_EXPORTS_DIR", str(EXPORTS_DIR))
+
 # ── Server ───────────────────────────────────────────────────
 
 # 默认环回（仅本机）。Tailscale/局域网访问显式设 TASTEGRAPH_HOST=0.0.0.0
