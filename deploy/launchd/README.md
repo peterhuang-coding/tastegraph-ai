@@ -9,7 +9,7 @@
 |---|---|---|---|
 | `com.user.tastegraph.ingestion.plist` | `com.user.tastegraph.ingestion` | 每天 03:00 跑 `daily_ingestion.py --resume`（唯一安全采集入口）；RunAtLoad 开机/登录补跑，当天已成功则幂等跳过 | 不 KeepAlive；失败靠 `--resume` + 下一轮补跑 |
 | `com.user.tastegraph.backup.plist` | `com.user.tastegraph.backup` | 每天 04:00 跑 `backup_db.py`（SQLite 在线备份 → `data/backups/`，校验 + 14 天保留） | 一次性班任务；睡眠错过醒来补跑 |
-| `com.user.tastegraph.queue.plist` | `com.user.tastegraph.queue` | 工作台 HTTP 服务（编辑台/发布登记/源面板），绑定 `127.0.0.1:8765` | KeepAlive，崩溃/开机自动恢复 |
+| `com.user.tastegraph.queue.plist` | `com.user.tastegraph.queue` | 工作台 HTTP 服务（编辑台/发布登记/源面板），绑定 `127.0.0.1:8766` | KeepAlive，崩溃/开机自动恢复 |
 
 旧服务 `com.user.tastegraph.daemon`（daemon_scheduler 内存态调度）被
 ingestion plist 取代；切换时先卸载它（见下）。`daemon_scheduler.py` 仍保留，
@@ -65,7 +65,7 @@ launchctl bootout gui/$(id -u)/com.user.tastegraph.queue
 ```xml
 <key>QUEUE_HOST</key><string>0.0.0.0</string>
 <key>TASTEGRAPH_ALLOWED_ORIGINS</key>
-<string>http://mini-的-tailscale-名:8765,http://100.x.x.x:8765</string>
+<string>http://mini-的-tailscale-名:8766,http://100.x.x.x:8766</string>
 ```
 
 然后 `bootout` + `bootstrap` 重新加载。CORS 白名单默认空（同源 only），

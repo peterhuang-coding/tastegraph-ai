@@ -6,10 +6,11 @@
 
   行为:
     - KeepAlive: 进程退出自动重启（崩溃/开机后恢复）。
-    - 绑定 127.0.0.1:8765（默认环回，仅本机）。
+    - 绑定 127.0.0.1:8766（8765 被 jp-us-arb-route 服务长期占用，
+      queue_server 虽会自动回退端口，这里显式固定 8766 避免漂移）。
     - Tailscale/局域网访问: 加环境变量
         QUEUE_HOST = 0.0.0.0            （或 tailscale IP）
-        TASTEGRAPH_ALLOWED_ORIGINS = http://<tailscale名或IP>:8765
+        TASTEGRAPH_ALLOWED_ORIGINS = http://<tailscale名或IP>:8766
       详见 docs/operations.md §7。CORS 默认同源 only，永不返回 "*"。
 
   安全:
@@ -42,7 +43,7 @@
         <key>QUEUE_HOST</key>
         <string>127.0.0.1</string>
         <key>QUEUE_PORT</key>
-        <string>8765</string>
+        <string>8766</string>
     </dict>
 
     <key>RunAtLoad</key>

@@ -17,7 +17,7 @@
 |---|---|---|
 | 每日采集 | `python3 scripts/daily_ingestion.py --resume` | preflight→crawl→persist→download→pack→summary；运行锁 + 阶段幂等 + 双去重；当天已成功则跳过（`--force` 强制） |
 | 每日备份 | `python3 scripts/backup_db.py` | SQLite 在线备份 → `data/backups/`，integrity_check + 行数校验，保留 14 天/30 份 |
-| 工作台 | `python3 scripts/queue_server.py` | 编辑台/发布登记/源面板，默认 `127.0.0.1:8765` |
+| 工作台 | `python3 scripts/queue_server.py` | 编辑台/发布登记/源面板，默认 `127.0.0.1:8766` |
 | 图谱控制台 | `python3 -m taste_graph_ai.server` | 8787，默认环回、不 reload、CORS 白名单 |
 | （可选）tape 多任务调度 | `python3 scripts/daemon_scheduler.py` | job_runs 持久化 + detached worker；launchd 直挂采集后一般不需要 |
 
@@ -265,7 +265,7 @@ git -c http.proxy=http://127.0.0.1:7897 \
 
 | 服务 | 端口 | 绑定变量 | CORS 变量 |
 |---|---|---|---|
-| 工作台 queue_server | 8765 | `QUEUE_HOST`（默认 127.0.0.1） | `TASTEGRAPH_ALLOWED_ORIGINS` |
+| 工作台 queue_server | 8766 | `QUEUE_HOST`（默认 127.0.0.1） | `TASTEGRAPH_ALLOWED_ORIGINS` |
 | 图谱 FastAPI | 8787 | `TASTEGRAPH_HOST`（默认 127.0.0.1） | `TASTEGRAPH_ALLOWED_ORIGINS` |
 
 - **CORS 默认空白名单 = 同源 only**，两个服务都**永不返回 `Access-Control-Allow-Origin: *`**。
@@ -273,7 +273,7 @@ git -c http.proxy=http://127.0.0.1:7897 \
 - FastAPI 生产默认**不 reload**（开发设 `TASTEGRAPH_RELOAD=1`）。
 - **没有内建账号/密码认证**。安全边界 = 网络可达性：
   - 环回：只有本机能访问。
-  - Tailscale：设 `QUEUE_HOST=0.0.0.0`（或 tailscale IP）+ `TASTEGRAPH_ALLOWED_ORIGINS=http://<tailscale名>:8765`，
+  - Tailscale：设 `QUEUE_HOST=0.0.0.0`（或 tailscale IP）+ `TASTEGRAPH_ALLOWED_ORIGINS=http://<tailscale名>:8766`，
     暴露面 = tailnet 内设备（Tailscale 自带 mTLS + ACL）。**不要**绑公网 IP，不要做端口转发。
   - 局域网：同上但暴露面 = 同一 Wi-Fi 所有设备，仅在可信网络用。
 - queue_server 仅剩文件写端点（`/save-file` 草稿落盘、`/replace-image` 换帧、
@@ -303,7 +303,7 @@ moodboard-hidden-ny-jjjjound/
 │   ├── backup_db.py         # SQLite 在线备份 + 校验
 │   ├── daemon_scheduler.py  # 可选 tape 调度（job_runs 持久化 + detached worker）
 │   ├── migrations.py        # 幂等迁移（v1-v9）
-│   ├── queue_server.py      # 工作台 HTTP（8765，默认环回）
+│   ├── queue_server.py      # 工作台 HTTP（8766，默认环回）
 │   ├── run_24h_crawl.sh     # 24h 长跑（手动）
 │   └── launch_dashboard.sh  # 启 8787 web server
 ├── taste_graph_ai/
