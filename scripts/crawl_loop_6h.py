@@ -29,6 +29,9 @@ from pathlib import Path
 from urllib.parse import urljoin, urlparse
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
+from taste_graph_ai.services.provenance import classify_page, is_site_asset
+
 DATA_DIR = PROJECT_ROOT / "data"
 RUNS_DIR = PROJECT_ROOT / "runs"
 SHARED_DEDUP_FILE = RUNS_DIR / "shared_dedup.json"
@@ -315,7 +318,20 @@ def fetch_page(url: str) -> dict:
 
         from bs4 import BeautifulSoup
         soup = BeautifulSoup(r.text, "html.parser")
+        page_url = str(getattr(r, "url", url))
         result = {"_status": 200, "_len": len(r.text)}
+        canonical = soup.find("link", rel="canonical")
+        canonical_url = urljoin(page_url, canonical.get("href", "")) if canonical else page_url
+        if urlparse(canonical_url).scheme not in {"http", "https"}:
+            canonical_url = page_url
+        result.update(page_url=page_url, canonical_url=canonical_url,
+                      page_kind=classify_page(page_url))
+        og_type = soup.find("meta", property="og:type")
+        if og_type and og_type.get("content", "").lower() in {"article", "product"}:
+            result["page_kind"] = "detail"
+        published = soup.find("meta", property="article:published_time")
+        if published and published.get("content"):
+            result["page_published_at"] = published["content"][:100]
 
         # Metadata
         title = ""
@@ -349,17 +365,15 @@ def fetch_page(url: str) -> dict:
         # Capture src + alt + width hint so downstream CLIP/select can score.
         images = []
         seen_src = set()
-        img_skip_ext = (".svg", ".ico", ".gif", "data:image")
         for img in soup.find_all("img"):
             src = (img.get("src") or img.get("data-src") or img.get("data-lazy-src") or "").strip()
             if not src: continue
-            # Normalize relative URLs
-            if src.startswith("//"):
-                src = "https:" + src
-            elif src.startswith("/"):
-                src = urljoin(url, src)
+            # Relative paths resolve against the actual fetched page after redirects.
+            src = urljoin(page_url, src)
             if not src.startswith("http"): continue
-            if any(src.lower().endswith(ext) for ext in img_skip_ext): continue
+            if is_site_asset(src, img.get("alt") or ""): continue
+            if any(c in {"site-logo", "custom-logo", "header-logo", "footer-logo"}
+                   for c in (img.get("class") or [])): continue
             # Filter tiny icons (1x1 trackers, etc.)
             w = img.get("width") or ""
             try:
@@ -367,10 +381,23 @@ def fetch_page(url: str) -> dict:
             except: pass
             if src in seen_src: continue
             seen_src.add(src)
+            figure = img.find_parent("figure")
+            caption = figure.find("figcaption") if figure else None
+            credit = figure.select_one('[itemprop="author"], [itemprop="creator"], .credit, .photo-credit') if figure else None
+            context = figure or img.find_parent(["p", "div"])
+            # Only an explicitly image-attached creation date can fill this field.
+            date_node = figure.select_one('[itemprop="dateCreated"]') if figure else None
+            original_date = (date_node.get("datetime") or date_node.get("content") or date_node.get_text(" ", strip=True)) if date_node else ""
             images.append({
                 "src": src[:500],
                 "alt": (img.get("alt") or "").strip()[:200],
                 "width": str(w)[:20],
+                "caption": (caption.get_text(" ", strip=True) if caption else img.get("data-caption") or "")[:1000],
+                "image_author": (img.get("data-credit") or img.get("data-author") or
+                                 (credit.get("content") or credit.get_text(" ", strip=True) if credit else ""))[:300],
+                "surrounding_text": (context.get_text(" ", strip=True) if context else "")[:1000],
+                "original_date_text": original_date[:200],
+                "date_evidence": 'figure [itemprop="dateCreated"]' if original_date else "",
             })
             if len(images) >= 20: break
         result["images"] = images
@@ -383,15 +410,13 @@ def fetch_page(url: str) -> dict:
                 "tag/","author/","page/","category/","cdn.","static.","assets",
                 "cdn-","images/","upload","wp-content","wp-admin","wp-json",
                 ".jpg",".png",".webp",".gif",".mp4","#","javascript:"]
-        base_domain = urlparse(url).netloc
+        base_domain = urlparse(page_url).netloc
         seen_paths = set()
 
         for a in soup.find_all("a", href=True):
             href = a["href"].strip()
-            if href.startswith("/"):
-                href = urljoin(url, href)
-            elif not href.startswith("http"):
-                continue
+            href = urljoin(page_url, href)
+            if urlparse(href).scheme not in {"http", "https"}: continue
             if urlparse(href).netloc != base_domain:
                 continue
             path = urlparse(href).path.strip("/").lower()
@@ -399,7 +424,8 @@ def fetch_page(url: str) -> dict:
             if any(s in href.lower() for s in skip): continue
             if path in seen_paths: continue
             seen_paths.add(path)
-            child_links.append({"url": href, "parent_url": url, "source_type": "discovered_link",
+            child_links.append({"url": href, "parent_url": page_url, "source_type": "discovered_link",
+                                "page_kind": classify_page(href),
                                 "anchor": a.get_text(strip=True)[:100]})
 
             if len(child_links) >= 15:  # cap per page to avoid explosion
@@ -477,14 +503,24 @@ def main() -> int:
         print(f"[cycle {cycle}] {'='*40}")
         print(f"[cycle {cycle}] {remaining_h:.1f}h left | ~{remaining_req} req remaining | {rate.stats()}")
 
-        # Build work list: seeds + discovery queue
-        all_items = load_seeds()
-        all_items.extend(discovery_queue)
+        # A saved specific article/work gets fetched before refreshing entry pages.
+        all_items = discovery_queue + load_seeds()
+        all_items.sort(key=lambda item: (
+            (item.get("page_kind") or classify_page(item.get("url") or item.get("source_page") or "")) != "detail",
+            bool(item.get("_seed")),
+        ))
 
         # Dedup
         fresh = []
         dups = 0
+        cycle_urls = set()
         for item in all_items:
+            item_url = item.get("url") or item.get("source_page") or ""
+            if item_url and item_url in cycle_urls:
+                dups += 1
+                continue
+            if item_url:
+                cycle_urls.add(item_url)
             # Seeds always refresh — only child links (discovered) get dedup'd
             if item.get("_seed"):
                 fresh.append(item)
@@ -517,6 +553,7 @@ def main() -> int:
 
         for i, item in enumerate(fresh):
             if _shutdown or time.time() >= deadline:
+                discovery_queue.extend(it for it in fresh[i:] if not it.get("_seed"))
                 break
             # Respect rate limit
             if rate.count_this_hour >= args.rate_limit:
@@ -524,6 +561,8 @@ def main() -> int:
                 if wait_time > 0:
                     print(f"[cycle {cycle}] Rate limit reached, waiting {wait_time/60:.0f}min...")
                     time.sleep(min(wait_time, 300))  # sleep at most 5 min at a time
+                    if not item.get("_seed"):
+                        discovery_queue.append(item)
                     continue
 
             url = item.get("url", item.get("source_page", ""))
@@ -532,6 +571,9 @@ def main() -> int:
 
             # Rate-limit wait
             rate.wait(domain)
+            if _shutdown or time.time() >= deadline:
+                discovery_queue.extend(it for it in fresh[i:] if not it.get("_seed"))
+                break
 
             record = {
                 "source_type": item.get("source_type", "?"),
@@ -540,6 +582,7 @@ def main() -> int:
                 "theme": item.get("theme", ""), "category": item.get("category", ""),
                 "section": item.get("section", ""), "manifest_date": item.get("manifest_date", ""),
                 "pack_date": item.get("pack_date", ""), "parent_url": item.get("parent_url", ""),
+                "discovery_url": item.get("parent_url") or url,
                 "collected_at": datetime.now(timezone.utc).isoformat(),
                 "status": "consolidated", "error": "",
                 "page_title": "", "page_description": "", "og_image": "",
@@ -563,14 +606,17 @@ def main() -> int:
                     record["page_description"] = meta.get("description", "")
                     record["og_image"] = meta.get("og_image", "")
                     record["page_author"] = meta.get("author", "")
+                    record["page_url"] = meta.get("page_url") or url
+                    record["canonical_url"] = meta.get("canonical_url") or record["page_url"]
+                    record["page_kind"] = meta.get("page_kind") or classify_page(record["page_url"])
+                    record["page_published_at"] = meta.get("page_published_at", "")
                     record["page_image_count"] = meta.get("image_count", 0)
                     record["page_text_length"] = len(meta.get("visible_text", ""))
                     # 契约形态：url 与 alt 同对象（docs/data-contract.md §0.4）。
                     # image_urls/alt_texts 仅作 legacy 兼容镜像。
-                    _alts = meta.get("alt_texts") or []
                     record["images"] = [
-                        {"url": im["src"], "alt": _alts[i] if i < len(_alts) else ""}
-                        for i, im in enumerate(meta.get("images", []))
+                        {**im, "url": im["src"], "alt": im.get("alt") or ""}
+                        for im in meta.get("images", [])
                     ]
                     record["image_urls"] = [im["url"] for im in record["images"]]
                     record["alt_texts"] = [im["alt"] for im in record["images"]]
@@ -584,7 +630,9 @@ def main() -> int:
                     # Deep discovery: queue child links
                     for child in meta.get("child_links", []):
                         ck = _dkey(child)
-                        if ck not in processed_keys and len(discovery_queue) < args.max_discovered:
+                        if (ck not in processed_keys and child.get("url") not in cycle_urls
+                                and not any(q.get("url") == child.get("url") for q in discovery_queue)
+                                and len(discovery_queue) < args.max_discovered):
                             discovery_queue.append(child)
                             cycle_discovered += 1
 

@@ -1,4 +1,5 @@
 import uuid
+from pathlib import Path
 from datetime import date, datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -25,6 +26,19 @@ from modules.xhs_publisher.composer import MoodboardComposer
 from taste_graph_ai.services.feedback import FeedbackService
 
 router = APIRouter(prefix="/api/v1/daily", tags=["daily"])
+
+async def _require_editorial_approval(pack_id, db):
+    table = await (await db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='pack_editorial'")).fetchone()
+    review = await (await db.execute("SELECT status FROM pack_editorial WHERE pack_id=?", (pack_id,))).fetchone() if table else None
+    if not review or review[0] != "approved":
+        raise HTTPException(409, "请先在 /editorial.html 完成命题、角色与顺序审核")
+
+
+class ManualPublicationEvidence(schemas.PackPublishRequest):
+    publication_status: str = "unknown"
+    published_at: str | None = None
+    observed_at: str | None = None
+
 
 
 @router.get("/today", response_model=schemas.DailyTodayResponse)
@@ -68,6 +82,9 @@ async def select_pack(
     pack = await pack_repo.get_by_id(pack_id)
     if not pack:
         raise HTTPException(status_code=404, detail="Pack not found")
+    await _require_editorial_approval(pack_id, pack_repo.db)
+    if pack.status.value == "published":
+        raise HTTPException(409, "已发布图集保留原记录；请到 /editorial.html 查看")
     pack.select()
     await pack_repo.save(pack)
     event_log.append("pack.selected", {"pack_id": pack_id, "theme": pack.theme})
@@ -85,18 +102,36 @@ async def reject_pack(
     pack = await pack_repo.get_by_id(pack_id)
     if not pack:
         raise HTTPException(status_code=404, detail="Pack not found")
-    pack.reject()
-    await pack_repo.save(pack)
-
-    # Release images back to the pending pool
-    images = await pack_repo.get_pack_images(pack_id)
-    if images:
-        await image_repo.mark_many_status(
-            [img["id"] for img in images], ImageStatus.PENDING
-        )
-
-    event_log.append("pack.rejected", {"pack_id": pack_id, "theme": pack.theme})
-    return {"status": "ok"}
+    # A group decision cannot rewrite platform history or become image taste.
+    submitted = pack.status.value == "published"
+    if not submitted:
+        history = await (await pack_repo.db.execute(
+            "SELECT 1 FROM publish_history WHERE pack_id=? LIMIT 1", (pack_id,),
+        )).fetchone()
+        submitted = bool(history)
+    table = await (await pack_repo.db.execute(
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name='publication_observations'",
+    )).fetchone()
+    if table and not submitted:
+        observation = await (await pack_repo.db.execute(
+            "SELECT 1 FROM publication_observations WHERE pack_id=? AND "
+            "publication_status IN ('under_review','published','removed','rejected') LIMIT 1",
+            (pack_id,),
+        )).fetchone()
+        submitted = bool(observation)
+    if submitted:
+        raise HTTPException(409, "已提交或已发布图集保留原记录；请到 /editorial.html 查看")
+    from taste_graph_ai.config import DB_FILE
+    from taste_graph_ai.services.editorial import get_pack_review, save_pack_review
+    current = get_pack_review(DB_FILE, pack_id)
+    try:
+        save_pack_review(DB_FILE, pack_id, {**current, "status": "rejected"}, actor="operator")
+    except ValueError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    event_log.append("pack.editorial_rejected", {
+        "pack_id": pack_id, "theme": pack.theme, "evidence_type": "editorial_decision",
+    })
+    return {"status": "ok", "editorial_status": "rejected"}
 
 
 @router.post("/images/{image_id}/feedback")
@@ -122,43 +157,13 @@ async def replace_image(
     image_id: str,
     body: schemas.ImageReplaceRequest,
     pack_repo: PackRepository = Depends(get_pack_repo),
-    image_repo: ImageRepository = Depends(get_image_repo),
     event_log: EventLog = Depends(get_event_log),
 ):
-    # 契约 §1 PackImage：换图原子同步 pack_images 的真实 image_id/位置/来源。
-    # 旧图标记 replaced，新图标记 selected；图注由前端随选图同步。
-    rows = await pack_repo.find_pack_images_by_image(image_id)
-    if not rows:
-        raise HTTPException(status_code=404, detail="Image not referenced by any pack")
-
-    affected = []
-    for row in rows:
-        conflict = await pack_repo.get_pack_image(row["pack_id"], body.new_image_id)
-        if conflict and conflict["position"] != row["position"]:
-            raise HTTPException(
-                status_code=409,
-                detail=f"新图已在 pack {row['pack_id']} 的第 {conflict['position']} 位",
-            )
-        affected.append(row["pack_id"])
-
-    for row in rows:
-        await pack_repo.save_pack_image(PackImage(
-            pack_id=row["pack_id"],
-            image_id=body.new_image_id,
-            position=row["position"],
-            user_action=UserAction.REPLACED,
-        ))
-        await pack_repo.delete_pack_image(row["pack_id"], image_id)
-
-    await image_repo.mark_many_status([image_id], ImageStatus.REPLACED)
-    await image_repo.mark_many_status([body.new_image_id], ImageStatus.SELECTED)
-
     event_log.append("image.replaced", {
         "old_image_id": image_id,
         "new_image_id": body.new_image_id,
-        "affected_packs": affected,
     })
-    return {"status": "ok", "new_image_id": body.new_image_id, "affected_packs": affected}
+    return {"status": "ok", "new_image_id": body.new_image_id}
 
 
 @router.post("/{pack_id}/export", response_model=schemas.ExportResponse)
@@ -169,36 +174,37 @@ async def export_pack(
     pack = await pack_repo.get_by_id(pack_id)
     if not pack:
         raise HTTPException(status_code=404, detail="Pack not found")
-    images = await pack_repo.get_pack_images(pack_id)
-    if not images:
-        raise HTTPException(status_code=400, detail="No images in pack")
-
-    image_paths = [img["local_path"] for img in images if img.get("local_path")]
-    if not image_paths:
-        raise HTTPException(status_code=400, detail="No local images available")
-
-    composer = MoodboardComposer()
-    title = pack.title_options[0] if pack.title_options else pack.theme
-    output_path = composer.compose(
-        image_paths=image_paths,
-        theme=pack.theme,
-        caption=pack.caption,
-        title=title,
-    )
-
-    return schemas.ExportResponse(
-        pack_id=pack_id,
-        filename=output_path.name,
-        url=f"/exports/{output_path.name}",
-        theme=pack.theme,
-        caption=pack.caption,
-    )
+    await _require_editorial_approval(pack_id, pack_repo.db)
+    from taste_graph_ai.api.routes import editorial
+    from taste_graph_ai.config import EXPORTS_DIR
+    import zipfile
+    # Delegate ordering, review checks and original-file preservation to the
+    # reviewed export. ZIP retains the old downloadable URL response contract.
+    result = editorial.export(pack_id)
+    folder = editorial.BASE_DIR / result["pack_path"]
+    EXPORTS_DIR.mkdir(parents=True, exist_ok=True)
+    output_path = EXPORTS_DIR / (folder.name + ".zip")
+    if not output_path.exists():
+        import tempfile
+        import os
+        descriptor, staged = tempfile.mkstemp(prefix=".reviewed-", suffix=".zip", dir=EXPORTS_DIR)
+        os.close(descriptor)
+        try:
+            with zipfile.ZipFile(staged, "w", compression=zipfile.ZIP_DEFLATED) as bundle:
+                for file in sorted(folder.iterdir()):
+                    if file.is_file():
+                        bundle.write(file, arcname=file.name)
+            os.replace(staged, output_path)
+        finally:
+            Path(staged).unlink(missing_ok=True)
+    return schemas.ExportResponse(pack_id=pack_id, filename=output_path.name,
+        url=f"/exports/{output_path.name}", theme=pack.theme, caption=pack.caption)
 
 
 @router.post("/{pack_id}/publish")
 async def publish_pack(
     pack_id: str,
-    body: schemas.PackPublishRequest,
+    body: ManualPublicationEvidence,
     pack_repo: PackRepository = Depends(get_pack_repo),
     publish_repo: PublishHistoryRepository = Depends(get_publish_repo),
     event_log: EventLog = Depends(get_event_log),
@@ -206,26 +212,31 @@ async def publish_pack(
     pack = await pack_repo.get_by_id(pack_id)
     if not pack:
         raise HTTPException(status_code=404, detail="Pack not found")
-    pack.publish()
-    await pack_repo.save(pack)
-
-    now = datetime.now(timezone.utc).isoformat()
-    record = PublishRecord(
-        id=uuid.uuid4().hex[:12],
-        pack_id=pack_id,
-        published_at=now,
-        platform=body.platform,
-        post_url=body.post_url,
-    )
-    await publish_repo.save(record)
-
-    event_log.append("pack.published", {
-        "pack_id": pack_id,
-        "platform": body.platform,
-        "post_url": body.post_url,
-        "publish_record_id": record.id,
-    })
-    return {"status": "ok"}
+    status = getattr(body, "publication_status", "unknown")
+    published_at = getattr(body, "published_at", None)
+    observed_at = getattr(body, "observed_at", None)
+    if status not in {"published", "under_review", "rejected", "removed"}:
+        raise HTTPException(400, "请明确实际发布状态与证据时间；不会自动使用当前时间")
+    required_time = published_at if status == "published" else observed_at
+    if required_time in (None, "", "unknown"):
+        raise HTTPException(400, "已发布记录需要实际发布时间；其他状态需要实际观测时间")
+    from taste_graph_ai.services.publication_records import record_publication_observation
+    try:
+        observation = await record_publication_observation(pack_repo.db, pack_id, {
+            "platform": body.platform, "post_url": body.post_url,
+            "publication_status": status, "published_at": published_at,
+            "observed_at": observed_at, "source": "legacy_manual_registration",
+            "observation_key": "manual_registration",
+        }, score=0)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+    if observation["inserted"]:
+        event_log.append("pack.publication_observed", {
+            "pack_id": pack_id, "platform": body.platform,
+            "publication_status": status, "record_id": observation["record_id"],
+        })
+    return {"status": "ok", "record_id": observation["record_id"],
+            "publication_status": status, "duplicate": not observation["inserted"]}
 
 
 def _pack_to_response(pack, images: list[dict]) -> schemas.DailyPackResponse:
@@ -266,3 +277,13 @@ def _task_to_response(task) -> schemas.TaskResponse:
         created_at=task.created_at,
         completed_at=task.completed_at,
     )
+
+
+@router.post("/{pack_id}/auto-publish", response_model=schemas.AutoPublishResponse)
+async def auto_publish_pack(
+    pack_id: str,
+    pack_repo: PackRepository = Depends(get_pack_repo),
+    publish_repo: PublishHistoryRepository = Depends(get_publish_repo),
+    event_log: EventLog = Depends(get_event_log),
+):
+    raise HTTPException(405, "自动发布已禁用。请在 /editorial.html 审核并导出后手工发布，再登记实际状态。")

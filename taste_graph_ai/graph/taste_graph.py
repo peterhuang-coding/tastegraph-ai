@@ -195,97 +195,139 @@ class TasteGraph:
 
     # ── Scoring ──────────────────────────────────────────────
 
+    def _resolve_source_id(
+        self,
+        source_id: Optional[str],
+        source_url: Optional[str],
+    ) -> Optional[str]:
+        """Prefer observed URL scope over stale IDs; ambiguous aliases stay unknown."""
+        sources = {
+            node_id: data.get("properties", {})
+            for node_id, data in self.graph.nodes(data=True)
+            if data["type"] == NodeType.SOURCE
+        }
+        identified = source_id if source_id in sources else None
+        if source_id and identified is None:
+            aliases = [
+                node_id for node_id, props in sources.items()
+                if props.get("source_id") == source_id
+            ]
+            if len(aliases) == 1:
+                identified = aliases[0]
+        if not source_url:
+            return identified
+
+        from urllib.parse import urlsplit
+
+        def url_key(value):
+            if not isinstance(value, str) or not value.strip():
+                return None
+            try:
+                parsed = urlsplit(value if "://" in value else "//" + value)
+                if parsed.scheme not in ("", "http", "https") or not parsed.hostname:
+                    return None
+                host = parsed.hostname.lower().removeprefix("www.")
+                return host, parsed.path.rstrip("/"), parsed.query
+            except ValueError:
+                return None
+
+        requested = url_key(source_url)
+        if not requested:
+            return identified
+        host, path, _ = requested
+        candidates = {}
+        for node_id, props in sources.items():
+            for field in ("url", "source_url", "domain"):
+                known = url_key(props.get(field))
+                if not known or known[0] != host:
+                    continue
+                _, known_path, known_query = known
+                # Exact URL wins; otherwise use the longest containing path.
+                # Domain alone is usable only when it identifies a single source.
+                rank = (0, 0)
+                if known == requested:
+                    rank = (2, len(known_path))
+                elif not known_query and (
+                    not known_path or path == known_path or path.startswith(known_path + "/")
+                ):
+                    rank = (1, len(known_path))
+                candidates[node_id] = max(candidates.get(node_id, (0, 0)), rank)
+        if not candidates:
+            # A stored source URL contradicting the observed page defeats a stale
+            # database ID. An ID without URL metadata still has no contradiction.
+            props = sources.get(identified, {})
+            return None if any(url_key(props.get(field)) for field in (
+                "url", "source_url", "domain",
+            )) else identified
+        best_rank = max(candidates.values())
+        matches = [node_id for node_id, rank in candidates.items() if rank == best_rank]
+        return matches[0] if len(matches) == 1 else None
+
     def score_content(
         self,
         keywords: list[str],
         source_id: Optional[str] = None,
         visual_tags: Optional[list[str]] = None,
+        source_url: Optional[str] = None,
     ) -> float:
-        """Score content against the taste graph.
+        """Average matched taste preferences, with a known-source contribution.
 
-        Multi-layer scoring:
-        1. Keyword match: find concept/mood/visual_element nodes matching keywords,
-           aggregate edge weights (prefers +, avoids -)
-        2. Source bonus: established sources get weight-based bonus,
-           new sources get exploration uplift
-        3. Time decay: edges older than 90 days are down-weighted
-        4. Returns a float typically in 0-15 range.
+        User feedback is stored as signed north_star -> target PREFERS/AVOIDS
+        weights. Other graph relations do not express the user's preference for
+        a matched node. Each concept/mood/visual node contributes only once,
+        using a neutral 1.0 when it has no explicit user preference.
 
-        Callers should normalize by TASTE_SCORE_NORMALIZATION_FACTOR (default 10.0).
+        Existing sources resolve by graph ID, source_id metadata, or URL/domain.
+        Unrated sources get 0.3 exploration weight; explicit negative weights
+        stay negative. Edges older than 90 days decay with a 90-day half-life.
+        Callers normalize by TASTE_SCORE_NORMALIZATION_FACTOR (default 10.0).
         """
-        if not keywords:
-            return 0.0
+        from datetime import timezone
 
-        from datetime import datetime, timezone, timedelta
         now = datetime.now(timezone.utc)
-        decay_half_life_days = 90  # edges older than this are halved in weight
 
+        def preference_weight(node_id):
+            edge = self.graph.get_edge_data("concept:north_star", node_id)
+            if not edge or edge.get("relation") not in (
+                RelationType.PREFERS, RelationType.AVOIDS,
+            ):
+                return None
+            # Feedback adjusts signed weights without changing the relation label.
+            weight = edge["weight"]
+            last_updated = edge.get("last_updated")
+            if last_updated:
+                try:
+                    edge_time = datetime.fromisoformat(last_updated)
+                    if edge_time.tzinfo is None:
+                        edge_time = edge_time.replace(tzinfo=timezone.utc)
+                    age_days = (now - edge_time).days
+                    if age_days > 90:
+                        weight *= 0.5 ** (age_days / 90)
+                except (ValueError, TypeError):
+                    pass
+            return weight
+
+        terms = {
+            term.lower().strip() for term in [*keywords, *(visual_tags or [])]
+            if term.strip()
+        }
         total_score = 0.0
         matched = 0
-        source_ids_seen: set[str] = set()  # for diversity tracking
-
-        for keyword in keywords:
-            kw_lower = keyword.lower().strip()
-            if not kw_lower:
+        for node_id, data in self.graph.nodes(data=True):
+            if node_id == "concept:north_star" or data["type"] not in (
+                NodeType.CONCEPT, NodeType.VISUAL_ELEMENT, NodeType.MOOD,
+            ):
                 continue
-            # Find matching concept nodes
-            for node_id, data in self.graph.nodes(data=True):
-                if data["type"] not in (
-                    NodeType.CONCEPT, NodeType.VISUAL_ELEMENT, NodeType.MOOD,
-                ):
-                    continue
-                label = data["label"].lower()
-                if kw_lower in label or label in kw_lower:
-                    # Aggregate preference score from outgoing edges
-                    node_score = 0.0
-                    edge_count = 0
-                    for _, target, edge_data in self.graph.out_edges(node_id, data=True):
-                        if edge_data["relation"] in (
-                            RelationType.PREFERS, RelationType.AVOIDS,
-                        ):
-                            weight = edge_data["weight"]
-                            # Apply time decay
-                            last_updated = edge_data.get("last_updated", "")
-                            if last_updated:
-                                try:
-                                    edge_time = datetime.fromisoformat(last_updated)
-                                    age_days = (now - edge_time).days
-                                    if age_days > decay_half_life_days:
-                                        weight *= 0.5 ** (
-                                            age_days / decay_half_life_days
-                                        )
-                                except (ValueError, TypeError):
-                                    pass
-                            node_score += weight
-                            edge_count += 1
-                            # Track source for diversity
-                            source_ids_seen.add(target)
+            label = data["label"].lower().strip()
+            if label and any(term in label or label in term for term in terms):
+                weight = preference_weight(node_id)
+                total_score += weight if weight is not None else 1.0
+                matched += 1
 
-                    if edge_count > 0:
-                        total_score += node_score / edge_count
-                    else:
-                        total_score += 1.0  # Matched keyword but no edges yet
-                    matched += 1
-
-        # Source bonus: established sources get weight-based bonus,
-        # new/exploratory sources get a small uplift to ensure visibility
-        if source_id and source_id in self.graph:
-            source_bonus = 0.0
-            in_edge_count = 0
-            for _, _, data in self.graph.in_edges(source_id, data=True):
-                if data["relation"] == RelationType.PREFERS:
-                    source_bonus += data["weight"]
-                    in_edge_count += 1
-            # Cold-start boost: sources with few connections get baseline boost
-            if in_edge_count == 0:
-                source_bonus = 0.3  # Pure exploration
-            elif in_edge_count < 3:
-                source_bonus = max(source_bonus, 0.15)  # Under-connected boost
-            total_score += source_bonus
-
-        # Diversity penalty: repeated same-source matches → mild penalty
-        diversity_penalty = max(0, (len(source_ids_seen) - 3) * 0.05)
-        total_score -= diversity_penalty
+        resolved_source = self._resolve_source_id(source_id, source_url)
+        if resolved_source:
+            weight = preference_weight(resolved_source)
+            total_score += weight if weight is not None else 0.3
 
         return round(total_score / max(matched, 1), 2)
 

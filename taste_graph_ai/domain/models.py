@@ -95,7 +95,7 @@ class PackImage:
     pack_id: str
     image_id: str
     position: int
-    user_action: UserAction = UserAction.APPROVED
+    user_action: UserAction = UserAction.UNREVIEWED
 
 
 @dataclass

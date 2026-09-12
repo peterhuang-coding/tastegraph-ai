@@ -1,8 +1,9 @@
+import hashlib
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-from taste_graph_ai.config import IMAGES_DIR, DAILY_IMAGES_PER_PACK
+from taste_graph_ai.config import BASE_DIR, DB_FILE, IMAGES_DIR, DAILY_IMAGES_PER_PACK
 from taste_graph_ai.domain.enums import ImageStatus, SourceStatus, UserAction
 from taste_graph_ai.domain.models import Image, PackImage, ScrapeFailure
 from taste_graph_ai.infrastructure.repos.images import ImageRepository
@@ -14,7 +15,70 @@ from taste_graph_ai.infrastructure.crawlers.web import WebCrawler
 from taste_graph_ai.infrastructure.db.event_log import EventLog
 from taste_graph_ai.container import get_container
 
-import random
+
+def _load_published_image_ids() -> set[str]:
+    """Read registered/submitted images from the configured log and DB, without writes."""
+    import json
+    import sqlite3
+    from contextlib import closing
+    from taste_graph_ai.services.publication_records import canonical_pack_path
+
+    ids, pack_ids = set(), set()
+    log_path = Path(DB_FILE).parent / "publish_log.json"
+    if log_path.is_file():
+        entries = json.loads(log_path.read_text(encoding="utf-8"))
+        if not isinstance(entries, list):
+            raise ValueError("publish_log.json must contain a list")
+        for entry in entries:
+            if not isinstance(entry, dict):
+                continue
+            if entry.get("pack_id"):
+                pack_ids.add(entry["pack_id"])
+            pack_ref = entry.get("pack") or entry.get("pack_path") or ""
+            if not pack_ref:
+                continue
+            if "/" not in pack_ref and "\\" not in pack_ref:
+                pack_ids.add(pack_ref)
+                continue
+            try:
+                directory, _ = canonical_pack_path(pack_ref, BASE_DIR)
+            except ValueError:
+                continue
+            metadata_path = directory / "curation.json"
+            if metadata_path.is_file():
+                metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+                ids.update(metadata.get("image_ids", []))
+                if metadata.get("pack_id"):
+                    pack_ids.add(metadata["pack_id"])
+
+    if Path(DB_FILE).is_file():
+        uri = Path(DB_FILE).resolve().as_uri() + "?mode=ro"
+        with closing(sqlite3.connect(uri, uri=True)) as db:
+            tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+            # Confirmation rows are deleted by undo-publish; every remaining
+            # row records an image the operator has confirmed as published.
+            if "image_post_log" in tables:
+                ids.update(row[0] for row in db.execute("SELECT DISTINCT image_id FROM image_post_log"))
+            if "daily_packs" in tables:
+                pack_ids.update(row[0] for row in db.execute("SELECT id FROM daily_packs WHERE status='published'"))
+            if "publish_history" in tables:
+                pack_ids.update(row[0] for row in db.execute("SELECT pack_id FROM publish_history"))
+            if "publication_observations" in tables:
+                pack_ids.update(row[0] for row in db.execute(
+                    "SELECT pack_id FROM publication_observations WHERE publication_status IN ('published','under_review')"))
+            if "pack_images" in tables and pack_ids:
+                ids.update(image_id for pack_id, image_id in db.execute(
+                    "SELECT pack_id,image_id FROM pack_images") if pack_id in pack_ids)
+    return ids
+
+
+def _image_content_hash(img: Image) -> str | None:
+    if not img.local_path:
+        return None
+    try:
+        return hashlib.sha256(Path(img.local_path).read_bytes()).hexdigest()
+    except OSError:
+        return None
 
 
 class ImageFetchService:
@@ -294,148 +358,83 @@ class ImageFetchService:
     async def pick_for_pack(
         self, pack_id: str, theme: str, count: int = None, exclude_ids: set[str] = None
     ) -> list[Image]:
-        """Pick diverse images from the pool, matching the theme."""
-        if count is None:
-            count = DAILY_IMAGES_PER_PACK
-        if exclude_ids is None:
-            exclude_ids = set()
+        """Link one topic/page candidate group, awaiting the operator's review.
 
-        available = await self.image_repo.list_by_status(ImageStatus.PENDING, limit=200)
-        if not available:
-            return []
-
-        # Exclude already-used images AND images without local file
-        available = [img for img in available if img.id not in exclude_ids and img.local_path]
-        if not available:
-            return []
-
-        # Load previously liked images for scoring bonus
-        liked_ids = await self.feedback_repo.get_liked_image_ids()
-
-        # Score each image against the theme
-        scored = []
-        for img in available:
-            score = self._score_image_for_theme(img, theme, liked_ids)
-            scored.append((score, img))
-
-        # Sort by score, add noise for diversity
-        random.seed(hash(pack_id))
-        scored.sort(key=lambda x: (x[0], random.random()), reverse=True)
-
-        # Pick top N unique-by-URL images
-        seen_urls: set[str] = set()
-        selected = []
-        for _, img in scored:
-            if img.url in seen_urls:
-                continue
-            seen_urls.add(img.url)
-            selected.append(img)
-            if len(selected) >= count:
-                break
-
-        # Link selected images to pack
-        for i, img in enumerate(selected):
-            pi = PackImage(
-                pack_id=pack_id,
-                image_id=img.id,
-                position=i,
-                user_action=UserAction.APPROVED,
-            )
-            await self.pack_repo.save_pack_image(pi)
-
-        # Mark images as SELECTED so they won't re-appear in future picks
-        await self.image_repo.mark_many_status(
-            [img.id for img in selected], ImageStatus.SELECTED
+        `theme` remains accepted for callers; candidates are grouped by evidence
+        and annotations instead of character overlap with a generated title.
+        `count` is a maximum, never a reason to add unrelated images.
+        """
+        from taste_graph_ai.services.editorial import (
+            choose_candidate_groups, load_annotations, score_candidate,
         )
 
+        if count is None:
+            count = DAILY_IMAGES_PER_PACK
+        if count <= 0:
+            return []
+        excluded = set(exclude_ids or ()) | _load_published_image_ids()
+        excluded_urls, excluded_hashes = set(), set()
+        # Resolve excluded IDs independently of candidate status: a published
+        # original may be rejected/archived while a second ID has identical bytes.
+        for image_id in excluded:
+            used = await self.image_repo.get_by_id(image_id)
+            if used is None:
+                continue
+            if used.url:
+                excluded_urls.add(used.url)
+            digest = _image_content_hash(used)
+            if digest is not None:
+                excluded_hashes.add(digest)
+        available = []
+        for status in (ImageStatus.PENDING, ImageStatus.SELECTED):
+            page = 1
+            while True:
+                batch, total = await self.image_repo.list_by_status_paginated(
+                    status, page=page, limit=500, require_local_file=True,
+                )
+                for img in batch:
+                    if (img.id in excluded or img.url in excluded_urls
+                            or not img.local_path or not Path(img.local_path).is_file()):
+                        continue
+                    if excluded_hashes:
+                        digest = _image_content_hash(img)
+                        if digest is None or digest in excluded_hashes:
+                            continue
+                    available.append(img)
+                if not batch or page * 500 >= total:
+                    break
+                page += 1
+        if not available:
+            return []
+
+        annotations = load_annotations(DB_FILE)
+        liked_ids = await self.feedback_repo.get_liked_image_ids()
+        graph = get_container().taste_graph
+        scored = [
+            {"img": img, **score_candidate(img, graph, annotations.get(img.id), liked_ids)}
+            for img in available
+        ]
+        groups = choose_candidate_groups(
+            scored, count=1, pack_size=count, annotations=annotations, exclude_ids=excluded,
+        )
+        selected = [item["img"] for item in groups[0]] if groups else []
+        for position, img in enumerate(selected):
+            await self.pack_repo.save_pack_image(PackImage(
+                pack_id=pack_id,
+                image_id=img.id,
+                position=position,
+                user_action=UserAction.UNREVIEWED,
+            ))
+        if selected:
+            await self.image_repo.mark_many_status(
+                [img.id for img in selected], ImageStatus.SELECTED,
+            )
         return selected
 
     def _score_image_for_theme(self, img: Image, theme: str, liked_ids: set[str] = None) -> float:
-        """Score an image against a theme string, with bonus for user-liked images,
-        exploration bonus for new sources, and CLIP visual similarity."""
-        text = f"{' '.join(img.keywords)} {img.url}"
-        score = 0.0
-
-        # 1) CLIP visual similarity (30% weight)
-        clip_score = self._clip_visual_score(img, theme)
-        score += 0.3 * clip_score
-
-        # 2) Character-level overlap for Chinese themes (20% weight)
-        theme_chars = set(theme)
-        kw_chars = set(text)
-        char_overlap = len(theme_chars & kw_chars)
-        if char_overlap > 0:
-            score += 0.2 * min(char_overlap / max(len(theme_chars), 1), 1.0)
-
-        # 3) Quality markers (10% weight)
-        quality_markers = ["photo", "image", "jpg", "editorial", "fashion",
-                           "style", "runway", "lookbook", "magazine"]
-        text_lower = text.lower()
-        quality_hits = sum(1 for m in quality_markers if m in text_lower)
-        score += 0.1 * min(quality_hits / 4, 1.0)
-
-        # 4) User previously liked (15% bonus)
-        if liked_ids and img.id in liked_ids:
-            score += 0.15
-
-        # 5) Exploration bonus: give new/underexplored sources visibility (15% max)
-        score += 0.15 * (self._exploration_bonus(img) / 0.25) if self._exploration_bonus(img) > 0 else 0
-
-        # 6) Graph-based taste score (10% weight)
-        graph_score = self._graph_taste_score(img, theme)
-        score += 0.1 * graph_score
-
-        return score
-
-    @staticmethod
-    def _clip_visual_score(img: Image, theme: str) -> float:
-        """Compute CLIP cosine similarity between image and theme text."""
-        if not img.local_path:
-            return 0.5
-        try:
-            from taste_graph_ai.services.clip import get_clip
-            clip_svc = get_clip()
-            return clip_svc.compute_similarity(img.local_path, theme)
-        except Exception:
-            return 0.5
-
-    @staticmethod
-    def _graph_taste_score(img: Image, theme: str) -> float:
-        """Score image using taste graph concept matching."""
-        try:
-            from taste_graph_ai.container import get_container
-            graph = get_container().taste_graph
-            keywords = list(img.keywords) + [theme]
-            raw = graph.score_content(
-                keywords=keywords,
-                source_id=getattr(img, 'source_id', '') or '',
-            )
-            return max(0.3, min(1.0, raw / 10))
-        except Exception:
-            return 0.5
-
-    @staticmethod
-    def _exploration_bonus(img: Image) -> float:
-        """Sources with few or no taste-graph connections get a boost so
-        newly-added sources (BranD, Dieter Rams, Saeki, etc.) aren't buried."""
-        try:
-            from taste_graph_ai.container import get_container
-            graph = get_container().taste_graph
-            source_name = getattr(img, 'source_name', '') or ''
-            # Look up source node by name or source_id
-            source_id = getattr(img, 'source_id', '') or ''
-            node_id = source_id if source_id in graph else source_name
-
-            if node_id and node_id in graph.graph:
-                edge_count = sum(1 for _ in graph.graph.in_edges(node_id))
-                if edge_count == 0:
-                    return 0.25  # Pure exploration — never-seen source
-                elif edge_count < 3:
-                    return 0.10  # Underexplored source
-                return 0.0
-        except Exception:
-            pass
-        return 0.0
+        """Compatibility wrapper for the shared candidate score."""
+        from taste_graph_ai.services.editorial import score_candidate
+        return score_candidate(img, get_container().taste_graph, liked_ids=liked_ids)["total"]
 
     async def close(self):
         pass

@@ -115,6 +115,7 @@ class RelationType(str, Enum):
 
 
 class UserAction(str, Enum):
+    UNREVIEWED = "unreviewed"
     APPROVED = "approved"
     REPLACED = "replaced"
     REJECTED = "rejected"

@@ -16,6 +16,12 @@ async def init_db() -> None:
     db = await get_db()
     try:
         await db.executescript(SCHEMA)
+        from taste_graph_ai.services.editorial import EDITORIAL_SCHEMA
+        from taste_graph_ai.services.provenance import PROVENANCE_SCHEMA
+        from taste_graph_ai.services.publication_records import ensure_publication_schema
+        await db.executescript(EDITORIAL_SCHEMA)
+        await db.executescript(PROVENANCE_SCHEMA)
+        await ensure_publication_schema(db)
         # Migration: add is_curated to daily_packs
         try:
             await db.execute("ALTER TABLE daily_packs ADD COLUMN is_curated INTEGER DEFAULT 0")

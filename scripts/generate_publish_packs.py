@@ -49,7 +49,7 @@ HASHTAGS = ["#moodboard", "#审美积累", "#穿搭参考"]
 # QUEUE.html 模板版本戳（auto_deploy 用它判断是否需要重生成今日包）
 # 2026-09-08: 安全收口 — 移除 open-file/copy-image/file:// 远程动作，
 # 改页内预览 + 单张下载 + 九图 ZIP；导航去硬编码；草稿「最后保存于」。
-TEMPLATE_VERSION = "2026-09-08.1"
+TEMPLATE_VERSION = "2026-09-13.editorial.1"
 
 # Taste concept bank for CLIP auto-tagging when keywords are missing
 TASTE_CONCEPTS = [
@@ -79,291 +79,106 @@ def _resolve_local_path(img) -> str:
 
 
 def _load_published_image_ids() -> set:
-    """已发布 pack 里用过的图不进候选池。
-
-    publish-log 登记的 pack → 其 curation.json 的 image_ids 集合。
-    没发过 = 全部可用（生成过但没登记的 pack 不算发布）。
-    """
-    ids: set = set()
-    try:
-        entries = json.loads((BASE_DIR / "data" / "publish_log.json").read_text(encoding="utf-8"))
-    except Exception:
-        return ids
-    for e in entries:
-        pack_rel = (e or {}).get("pack", "")
-        if not pack_rel:
-            continue
-        pack_dir = BASE_DIR / pack_rel
-        if not pack_dir.exists():
-            continue
-        try:
-            curation = json.loads((pack_dir / "curation.json").read_text(encoding="utf-8"))
-            ids.update(curation.get("image_ids", []))
-        except Exception:
-            pass
-    return ids
+    """Use the same publication exclusions as the API candidate picker."""
+    from taste_graph_ai.services.images import _load_published_image_ids as load_ids
+    return load_ids()
 
 
 async def generate(date_str: str = None, count: int = 5, skip_queue: bool = False, pack_size: int = 1) -> Path:
-    """Generate publish packs for the given date.
+    """Export traceable research candidates; an editorial review is required before use."""
+    from datetime import datetime
+    import uuid
+    from taste_graph_ai.config import DB_FILE
+    from taste_graph_ai.services.editorial import load_annotations, choose_candidate_groups, score_candidate
+    from taste_graph_ai.services.publication_records import resolve_publication_pack
 
-    pack_size=1 时与旧版一致（每目录单图）；pack_size>1 时一个 pack 目录装 N 张图
-    （image-01..NN），供人工审一包 9 图直接发。
-    """
-    if date_str is None:
-        date_str = date_type.today().isoformat()
-
+    date_str = date_str or date_type.today().isoformat()
     batch_dir = POSTS_DIR / date_str
     batch_dir.mkdir(parents=True, exist_ok=True)
-
     ensure_dirs()
     await init_db()
-    get_container()
-    get_clip()  # pre-load CLIP
-
-    db = await get_db()
-    image_repo = ImageRepository(db)
-    source_repo = SourceRepository(db)
-    pack_repo = PackRepository(db)
-    feedback_repo = FeedbackRepository(db)
-
-    # Get liked image IDs for scoring bonus
-    liked_ids = await feedback_repo.get_liked_image_ids()
-
-    # Build source name lookup from DB (not graph — different IDs)
-    all_sources = await source_repo.list_all()
-    source_name_lookup = _build_source_lookup(all_sources)
-
-    # Get recent images that are SELECTED (already used in packs) or PENDING
-    target_total = count * pack_size
-    candidates = await image_repo.list_by_status(ImageStatus.SELECTED, limit=max(100, target_total))
-    pending = await image_repo.list_by_status(ImageStatus.PENDING, limit=3000)
-    candidates.extend(pending)
-
-    if not candidates:
-        print("No images available.")
-        await db.close()
-        return batch_dir
-
-    # Filter + backfill: local_path 列可能过期，按 image_id 在 data/images 下回填
-    # 排除已发布 pack 用过的图——没发过的一切（含历史爬取）都是候选
-    published_ids = _load_published_image_ids()
-    valid = []
-    for img in candidates:
-        if img.id in published_ids:
-            continue
-        lp = _resolve_local_path(img)
-        if lp:
-            img.local_path = lp
-            valid.append(img)
-    print(f"Found {len(valid)} valid unpublished images to choose from.")
-
-    # Score and pick top-N diverse images
-    clip_svc = get_clip()
     graph = get_container().taste_graph
-
-    # ── 策展打分：图谱关键词 + 历史评分 + pillar 契合（快、可解释、进 curation.json）──
-    PILLAR_KEYWORDS = {
-        "lookbook": ["runway", "catwalk", "fashion", "model", "editorial", "streetwear", "outfit", "tailored", "silhouette", "coat", "时装", "秀场"],
-        "daily_archive": ["city", "street", "coffee", "hotel", "architecture", "concrete", "shadow", "window", "walking", "interior", "街", "城市"],
-        "moving_taste": ["film", "video", "cinematic", "motion", "backstage", "campaign", "moving", "影像"],
-        "reading_taste": ["magazine", "editorial", "layout", "typography", "print", "archive", "book", "article", "杂志", "阅读"],
-        "product_seeds": ["object", "product", "design", "industrial", "still", "furniture", "material", "detail", "watch", "bag", "器物", "设计"],
-    }
-
-    # 全库未发布图全部进打分池（图谱关键词打分很快，无需预筛）
-    valid.sort(key=lambda i: getattr(i, "final_score", 0.0) or 0.0, reverse=True)
-    pool = valid
-    print(f"Scoring pool: {len(pool)} (全库未发布)")
-
-    runway_indicators = ["vogue", "runway", "off-white", "louis vuitton", "dior", "prada", "gucci"]
-
-    def _pillar_match(kws, pkws):
-        hit = sum(1 for k in kws for pk in pkws if pk in k)
-        return min(1.0, hit / 4.0)
-
-    scored = []
-    for img in pool:
-        kws = [k.lower() for k in _clean_keywords(list(getattr(img, "keywords", []) or []))]
-        try:
-            graph_score = min(1.0, graph.score_content(
-                keywords=list(getattr(img, "keywords", []) or []),
-                source_id=img.source_id or "",
-            ) / 10)
-        except Exception:
-            graph_score = 0.0
-        try:
-            base = max(0.0, min(1.0, float(getattr(img, "final_score", 0.0) or 0.0)))
-        except (TypeError, ValueError):
-            base = 0.0
-
-        src_name = source_name_lookup(img.source_id or "", getattr(img, "page_url", "") or "").lower()
-        src_id = img.source_id or ""
-        is_runway = any(ind in src_name or ind in src_id.lower() for ind in runway_indicators)
-
-        pillar_scores = {pname: _pillar_match(kws, pkws) for pname, pkws in PILLAR_KEYWORDS.items()}
-        total = (
-            graph_score * 0.30
-            + base * 0.30
-            + max(pillar_scores.values()) * 0.25
-            + (0.0 if is_runway else 0.15)
-            + (0.10 if img.id in liked_ids else 0.0)
-        )
-        scored.append({
-            "img": img, "total": total, "graph": graph_score, "base": base,
-            "pillar_scores": pillar_scores, "is_runway": is_runway,
-            "kws": kws, "src": img.source_id or "",
-        })
-
-    def _pick_from(ranked, need, used_sources, runway_cap):
-        picked = []
-        runway_count = 0
-        for item in ranked:
-            if len(picked) >= need:
-                break
-            if item["src"] in used_sources:
+    db = await get_db()
+    try:
+        image_repo = ImageRepository(db)
+        liked_ids = await FeedbackRepository(db).get_liked_image_ids()
+        annotations = load_annotations(DB_FILE)
+        published_ids = _load_published_image_ids()
+        from taste_graph_ai.services.images import _image_content_hash
+        published_urls, published_hashes = set(), set()
+        for image_id in published_ids:
+            original = await image_repo.get_by_id(image_id)
+            if original is None:
                 continue
-            if item["is_runway"] and runway_count >= runway_cap:
+            if original.url:
+                published_urls.add(original.url)
+            original.local_path = _resolve_local_path(original)
+            digest = _image_content_hash(original)
+            if digest is not None:
+                published_hashes.add(digest)
+        # Query both states without the old score-first 100/3000 truncation.
+        rows = await (await db.execute("SELECT * FROM images WHERE status IN ('pending','selected') ORDER BY id")).fetchall()
+        candidates = [image_repo._row_to_image(row) for row in rows]
+        valid = []
+        for img in candidates:
+            if img.id in published_ids or img.url in published_urls:
                 continue
-            picked.append(item)
-            used_sources.add(item["src"])
-            if item["is_runway"]:
-                runway_count += 1
-        if len(picked) < need:  # 池子不足时放宽来源限制
-            for item in ranked:
-                if len(picked) >= need:
-                    break
-                if item not in picked:
-                    picked.append(item)
-        return picked
-
-    # ── 组包：综合 1 套 + 每 pillar 各 1 套（套内来源多样，套间允许复用）──
-    pack_count = min(count, 1 + len(PILLAR_KEYWORDS))
-    ranked_all = sorted(scored, key=lambda x: x["total"], reverse=True)
-    groups = [_pick_from(ranked_all, pack_size, set(), max(pack_size // 2, 2))]
-    for pname in PILLAR_KEYWORDS:
-        if len(groups) >= pack_count:
-            break
-        ranked_p = sorted(scored, key=lambda x: (x["pillar_scores"][pname] * 3 + x["total"]), reverse=True)
-        groups.append(_pick_from(ranked_p, pack_size, set(), max(pack_size // 2, 2)))
-    print(f"Packed {len(groups)} 套方案（综合 + {len(groups) - 1} pillars）")
-
-    # Generate post/pack folders
-    post_dirs = []
-    for gi, group in enumerate(groups):
-        dir_num = f"pack-{gi + 1:03d}" if pack_size > 1 else f"post-{gi + 1:03d}"
-        post_dir = batch_dir / dir_num
-        post_dir.mkdir(parents=True, exist_ok=True)
-
-        # 本套 pillar：综合套取图片命中最高者，其余套取对应 pillar
-        if gi == 0:
-            pillar_totals = {}
-            for item in group:
-                for pname, s in item["pillar_scores"].items():
-                    pillar_totals[pname] = pillar_totals.get(pname, 0.0) + s
-            pillar = max(pillar_totals, key=pillar_totals.get)
-        else:
-            pillar = list(PILLAR_KEYWORDS.keys())[gi - 1]
-
-        metas = []
-        keywords_all = []
-        source_counts = {}
-        # 清理旧帧，避免重复生成残留 image-0N.*（宫格会多帧）
-        for stale in post_dir.glob("image-*"):
-            try:
-                stale.unlink()
-            except OSError:
-                pass
-        for i, item in enumerate(group):
-            img = item["img"]
-            # Copy image (3:4 竖版裁切，小红书标准)
-            src_path = Path(img.local_path)
-            ext = src_path.suffix or ".jpg"
-            dest_path = post_dir / (f"image-{i + 1:02d}{ext}" if pack_size > 1 else f"image{ext}")
-            _prepare_image(src_path, dest_path)
-
-            # Generate metadata
-            src_name = source_name_lookup(img.source_id or "", getattr(img, "page_url", "") or "")
-            keywords = _clean_keywords(list(img.keywords))
-            # Fallback: CLIP auto-tag if no useful keywords
-            if not keywords and img.local_path:
-                keywords = _clip_auto_tag(img.local_path, clip_svc)
-                img.keywords = keywords
-
-            title, body, hashtags = _generate_post_metadata(img, item["total"], src_name, keywords, pillar)
-            metas.append((item["total"], title, body, hashtags, pillar, src_name))
-            keywords_all.extend(keywords)
-            source_counts[src_name] = source_counts.get(src_name, 0) + 1
-
-        # Pack-level metadata: 首图为封面文案，正文为逐图一句话叙事
-        avg_score = sum(m[0] for m in metas) / len(metas)
-        title = metas[0][1]
-        body = "\n".join(f"{i + 1:02d} {m[1]} — {m[5]}" for i, m in enumerate(metas))
-        hashtags = metas[0][3]
-
-        # 策展逻辑（图谱依据）→ curation.json，供工作台「为什么是这套」展示
-        kw_freq = {}
-        for k in keywords_all:
-            kw_freq[k] = kw_freq.get(k, 0) + 1
-        shared = sorted(kw_freq.items(), key=lambda kv: kv[1], reverse=True)[:6]
-        curation = {
-            "pillar": pillar,
-            "theme": title,
-            "shared_keywords": [{"kw": k, "count": v} for k, v in shared if v >= 2],
-            "top_keywords": [k for k, _ in shared],
-            "sources": sorted(source_counts.items(), key=lambda kv: kv[1], reverse=True),
-            "avg_score": round(avg_score, 2),
-            "image_count": len(metas),
-            "image_ids": [item["img"].id for item in group],
-            "pool_size": len(pool),
-            "score_formula": "图谱分 30% + 历史评分 30% + pillar 契合 25% + 来源多样性 15%",
-        }
-        (post_dir / "curation.json").write_text(
-            json.dumps(curation, ensure_ascii=False, indent=2), encoding="utf-8"
-        )
-
-        (post_dir / "title.txt").write_text(title, encoding="utf-8")
-        (post_dir / "body.txt").write_text(body, encoding="utf-8")
-        (post_dir / "hashtags.txt").write_text(hashtags, encoding="utf-8")
-        (post_dir / "score.txt").write_text(f"{avg_score:.2f}", encoding="utf-8")
-        (post_dir / "pillar.txt").write_text(pillar, encoding="utf-8")
-
-        # 观点草稿（机器起草，人改写后才可发）
-        opinion_draft = _generate_opinion_draft(
-            [m[1] for m in metas], [m[5] for m in metas], pillar
-        )
-        (post_dir / "opinion_draft.txt").write_text(opinion_draft, encoding="utf-8")
-
-        # Checklist
-        post_time = PILLAR_POST_TIMES.get(pillar, "20:00–22:00")
-        img_note = (
-            "（一包 9 图：编辑台点「📦 下载九图」拿 ZIP，解压后全选拖入）"
-            if pack_size > 1 else "图片方向正确（竖版优先）"
-        )
-        checklist = f"""# {dir_num} — Publish Checklist
-
-- [ ] {img_note}
-- [ ] 标题无误：「{title}」
-- [ ] 正文 = 观点草稿改写版（机器叙事已另存 body.txt，发布用 opinion_draft.txt 改写）
-- [ ] 话题标签完整
-- [ ] 发布时间建议：{post_time}（本包 pillar: {pillar}）
-- [ ] 位置/地点是否需要
-- [ ] @用户是否需要
-- [ ] 发布后在 http://localhost:8765/publish-log 登记（发帖后 30 秒）
-"""
-        (post_dir / "publish-checklist.md").write_text(checklist, encoding="utf-8")
-
-        post_dirs.append(post_dir)
-        print(f"  {dir_num}: {title} ({len(group)} images, avg score={avg_score:.2f})")
-
-    # Generate QUEUE.html overview (skip in auto mode)
-    if not skip_queue:
-        _generate_queue_html(batch_dir, post_dirs, date_str)
-
-    await db.close()
-    print(f"\n✅ {len(post_dirs)} publish packs saved to {batch_dir}")
-    print(f"   Open {batch_dir / 'QUEUE.html'} to review")
-    return batch_dir
+            local = _resolve_local_path(img)
+            if local and Path(local).is_file():
+                img.local_path = local
+                if published_hashes:
+                    digest = _image_content_hash(img)
+                    if digest is None or digest in published_hashes:
+                        continue
+                valid.append(img)
+        scored = []
+        for img in valid:
+            parts = score_candidate(img, graph, annotations.get(img.id), liked_ids)
+            scored.append({"img":img, **parts, "kws":list(img.keywords)})
+        groups = choose_candidate_groups(scored,count,pack_size,annotations,published_ids)
+        names = _build_source_lookup(await SourceRepository(db).list_all())
+        run_key = datetime.now().strftime("%H%M%S") + "-" + uuid.uuid4().hex[:4]
+        post_dirs = []
+        for gi,group in enumerate(groups,1):
+            folder = batch_dir / f"pack-editorial-{run_key}-{gi:03d}"
+            folder.mkdir()
+            pack_path = str(folder.relative_to(BASE_DIR))
+            pack_id = "fs_" + hashlib.sha256(pack_path.encode()).hexdigest()[:20]
+            notes=[]
+            for position,item in enumerate(group,1):
+                img=item["img"]
+                _prepare_image(Path(img.local_path),folder/f"image-{position:02d}{Path(img.local_path).suffix}")
+                provenance = [dict(r) for r in await (await db.execute("SELECT * FROM image_provenance WHERE image_id=? ORDER BY observed_at DESC LIMIT 5",(img.id,))).fetchall()]
+                notes.append({"image_id":img.id,"position":position-1,"source_page":img.page_url,
+                    "source_name":names(img.source_id or "",img.page_url),
+                    "original_image_url":img.url,"original_sha256":hashlib.sha256(Path(img.local_path).read_bytes()).hexdigest(),
+                    "annotation":annotations.get(img.id,{}),"provenance":provenance,
+                    "role":"","visual_evidence":"","selection_reason":"",
+                    "score_parts":{k:v for k,v in item.items() if k not in {"img","kws"}}})
+            suggested=annotations.get(group[0]["img"].id,{}).get("topic_hint","")
+            title=suggested or "待定选题 · " + (notes[0]["source_name"] or "素材研究")
+            body="\n\n".join(f"{i+1:02d} 来源：{note['source_page']}\n入选理由：待补充" for i,note in enumerate(notes))
+            curation={"pack_id":pack_id,"theme":title,"pillar":"editorial_research",
+                "workflow_status":"needs_editorial_review","thesis":"","sequence_reason":"",
+                "image_ids":[item["img"].id for item in group],"image_count":len(group),"images":notes,
+                "pool_size":len(valid),"avg_score":sum(item["total"] for item in group)/len(group),
+                "sources":list({note["source_name"]:sum(n["source_name"]==note["source_name"] for n in notes) for note in notes}.items()),
+                "score_formula":"图谱50% + 出处已核验20% + 具体内容页10% + 运营优先10% + 明确单图喜欢10%",
+                "grouping":"按运营命题或具体来源页归组；关系与顺序仍待审核"}
+            (folder/"curation.json").write_text(json.dumps(curation,ensure_ascii=False,indent=2),encoding="utf-8")
+            for filename,text in [("title.txt",title),("body.txt",body),("hashtags.txt",""),("opinion_draft.txt","请先确认命题、每图的画面证据与入选理由，再撰写正文。"),("score.txt",str(curation["avg_score"])),("pillar.txt","editorial_research")]:
+                (folder/filename).write_text(text,encoding="utf-8")
+            (folder/"publish-checklist.md").write_text("# 候选研究图集\n\n- [ ] 核实出处和图注\n- [ ] 明确组图命题\n- [ ] 填写每图角色、画面证据、入选理由与顺序说明\n- [ ] 在运营打标页完成审核\n- [ ] 审阅标题与正文后再发布\n",encoding="utf-8")
+            await resolve_publication_pack(db,pack_id,pack_path=pack_path,base_dir=BASE_DIR)
+            post_dirs.append(folder)
+            print(f"Candidate {folder.name}: {len(group)} images; needs editorial review")
+        await db.commit()
+        if not skip_queue:
+            _generate_queue_html(batch_dir,post_dirs,date_str)
+        print(f"Saved {len(post_dirs)} research candidates; editorial review: /editorial.html")
+        return batch_dir
+    finally:
+        await db.close()
 
 
 # Auto-generated / accessibility alt texts that should never be used as keywords
@@ -385,30 +200,8 @@ PILLAR_POST_TIMES = {
 
 
 def _prepare_image(src_path: Path, dest_path: Path) -> None:
-    """中心裁切为 3:4 竖版（小红书标准），过大则缩到 1080×1440。PIL 不可用时原样复制。"""
-    try:
-        from PIL import Image
-    except ImportError:
-        shutil.copy2(src_path, dest_path)
-        return
-    try:
-        with Image.open(src_path) as im:
-            im = im.convert("RGB")
-            w, h = im.size
-            target_ratio = 3 / 4
-            if w / h > target_ratio:  # 太宽 → 裁宽
-                new_w = int(h * target_ratio)
-                left = (w - new_w) // 2
-                im = im.crop((left, 0, left + new_w, h))
-            elif w / h < target_ratio:  # 太高 → 裁高
-                new_h = int(w / target_ratio)
-                top = (h - new_h) // 2
-                im = im.crop((0, top, w, top + new_h))
-            if im.width > 1080 or im.height > 1440:
-                im.thumbnail((1080, 1440), Image.LANCZOS)
-            im.save(dest_path, quality=90)
-    except Exception:
-        shutil.copy2(src_path, dest_path)
+    """Keep the complete original composition and exact bytes."""
+    shutil.copy2(src_path, dest_path)
 
 
 def _slug_words(source_id: str) -> str:
@@ -416,45 +209,23 @@ def _slug_words(source_id: str) -> str:
     return source_id.removeprefix("src_").replace("_", " ").strip()
 
 
-def _build_source_lookup(all_sources) -> dict[str, str]:
-    """images.source_id 有 hex id / legacy slug 两套，且部分指向已删除的源行（孤儿引用）。
-
-    命中顺序: hex id → url → slug 子串匹配 → 图片 page_url 域名匹配（兜底孤儿引用）。
-    """
-    import urllib.parse
-
-    by_key: dict[str, str] = {}
-    by_domain: dict[str, str] = {}
-    names = []
-    for s in all_sources:
-        by_key[s.id] = s.name
-        by_key[s.url] = s.name
-        names.append(s.name)
-        try:
-            dom = urllib.parse.urlparse(s.url).netloc
-            by_domain.setdefault(dom, s.name)
-        except Exception:
-            pass
-
-    def lookup(sid: str, page_url: str = "") -> str:
-        if sid:
-            if sid in by_key:
-                return by_key[sid]
-            if sid.startswith("src_"):
-                cand = _slug_words(sid)
-                if cand:
-                    matches = [n for n in names if cand in n.lower()]
-                    if matches:
-                        return min(matches, key=len)
-        if page_url:
-            try:
-                dom = urllib.parse.urlparse(page_url).netloc
-                if dom in by_domain:
-                    return by_domain[dom]
-            except Exception:
-                pass
-        return ""
-
+def _build_source_lookup(all_sources):
+    """Prefer a matching source URL scope; never label a different collection by ID."""
+    def normalized(value):
+        parsed=urllib.parse.urlsplit(value or "")
+        return parsed.hostname.lower().removeprefix("www.") if parsed.hostname else "", parsed.path.rstrip("/")
+    def lookup(sid, page_url=""):
+        domain,path=normalized(page_url)
+        matches=[]
+        for source in all_sources:
+            source_domain,source_path=normalized(source.url)
+            if domain and domain==source_domain and (not source_path or path==source_path or path.startswith(source_path+"/")):
+                matches.append((len(source_path),source.name))
+        if matches:
+            return max(matches)[1]
+        if domain:
+            return domain
+        return next((source.name for source in all_sources if source.id==sid), "")
     return lookup
 
 
@@ -823,6 +594,25 @@ PILLAR_LABELS = {
 }
 
 
+def _generate_editorial_queue_html(batch_dir, post_dirs, date_str):
+    """Readonly candidate overview; all decisions go through canonical editorial IDs."""
+    import html
+    import os
+    dashboard = os.environ.get("TASTEGRAPH_DASHBOARD_URL", "http://127.0.0.1:8787").rstrip("/")
+    cards=[]
+    for folder in post_dirs:
+        metadata_path=folder/"curation.json"
+        meta=json.loads(metadata_path.read_text()) if metadata_path.exists() else {}
+        title=(folder/"title.txt").read_text() if (folder/"title.txt").exists() else "待定选题"
+        images="".join('<img src="'+html.escape(str(p.relative_to(batch_dir)),quote=True)+'" alt="原始素材">' for p in sorted(folder.glob("image*")) if p.suffix.lower() in {".jpg",".jpeg",".png",".webp"})
+        href=dashboard+"/editorial.html?pack="+urllib.parse.quote(meta.get("pack_id",""))
+        action='<a href="'+html.escape(href,quote=True)+'">进入图集审核 →</a>' if meta.get("pack_id") else "<p>旧素材目录 · 尚未登记图集身份</p>"
+        cards.append('<article><h2>'+html.escape(title)+'</h2><p>候选研究 · 命题、逐图理由与顺序待审核</p><div class="images">'+images+'</div>'+action+'</article>')
+    page='<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TAPE · 候选研究</title><style>body{font:15px/1.6 -apple-system, sans-serif;background:#eef0f3;color:#242d35;margin:30px}main{max-width:1250px;margin:auto}article{background:white;padding:24px;margin:24px 0;border-radius:8px}h1{font-weight:600}h2{font-size:18px}p{color:#667584}.images{display:flex;gap:12px;flex-wrap:wrap;margin:20px 0}.images img{height:190px;max-width:100%;object-fit:contain;background:#f8f9fa}a{color:#244f73}</style><main><h1>TAPE · 候选研究</h1><p>'+html.escape(date_str)+' · 保留原图；完成策展审核后再准备发布。</p>'+''.join(cards)+'</main></html>'
+    page = f"<!-- queue-template-v: {TEMPLATE_VERSION} -->\n" + page
+    (batch_dir/"QUEUE.html").write_text(page,encoding="utf-8")
+
+
 def _generate_queue_html(batch_dir: Path, post_dirs: list[Path], date_str: str):
     """Generate the editorial workbench QUEUE.html — 极简工作室设计（老板选定方向 B）。
 
@@ -831,6 +621,9 @@ def _generate_queue_html(batch_dir: Path, post_dirs: list[Path], date_str: str):
     - 观点草稿 = 绿色底提示框「待改写」；策展逻辑条在卡底
     - 换图自动同步图注（服务端生成并回写 body.txt）
     """
+    if any((p / "curation.json").exists() and json.loads((p / "curation.json").read_text()).get("workflow_status") for p in post_dirs):
+        return _generate_editorial_queue_html(batch_dir, post_dirs, date_str)
+
     import html as _html
 
     cards = []
@@ -874,13 +667,13 @@ def _generate_queue_html(batch_dir: Path, post_dirs: list[Path], date_str: str):
                 for k in shared_kws[:5]
             )
         else:
-            logic_chips = '<span class="chip" style="color:var(--faint)">暂无共享关键词</span>'
+            logic_chips = '<span class="chip" style="color:var(--faint)">请填写命题、逐图证据与顺序说明</span>'
         n_sources = len(curation.get("sources", []))
         avg = curation.get("avg_score", score)
 
         logic_block = f"""
       <div class="logic">
-        <span class="lbl">为什么是这套</span>
+        <span class="lbl">候选线索 · 待策展审核</span>
         {logic_chips}
         <span class="meta">候选池 {curation.get("pool_size", "?")} 张 · 来源 {n_sources} 个 · 均分 {avg}</span>
       </div>"""

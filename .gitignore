@@ -61,3 +61,7 @@ data/publish_log.json
 **/storage_state*.json
 **/browser_profile/
 
+
+# Local editorial state and test cache
+data/workbench_state.json
+.pytest_cache/

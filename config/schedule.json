@@ -16,7 +16,7 @@
         "400"
       ],
       "catchup_grace_minutes": 720,
-      "_note": "唯一安全采集链路：preflight→crawl→persist→download backlog→normalize/source attach→至多一个主包→summary。取代旧 crawl(03:00)+image_download(07:30) 松散耦合。--resume 保证重启/中断后幂等恢复。绝不触碰 XHS。"
+      "_note": "安全采集链路：preflight→crawl→逐图上下文落库→下载backlog并保留原始字节→来源匹配→研究候选→summary。03:00按原班次运行；--resume幂等恢复。"
     },
     {
       "name": "daily_source_brief",
@@ -38,7 +38,7 @@
         "--pack-size",
         "9"
       ],
-      "_note": "候选流 GENERATION ONLY — 不碰 xhs。每班产出一包 9 图候选（posts/<date>/pack-001/），QUEUE.html 审图，人写观点手动发。"
+      "_note": "仅生成研究候选：每班至多6组、每组至多9张，按已核验选题或具体来源页归组并去重；通过命题、逐图理由和顺序审核后再导出。"
     },
     {
       "name": "live_post",

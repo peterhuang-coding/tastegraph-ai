@@ -199,7 +199,7 @@ class PendingImagesResponse(BaseModel):
     limit: int
 
 class CuratedPackRequest(BaseModel):
-    image_ids: list[str] = Field(..., min_length=9, max_length=9)
+    image_ids: list[str] = Field(..., min_length=1, max_length=18)
     theme: str = Field(..., min_length=1, max_length=50)
     title: str = ""
     caption: str = ""
@@ -214,3 +214,9 @@ class HealthResponse(BaseModel):
 
 # Forward ref for recursive model
 DailyTodayResponse.model_rebuild()
+
+
+class AutoPublishResponse(BaseModel):
+    success: bool
+    post_url: str = ""
+    error: str = ""

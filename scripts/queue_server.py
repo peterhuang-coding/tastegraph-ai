@@ -25,16 +25,17 @@ import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+CODE_DIR = Path(__file__).resolve().parent.parent
 # 脚本直起（launchd / python3 scripts/queue_server.py）时 sys.path[0] 是 scripts/，
 # 项目根不在路径上，/sources 的 `from scripts.source_dashboard import build` 会崩；
 # 统一补上根目录（经 pipeline.py 模块方式启动时幂等无害）。
-if str(BASE_DIR) not in sys.path:
-    sys.path.insert(0, str(BASE_DIR))
+if str(CODE_DIR) not in sys.path:
+    sys.path.insert(0, str(CODE_DIR))
+from taste_graph_ai.config import BASE_DIR, DATA_DIR
 POSTS_DIR = BASE_DIR / "posts"
-PUBLISH_LOG_PATH = BASE_DIR / "data" / "publish_log.json"
-INGEST_STATUS_PATH = BASE_DIR / "data" / "daily_ingestion_status.json"
-WORKBENCH_STATE_PATH = BASE_DIR / "data" / "workbench_state.json"
+PUBLISH_LOG_PATH = DATA_DIR / "publish_log.json"
+INGEST_STATUS_PATH = DATA_DIR / "daily_ingestion_status.json"
+WORKBENCH_STATE_PATH = DATA_DIR / "workbench_state.json"
 PORT = int(os.environ.get("QUEUE_PORT", "8765"))
 # 绑定地址：默认环回（仅本机）。Tailscale/局域网访问设 QUEUE_HOST=0.0.0.0 或
 # tailscale IP，并配 TASTEGRAPH_ALLOWED_ORIGINS 白名单（见 docs/operations.md §7）。
@@ -47,6 +48,79 @@ ALLOWED_ORIGINS = [
     if o.strip()
 ]
 UPSTREAM_API = os.environ.get("TASTEGRAPH_UPSTREAM_API", "http://127.0.0.1:8787")  # 图谱/周报/候选池 API
+
+
+def _normalize_publication_entry(entry):
+    """Expose the legacy manager time as submission evidence, without inventing publication."""
+    value = dict(entry)
+    raw_status = value.get("publication_status") or value.get("status") or value.get("platform_status") or "unknown"
+    value["publication_status"] = {"审核中": "under_review", "submitted_under_review": "under_review", "已发布": "published"}.get(raw_status, raw_status)
+    if (value.get("platform_status") in {"审核中", "under_review", "submitted_under_review"}
+            and "submitted_at" not in value and value.get("published_at")):
+        value["submitted_at"] = value["published_at"]
+        value["published_at"] = None
+    return value
+
+
+def _publication_payloads(entry, changed_fields=None):
+    """Keep cumulative 24h/48h windows distinct; empty is unknown, not zero."""
+    def count(value):
+        if value in (None, ""):
+            return None
+        number = float(value)
+        if not number.is_integer() or number < 0:
+            raise ValueError("互动计数必须为非负整数")
+        return int(number)
+
+    entry = _normalize_publication_entry(entry)
+    common = {
+        "pack_id": entry.get("pack_id") or entry.get("pack", ""),
+        "pack_path": entry.get("pack") if "/" in entry.get("pack", "") else None,
+        "publication_status": entry["publication_status"],
+        "published_at": (entry.get("published_at") or None) if entry["publication_status"] == "published" else None,
+        "post_url": entry.get("link", ""),
+        "platform": entry.get("platform") or "xiaohongshu",
+        "source": "publish_log_manual",
+    }
+    windows = []
+    has_metric_edit = changed_fields is None or any(
+        key in changed_fields for key in ("l24", "s24", "c24", "sh24", "v24", "l48", "s48", "c48", "sh48", "v48", "observed_at24", "observed_at48")
+    )
+    for window in ("24", "48") if has_metric_edit else ():
+        values = {name: count(entry.get(prefix + window)) for name, prefix in
+                  (("likes", "l"), ("saves", "s"), ("comments", "c"), ("shares", "sh"), ("views", "v"))}
+        if any(value is not None for value in values.values()):
+            windows.append({**common, **values,
+                "observed_at": entry.get("observed_at" + window) or None,
+                "observation_key": f"publish-log:{entry['id']}:{window}h",
+            })
+    # Registration may carry status but no metrics. It is still evidence, with
+    # unknown counters and timestamps; it must never imply a published post.
+    return windows or [{**common, **{key: None for key in ("likes", "saves", "comments", "shares", "views")},
+                        "observed_at": entry.get("observed_at") or None,
+                        "observation_key": f"publish-log:{entry['id']}:registration"}]
+
+
+def _sync_publication_entry(entry, changed_fields=None):
+    results = []
+    for metrics in _publication_payloads(entry, changed_fields):
+        req = urllib.request.Request(
+            UPSTREAM_API + "/api/v1/feedback/publish-metrics",
+            data=json.dumps(metrics).encode("utf-8"), method="POST",
+            headers={"Content-Type": "application/json"},
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=10) as response:
+                result = json.loads(response.read().decode("utf-8"))
+        except urllib.error.HTTPError as exc:
+            detail = exc.read().decode("utf-8", errors="replace")[:500]
+            raise RuntimeError(f"发布记录同步失败 ({exc.code}): {detail}") from exc
+        if not result.get("record_id") or not result.get("pack_id"):
+            raise RuntimeError("发布记录同步未返回有效 pack_id / record_id")
+        entry["pack_id"] = result["pack_id"]
+        results.append(result)
+    return {"ok": True, "record_ids": [result["record_id"] for result in results],
+            "warnings": [warning for result in results for warning in result.get("warnings", [])]}
 
 
 def _cors_origin_for(origin: str | None) -> str | None:
@@ -589,7 +663,7 @@ class QueueHandler(http.server.SimpleHTTPRequestHandler):
                 entries = json.loads(PUBLISH_LOG_PATH.read_text(encoding="utf-8"))
             except Exception:
                 entries = []
-            self._json({"ok": True, "entries": entries})
+            self._json({"ok": True, "entries": [_normalize_publication_entry(e) for e in entries]})
             return
 
         # ── Default: serve static files ──
@@ -634,50 +708,45 @@ class QueueHandler(http.server.SimpleHTTPRequestHandler):
             entries = json.loads(PUBLISH_LOG_PATH.read_text(encoding="utf-8"))
         except Exception:
             entries = []
+        entry = None
         if payload.get("delete"):
             entries = [e for e in entries if e.get("id") != payload["delete"]]
         elif payload.get("id"):
-            for e in entries:
-                if e.get("id") == payload["id"]:
-                    e.update({k: v for k, v in payload.items() if k != "id"})
+            entry = next((e for e in entries if e.get("id") == payload["id"]), None)
+            if entry is None:
+                self._json({"ok": False, "error": "发布登记不存在"}, status=404)
+                return
+            normalized = _normalize_publication_entry(entry)
+            entry.clear()
+            entry.update(normalized)
+            entry.update({k: v for k, v in payload.items() if k not in {"id", "retry_sync"}})
         else:
-            payload["id"] = f"p{len(entries) + 1:03d}"
-            entries.append(payload)
+            next_id = max((int(e["id"][1:]) for e in entries
+                           if str(e.get("id", "")).startswith("p") and e["id"][1:].isdigit()), default=0) + 1
+            payload["id"] = f"p{next_id:03d}"
+            entry = _normalize_publication_entry(payload)
+            entries.append(entry)
+        # Save the user's data even while the API is offline. Return an explicit
+        # partial failure after the bridge attempt, so the UI can offer retry.
         PUBLISH_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
         PUBLISH_LOG_PATH.write_text(json.dumps(entries, ensure_ascii=False, indent=2), encoding="utf-8")
-        self._json({"ok": True, "entries": entries})
-
-        # ── 数据单源化：publish-log 为唯一入口，有真实数据时镜像到图谱做调权 ──
-        def _num(v):
+        if entry is not None:
+            changed_fields = set(payload)
+            if payload.get("retry_sync"):
+                saved_fields = entry.get("bridge", {}).get("retry_fields")
+                changed_fields = set(saved_fields) if saved_fields else None
             try:
-                return int(float(v))
-            except (TypeError, ValueError):
-                return 0
-
-        if not payload.get("delete"):
-            # 契约 §0.5：24h/48h 是累计快照（48h 含 24h），最新窗口优先，绝不相加。
-            likes = _num(payload.get("l48")) if payload.get("l48") not in (None, "") else _num(payload.get("l24"))
-            saves = _num(payload.get("s48")) if payload.get("s48") not in (None, "") else _num(payload.get("s24"))
-            comments = _num(payload.get("c48")) if payload.get("c48") not in (None, "") else _num(payload.get("c24"))
-            if likes or saves or comments:
-                try:
-                    metrics = {
-                        "pack_id": payload.get("pack", ""),
-                        "likes": likes,
-                        "saves": saves,
-                        "comments": comments,
-                        "shares": 0,
-                        "post_url": payload.get("link", ""),
-                    }
-                    req = urllib.request.Request(
-                        UPSTREAM_API + "/api/v1/feedback/publish-metrics",
-                        data=json.dumps(metrics).encode("utf-8"),
-                        method="POST",
-                        headers={"Content-Type": "application/json"},
-                    )
-                    urllib.request.urlopen(req, timeout=10).read()
-                except Exception:
-                    pass  # 图谱不在线不阻塞登记
+                bridge = _sync_publication_entry(entry, changed_fields)
+            except Exception as exc:
+                bridge = {"ok": False, "error": str(exc),
+                          "retry_fields": sorted(changed_fields) if changed_fields is not None else None}
+            entry["bridge"] = bridge
+            PUBLISH_LOG_PATH.write_text(json.dumps(entries, ensure_ascii=False, indent=2), encoding="utf-8")
+            if not bridge["ok"]:
+                self._json({"ok": False, "saved": True, "entries": entries, "bridge": bridge,
+                            "error": "本地登记已保存，数据库同步失败：" + bridge["error"]}, status=502)
+                return
+        self._json({"ok": True, "entries": entries})
 
     def _ingest_meta_line(self) -> str:
         """首页状态卡小字：今日采集摘要（读 daily_ingestion_status.json）。"""

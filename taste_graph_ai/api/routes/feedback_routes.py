@@ -13,6 +13,11 @@ from collections import defaultdict
 from datetime import datetime, timezone, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import Field
+
+from taste_graph_ai.services.publication_records import (
+    resolve_publication_pack, record_publication_observation,
+)
 
 from taste_graph_ai.api import schemas as api_schemas
 from taste_graph_ai.api.deps import (
@@ -37,11 +42,19 @@ router = APIRouter(prefix="/api/v1/feedback", tags=["feedback"])
 
 class PublishMetricsRequest(api_schemas.BaseModel):
     pack_id: str
-    likes: int = 0
-    saves: int = 0
-    comments: int = 0
-    shares: int = 0
+    pack_path: str | None = None
+    likes: int | None = Field(default=None, ge=0)
+    saves: int | None = Field(default=None, ge=0)
+    comments: int | None = Field(default=None, ge=0)
+    shares: int | None = Field(default=None, ge=0)
+    views: int | None = Field(default=None, ge=0)
     post_url: str = ""
+    observed_at: str | None = None
+    published_at: str | None = None
+    publication_status: str = "unknown"
+    source: str = "manual"
+    platform: str = "xiaohongshu"
+    observation_key: str | None = None
 
 
 class BatchMetricsRequest(api_schemas.BaseModel):
@@ -126,6 +139,11 @@ class PublishMetricsResponse(api_schemas.BaseModel):
     delta: int = 0
     affected_images: int = 0
     record_id: str = ""
+    publication_status: str = "unknown"
+    observed_at: str | None = None
+    duplicate: bool = False
+    warnings: list[str] = []
+    error: str = ""
 
 
 # ── Engagement scoring ──────────────────────────────────────────
@@ -174,108 +192,38 @@ async def record_publish_metrics(
     feedback_service: FeedbackService = Depends(get_feedback_service),
     event_log: EventLog = Depends(get_event_log),
 ):
-    """录入单篇帖子的互动数据，自动回灌 taste graph 调整权重。"""
-    pack = await pack_repo.get_by_id(body.pack_id)
-    if not pack:
-        raise HTTPException(status_code=404, detail=f"Pack {body.pack_id} 不存在。先生成 publish pack。")
-
-    score = compute_engagement_score(body.likes, body.saves, body.comments, body.shares)
-    label = engagement_label(score)
-    now = datetime.now(timezone.utc).isoformat()
-
-    # Upsert publish record
-    existing = await publish_repo.get_by_pack_id(body.pack_id)
-    if existing:
-        record_id = existing["id"]
-        # Update via raw SQL through pack_repo's db
-        await pack_repo.db.execute(
-            """UPDATE publish_history
-            SET likes=?, saves=?, comments=?, engagement_rate=?
-            WHERE id=?""",
-            (body.likes, body.saves, body.comments, score, record_id),
+    """记录平台累计观测；用户审美反馈独立，不由互动数字自动生成。"""
+    score = compute_engagement_score(body.likes or 0, body.saves or 0,
+                                     body.comments or 0, body.shares or 0)
+    try:
+        identity = await resolve_publication_pack(pack_repo.db, body.pack_id, body.pack_path)
+        observation = await record_publication_observation(
+            pack_repo.db, identity["pack_id"], body.model_dump(), score,
         )
-        await pack_repo.db.commit()
-    else:
-        record_id = uuid.uuid4().hex[:12]
-        record = PublishRecord(
-            id=record_id,
-            pack_id=body.pack_id,
-            published_at=now,
-            platform="xiaohongshu",
-            post_url=body.post_url,
-            likes=body.likes,
-            saves=body.saves,
-            comments=body.comments,
-            engagement_rate=score,
-        )
-        await publish_repo.save(record)
-
-    # Feed back to taste graph (high/low engagement only)
-    delta = 0
-    feedback_label = None
-    if score >= 5:
-        delta = +2
-        feedback_label = FeedbackLabel.DUI_WEI
-    elif score < 1:
-        delta = -2
-        feedback_label = FeedbackLabel.BU_DUI_WEI
-
-    affected = 0
-    if delta != 0:
-        container = get_container()
-        graph = container.taste_graph
-
-        # Adjust pack images' concept weights
-        images = await pack_repo.get_pack_images(body.pack_id)
-        for img in images:
-            img_id = img["image_id"]
-            affected += 1
-            if feedback_label:
-                try:
-                    await feedback_service.record(
-                        target_type=FeedbackTargetType.IMAGE,
-                        target_id=img_id,
-                        label=feedback_label,
-                        note=f"发布反馈: engagement={score} ({label}), likes={body.likes} saves={body.saves}",
-                    )
-                except Exception:
-                    pass
-
-        # Adjust theme concept weight
-        theme = pack.theme
-        if theme:
-            concept_id = f"concept:{theme.lower().replace(' ', '_')}"
-            if concept_id not in graph:
-                graph.add_node(theme, NodeType.CONCEPT, node_id=concept_id, source="publish_feedback")
-            ns_id = "concept:north_star"
-            if ns_id in graph:
-                try:
-                    if graph.has_edge(ns_id, concept_id):
-                        graph.adjust_weight(ns_id, concept_id, delta)
-                    else:
-                        graph.add_edge(ns_id, concept_id,
-                                     RelationType.PREFERS if delta > 0 else RelationType.AVOIDS,
-                                     weight=abs(delta))
-                except Exception:
-                    pass
-
-        container.save_graph()
-
-    event_log.append("feedback.publish_metrics", {
-        "pack_id": body.pack_id,
-        "theme": pack.theme,
-        "engagement_score": score,
-        "delta": delta,
-    })
-
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    pack = await pack_repo.get_by_id(identity["pack_id"])
+    warnings = []
+    if identity["missing_image_ids"]:
+        warnings.append("图片映射未完成，数据库缺少: " + ", ".join(identity["missing_image_ids"]))
+    if observation["inserted"]:
+        event_log.append("feedback.publish_metrics", {
+            "pack_id": identity["pack_id"], "record_id": observation["record_id"],
+            "theme": pack.theme, "engagement_score": score, "delta": 0,
+            "publication_status": observation["publication_status"],
+            "evidence_type": "platform_observation",
+        })
     return {
-        "pack_id": body.pack_id,
-        "theme": pack.theme,
+        "pack_id": identity["pack_id"], "theme": pack.theme,
         "engagement_score": score,
-        "label": label,
-        "delta": delta,
-        "affected_images": affected,
-        "record_id": record_id,
+        "label": engagement_label(score) if any(value is not None for value in
+                 (body.likes, body.saves, body.comments, body.shares)) else "未记录",
+        "delta": 0, "affected_images": 0, "record_id": observation["record_id"],
+        "publication_status": observation["publication_status"],
+        "observed_at": observation["observed_at"],
+        "duplicate": not observation["inserted"], "warnings": warnings,
     }
 
 
@@ -301,9 +249,10 @@ async def batch_record_metrics(
                 feedback_service=feedback_service,
                 event_log=event_log,
             )
-        except HTTPException:
+        except HTTPException as exc:
             r = {"pack_id": entry.pack_id, "theme": "", "engagement_score": 0.0,
-                 "label": "error", "delta": 0, "affected_images": 0, "record_id": ""}
+                 "label": "error", "delta": 0, "affected_images": 0, "record_id": "",
+                 "error": str(exc.detail)}
         results.append(r)
     return results
 
@@ -371,16 +320,16 @@ async def get_weekly_report(
 
 # ── Weekly dashboard helpers ──────────────────────────────────
 
-def _parse_iso(dt_str: str) -> datetime:
-    """Parse ISO timestamp from publish_history; tolerate trailing Z."""
+def _parse_iso(dt_str: str) -> datetime | None:
+    """Missing/invalid dates stay unknown and never enter the current week."""
     if not dt_str:
-        return datetime.now(timezone.utc)
+        return None
     try:
-        if dt_str.endswith("Z"):
-            dt_str = dt_str[:-1] + "+00:00"
-        return datetime.fromisoformat(dt_str)
-    except Exception:
-        return datetime.now(timezone.utc)
+        parsed = datetime.fromisoformat(dt_str.replace("Z", "+00:00"))
+        # A timezone-free legacy date cannot be placed in an exact UTC week.
+        return parsed if parsed.tzinfo is not None else None
+    except (ValueError, TypeError):
+        return None
 
 
 def _week_start_utc(dt: datetime) -> datetime:
@@ -411,7 +360,7 @@ async def get_weekly_summary(
     week_records = []
     for r in recent:
         published = _parse_iso(r.get("published_at", ""))
-        if published >= week_start_dt:
+        if published is not None and week_start_dt <= published <= now:
             week_records.append(r)
 
     if not week_records:
@@ -471,6 +420,8 @@ async def get_weekly_trend(
 
     for r in recent:
         published = _parse_iso(r.get("published_at", ""))
+        if published is None:
+            continue
         ws = _week_start_utc(published)
         if ws < earliest or ws > this_week_start:
             continue

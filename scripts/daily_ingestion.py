@@ -31,8 +31,14 @@ import time
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import urlparse
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(BASE_DIR))
+from taste_graph_ai.services.provenance import (
+    classify_page, ensure_provenance_schema, is_site_asset,
+    link_downloaded_image, save_image_provenance,
+)
 # TASTEGRAPH_DB 仅用于 /tmp 副本演练；生产默认 data/taste_graph.db。
 DB_PATH = Path(os.environ.get("TASTEGRAPH_DB", str(BASE_DIR / "data" / "taste_graph.db")))
 IMAGES_DIR = BASE_DIR / "data" / "images"
@@ -46,7 +52,6 @@ MIN_FREE_BYTES = 1 << 30  # preflight 要求至少 1 GiB 空闲
 JOB_NAME = os.environ.get("TASTEGRAPH_JOB_NAME", "daily_ingestion")
 
 MAX_ATTEMPTS = 3          # 临时失败最大重试次数（超过视为永久失败）
-_BAD = ("logo", "ogp", "icon", "favicon", "avatar", "loader", "sprite", "pixel", "blank")
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/126.0 Safari/537.36")
 
@@ -68,16 +73,30 @@ def _norm_url(u: str) -> str:
 
 
 def resolve_source(page_url: str, sources: list[tuple[str, str]]) -> str | None:
-    """page_url 与 sources.url 最长前缀匹配（契约 §4-1）。失败返回 None。"""
-    if not page_url:
+    """Match URL scope first; use domain-only fallback only when unambiguous.
+
+    Only www is normalized; unrelated subdomains and domain-prefix lookalikes
+    do not acquire a source ID. Unknown domains remain NULL.
+    """
+    page = urlparse(page_url)
+    if page.scheme not in {"http", "https"} or not page.hostname:
         return None
-    pu = _norm_url(page_url)
-    best, best_len = None, 0
+    domain = page.hostname.lower().removeprefix("www.")
+    path = page.path.rstrip("/").lower()
+    candidates = []
     for sid, surl in sources:
-        su = _norm_url(surl)
-        if su and pu.startswith(su) and len(su) > best_len:
-            best, best_len = sid, len(su)
-    return best
+        source = urlparse(surl or "")
+        if source.scheme not in {"http", "https"} or not source.hostname:
+            continue
+        if source.hostname.lower().removeprefix("www.") != domain:
+            continue
+        source_path = source.path.rstrip("/").lower()
+        match = path == source_path or path.startswith(source_path + "/")
+        candidates.append((len(source_path) + 1 if match else 0, sid))
+    scoped = [candidate for candidate in candidates if candidate[0] > 0]
+    if scoped:
+        return max(scoped, key=lambda candidate: candidate[0])[1]
+    return candidates[0][1] if len(candidates) == 1 else None
 
 
 # ── run 记录 ────────────────────────────────────────────────
@@ -269,6 +288,7 @@ def stage_persist(con, sources, run, loop_dirs, ctx) -> dict:
 
     幂等：item id = run_id:md5(url)，INSERT OR IGNORE。
     """
+    ensure_provenance_schema(con)
     discovered = 0
     files = []
     for d in loop_dirs:
@@ -290,13 +310,17 @@ def stage_persist(con, sources, run, loop_dirs, ctx) -> dict:
                 continue
             imgs = e.get("images") or []
             if not imgs:
-                alts = e.get("alt_texts") or []
-                imgs = [{"url": u, "alt": alts[i] if i < len(alts) else ""}
-                        for i, u in enumerate(e.get("image_urls") or [])]
-            src = resolve_source(e.get("url", ""), sources)
+                # Historical alt_texts was independently filtered/truncated. Its
+                # position cannot establish which image it describes.
+                imgs = [{"url": u, "alt": ""} for u in e.get("image_urls") or []]
+            fetched_page = e.get("page_url") or e.get("url") or ""
+            canonical = e.get("canonical_url") or fetched_page
+            # A site's generic canonical homepage must not replace a specific work.
+            page_url = canonical if classify_page(canonical) == "detail" else fetched_page
+            src = resolve_source(page_url, sources) or resolve_source(fetched_page, sources)
             for im in imgs:
-                u = (im.get("url") or "").strip()
-                if not u.startswith("http") or any(b in u.lower() for b in _BAD):
+                u = (im.get("url") or im.get("src") or "").strip()
+                if urlparse(u).scheme not in {"http", "https"} or is_site_asset(u, im.get("alt") or ""):
                     continue
                 uid = _md5(_norm_url(u))
                 item_id = f"{run['id']}:{uid}"
@@ -305,17 +329,20 @@ def stage_persist(con, sources, run, loop_dirs, ctx) -> dict:
                     "(id, run_id, source_id, page_url, image_url, alt_text, status, "
                     "attempt_count, last_error, created_at, updated_at) "
                     "VALUES (?,?,?,?,?,?,?,?,?,?,?)",
-                    (item_id, run["id"], src, e.get("url", ""), u,
+                    (item_id, run["id"], src, page_url, u,
                      im.get("alt") or "", "discovered", 0, "", ts, ts),
                 )
                 if cur.rowcount:
                     discovered += 1
+                save_image_provenance(con, uid, item_id, src, e, im, ts)
     con.commit()
     return {"discovered": discovered}
 
 
 def stage_download(con, run, max_items: int) -> dict:
     """download：消费持久 backlog。--max 只限本次量；item 级失败计数。"""
+    ensure_provenance_schema(con)
+    sources = con.execute("SELECT id, url FROM sources").fetchall()
     downloaded = inserted = 0
     transient = permanent = 0
     rows = con.execute(
@@ -326,8 +353,12 @@ def stage_download(con, run, max_items: int) -> dict:
     ).fetchall()
     for row in rows:
         item_id, source_id, page_url, url, alt, attempts = row
+        # Backlog may contain stale/orphan IDs from an older producer. Resolve only
+        # the item being consumed; never rewrite existing images or global data.
+        source_id = resolve_source(page_url, sources)
         uid = _md5(_norm_url(url))
         if con.execute("SELECT COUNT(*) FROM images WHERE id = ?", (uid,)).fetchone()[0]:
+            link_downloaded_image(con, uid, uid)
             con.execute("UPDATE ingestion_items SET status='skipped', updated_at=? WHERE id=?",
                         (now_iso(), item_id))
             continue
@@ -356,32 +387,16 @@ def stage_download(con, run, max_items: int) -> dict:
                 )
                 con.commit()
                 continue
-        # webp → jpg（打包管线兼容性）
-        if ext == ".webp" and dest.exists():
-            jpg = dest.with_suffix(".jpg")
-            r = subprocess.run(["sips", "-s", "format", "jpeg", str(dest), "--out", str(jpg)],
-                               capture_output=True, timeout=30)
-            if r.returncode == 0:
-                dest.unlink(missing_ok=True)
-                dest = jpg
-            else:
-                dest.unlink(missing_ok=True)
-                attempts += 1
-                con.execute(
-                    "UPDATE ingestion_items SET status='failed', attempt_count=?, "
-                    "last_error='webp→jpg 转换失败', updated_at=? WHERE id=?",
-                    (attempts, now_iso(), item_id),
-                )
-                con.commit()
-                continue
+        # Preserve downloaded source bytes; any platform conversion belongs in a separate export.
         # 内容 checksum 去重（契约 §1：规范化 URL + 内容 checksum）
         try:
             content_hash = hashlib.sha256(dest.read_bytes()).hexdigest()[:16]
         except OSError:
             content_hash = ""
-        if content_hash and con.execute(
-            "SELECT COUNT(*) FROM images WHERE content_hash = ?", (content_hash,)
-        ).fetchone()[0]:
+        duplicate = con.execute("SELECT id FROM images WHERE content_hash = ? LIMIT 1",
+                                (content_hash,)).fetchone() if content_hash else None
+        if duplicate:
+            link_downloaded_image(con, uid, duplicate[0])
             dest.unlink(missing_ok=True)
             con.execute("UPDATE ingestion_items SET status='skipped', updated_at=? WHERE id=?",
                         (now_iso(), item_id))
@@ -397,6 +412,7 @@ def stage_download(con, run, max_items: int) -> dict:
              json.dumps(keywords, ensure_ascii=False), content_hash),
         )
         if cur.rowcount:
+            link_downloaded_image(con, uid, uid)
             inserted += 1
             downloaded += 1
             con.execute("UPDATE ingestion_items SET status='downloaded', updated_at=? WHERE id=?",
@@ -455,6 +471,7 @@ def main() -> int:
     ap.add_argument("--force", action="store_true",
                     help="当天已成功也强制重跑（默认成功日跳过，重启不补跑）")
     args = ap.parse_args()
+    requested_stage = args.stage
 
     # ── 运行锁：已有实例立即退出 ──
     lock_f = open(LOCK_PATH, "w")
@@ -483,6 +500,8 @@ def main() -> int:
         for e in errors:
             print(f"  - {e}")
         return 3
+    ensure_provenance_schema(con)
+    con.commit()
 
     today = datetime.now().strftime("%Y-%m-%d")
     sources = con.execute("SELECT id, url FROM sources").fetchall()
@@ -598,38 +617,41 @@ def main() -> int:
             mark_stage("pack")
 
     # ── summary ──
-    if args.stage in ("all", "summary"):
-        backlog = con.execute(
-            "SELECT COUNT(*) FROM ingestion_items WHERE status IN ('discovered','failed')"
-        ).fetchone()[0]
-        run["backlog_count"] = backlog
-        run["finished_at"] = now_iso()
-        run["status"] = "succeeded" if not errors_acc else "partial"
-        run["error_summary"] = "; ".join(errors_acc)[:400]
-        save_run(con, run)
+    # Every invoked stage closes its run/job, including --stage download.
+    backlog = con.execute(
+        "SELECT COUNT(*) FROM ingestion_items WHERE status IN ('discovered','failed')"
+    ).fetchone()[0]
+    run["backlog_count"] = backlog
+    run["finished_at"] = now_iso()
+    # A successful isolated stage is a completed partial run. It must not make
+    # job_succeeded_today() suppress the full scheduled daily pipeline.
+    run["status"] = "succeeded" if not errors_acc and requested_stage == "all" else "partial"
+    run["error_summary"] = "; ".join(errors_acc)[:400]
+    save_run(con, run)
 
-        summary = {
-            "job_run_id": job_run_id,
-            "run_id": run["id"],
-            "scheduled_for": run["scheduled_for"],
-            "status": run["status"],
-            "pages_attempted": run["pages_attempted"],
-            "pages_fetched": run["pages_fetched"],
-            "pages_failed": run["pages_failed"],
-            "images_discovered": run["images_discovered"],
-            "images_downloaded": run["images_downloaded"],
-            "images_inserted": run["images_downloaded"],  # 本入口下载即入库；失败项单独计
-            "backlog_count": run["backlog_count"],
-            "pack_generated": bool(ctx.get("pack", {}).get("pack_generated")),
-            "started_at": run["started_at"],
-            "finished_at": run["finished_at"],
-            "error_summary": run["error_summary"],
-        }
-        STATUS_PATH.write_text(json.dumps(summary, ensure_ascii=False, indent=2),
-                               encoding="utf-8")
-        print(json.dumps(summary, ensure_ascii=False, indent=2))
-        print(f"[ingest] 摘要已写: {STATUS_PATH}")
-        job_run_finish(con, job_run_id, run, summary)
+    summary = {
+        "requested_stage": requested_stage,
+        "job_run_id": job_run_id,
+        "run_id": run["id"],
+        "scheduled_for": run["scheduled_for"],
+        "status": run["status"],
+        "pages_attempted": run["pages_attempted"],
+        "pages_fetched": run["pages_fetched"],
+        "pages_failed": run["pages_failed"],
+        "images_discovered": run["images_discovered"],
+        "images_downloaded": run["images_downloaded"],
+        "images_inserted": run["images_downloaded"],  # 本入口下载即入库；失败项单独计
+        "backlog_count": run["backlog_count"],
+        "pack_generated": bool(ctx.get("pack", {}).get("pack_generated")),
+        "started_at": run["started_at"],
+        "finished_at": run["finished_at"],
+        "error_summary": run["error_summary"],
+    }
+    STATUS_PATH.write_text(json.dumps(summary, ensure_ascii=False, indent=2),
+                           encoding="utf-8")
+    print(json.dumps(summary, ensure_ascii=False, indent=2))
+    print(f"[ingest] 摘要已写: {STATUS_PATH}")
+    job_run_finish(con, job_run_id, run, summary)
 
     con.close()
     return 0  # succeeded 与 partial 都是有效终态；硬失败已在锁/preflight/迁移处非零返回

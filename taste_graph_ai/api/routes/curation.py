@@ -98,8 +98,8 @@ async def create_curated_pack(
     feedback_service: FeedbackService = Depends(get_feedback_service),
     event_log: EventLog = Depends(get_event_log),
 ):
-    if len(body.image_ids) != 9:
-        raise HTTPException(status_code=400, detail="必须选择 9 张图片")
+    if not 1 <= len(body.image_ids) <= 18 or len(set(body.image_ids)) != len(body.image_ids):
+        raise HTTPException(status_code=400, detail="请选择1至18张不同图片")
 
     images = []
     for img_id in body.image_ids:
@@ -115,14 +115,14 @@ async def create_curated_pack(
 
     today = date.today().isoformat()
     pack = DailyPack(
-        id=uuid.uuid4().hex[:16],
+        id=uuid.uuid4().hex[:12],
         date=today,
         theme=body.theme,
         title_options=[body.title] if body.title else [],
         caption=body.caption,
-        taste_score=85.0,
-        status=PackStatus.SELECTED,
-        is_curated=True,
+        taste_score=0.0,
+        status=PackStatus.DRAFT,
+        is_curated=False,
     )
     await pack_repo.save(pack)
 
@@ -131,19 +131,13 @@ async def create_curated_pack(
             pack_id=pack.id,
             image_id=img_id,
             position=i,
-            user_action=UserAction.APPROVED,
+            user_action=UserAction.UNREVIEWED,
         )
         await pack_repo.save_pack_image(pi)
 
     await image_repo.mark_many_status(body.image_ids, ImageStatus.SELECTED)
 
-    for img_id in body.image_ids:
-        await feedback_service.record(
-            target_type=FeedbackTargetType.IMAGE,
-            target_id=img_id,
-            label=FeedbackLabel.DUI_WEI,
-            note=f"手动策展: {body.theme}",
-        )
+    # Group selection is an editorial draft, never an automatic per-image taste vote.
 
     event_log.append("pack.curated", {
         "pack_id": pack.id,
@@ -190,8 +184,8 @@ async def prefill_curation(payload: dict):
     image_ids = payload.get("image_ids", []) or []
     image_keywords = payload.get("image_keywords", []) or []
 
-    if len(image_ids) != 9:
-        raise HTTPException(status_code=400, detail="需要恰好 9 张图")
+    if not 1 <= len(image_ids) <= 18:
+        raise HTTPException(status_code=400, detail="需要1至18张图")
 
     # 兜底：image_keywords 缺失时按 image_ids 长度补空串
     if len(image_keywords) < len(image_ids):
@@ -202,13 +196,13 @@ async def prefill_curation(payload: dict):
         f"  - {kw if kw else '(无关键词)'}" for kw in image_keywords
     )
     user_input = (
-        "9 张已选中图片，请综合它们的关键词生成 theme/title/caption 三个字段。\n\n"
+        f"{len(image_ids)} 张已选中图片，请根据已核验的具体命题与图像证据起草 theme/title/caption，关联不足时明确待审核。\n\n"
         "9 张图各自关键词:\n"
         f"{keywords_lines}"
     )
 
     context = {
-        "image_count": 9,
+        "image_count": len(image_ids),
         "sources": "见 taste_graph.json graph nodes",
         "time": "now",
     }

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TAPE · 素材与策展</title>
+<style>
+:root{--paper:#eef0f3;--sheet:#fff;--ink:#242d35;--muted:#667584;--line:#d7dee4;--accent:#244f73;--wash:#e0eaf2;--error:#a23b33}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:14px/1.55 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif}
+header{padding:18px 28px;background:var(--sheet);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:28px;position:sticky;top:0;z-index:2}
+.brand{font:700 23px Georgia,serif;letter-spacing:.06em}.brand small{font:12px -apple-system,sans-serif;letter-spacing:0;color:var(--muted);display:block}nav{display:flex;gap:8px;flex:1}
+button,a,input,textarea,select{font:inherit}button{cursor:pointer;background:var(--sheet);color:var(--ink);border:1px solid var(--line);padding:8px 14px;border-radius:5px}button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}button:disabled{opacity:.45;cursor:default}
+a{color:var(--accent);overflow-wrap:anywhere}button:hover{filter:brightness(.96)}:focus-visible{outline:3px solid #8cb5d7;outline-offset:2px}
+#status{padding:10px 28px;min-height:40px;color:var(--muted)}#status.error{color:var(--error);background:#ffefed}
+.workspace{display:grid;grid-template-columns:minmax(400px,1fr) 350px;gap:22px;padding:0 28px 28px}
+.toolbar{display:flex;gap:10px;align-items:center;margin:0 0 16px;flex-wrap:wrap}.toolbar input{flex:1;min-width:140px}
+input,textarea,select{border:1px solid var(--line);background:#fff;border-radius:4px;padding:8px;width:100%;color:var(--ink)}input[type=checkbox]{width:auto}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.tile{background:var(--sheet);padding:8px;border:1px solid transparent;cursor:pointer;min-width:0}.tile.current{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}.tile img{width:100%;height:220px;object-fit:contain;background:#f8f9fa;display:block}.tile footer{padding:9px 2px 1px;display:flex;justify-content:space-between;gap:8px}.tile small{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+aside{background:var(--sheet);padding:20px;align-self:start;position:sticky;top:108px;max-height:calc(100vh - 130px);overflow:auto;border-radius:7px}h1{font-size:23px;margin:0 0 18px}h2{font-size:17px;margin:0 0 12px}h3{font-size:14px;margin:20px 0 8px}label{display:block;margin:11px 0 4px}textarea{min-height:72px;resize:vertical}.small{font-size:12px;color:var(--muted)}.row{display:flex;gap:10px;align-items:center}.row>*{flex:1}details{border-top:1px solid var(--line);padding-top:12px;margin-top:14px}summary{cursor:pointer}
+#picked{padding:10px;background:var(--wash);border-radius:5px}.hidden{display:none!important}
+.pack-layout{display:grid;grid-template-columns:260px 1fr;gap:24px;padding:0 28px 28px}.pack-list button{display:block;text-align:left;width:100%;margin-bottom:8px}.pack-sheet{background:var(--sheet);padding:24px;border-radius:7px}.sequence-item{display:grid;grid-template-columns:160px 1fr;gap:18px;padding:20px 0;border-top:1px solid var(--line)}.sequence-item img{width:160px;height:160px;object-fit:contain;background:var(--paper)}.sequence-item .row{margin-top:8px}.pack-head{display:flex;gap:12px;margin-top:20px;align-items:center}
+@media(min-width:1450px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:900px){header{padding:12px;gap:14px}.workspace,.pack-layout{grid-template-columns:1fr;padding:0 12px 16px}aside{position:static;max-height:none}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.tile img{height:170px}.pack-list{display:flex;overflow:auto}.pack-list button{min-width:170px}.sequence-item{grid-template-columns:100px 1fr}.sequence-item img{width:100px;height:120px}#status{padding:8px 12px}}
+</style>
+<header><div class="brand">TAPE<small>素材与策展</small></div><nav><button id="tabImages" class="primary">素材打标</button><button id="tabPacks">图集审核</button></nav><a href="/">回到图谱</a></header>
+<div id="status" role="status" aria-live="polite">正在载入素材…</div>
+<div id="imagesView" class="workspace"><main><div class="toolbar"><input id="search" placeholder="搜索来源、已有标签或关键词" aria-label="搜索素材"><label><input type="checkbox" id="onlyTagged"> 已有标注</label><button id="find">查找</button></div><div id="picked" class="toolbar"><span id="pickCount">已选 0 张</span><button id="create" class="primary" disabled>创建候选图集</button><button id="clear">清空选择</button></div><div id="grid" class="grid"></div><div class="toolbar" style="margin-top:20px"><button id="prev">上一页</button><span id="pageLabel"></span><button id="next">下一页</button></div></main>
+<aside id="editor"><h2>先看原图，再写判断</h2><p class="small">点选一张图。记录能观察到的细节，以及它适合讲什么。</p></aside></div>
+<div id="packsView" class="pack-layout hidden"><div id="packList" class="pack-list"></div><main id="packEditor" class="pack-sheet"><h1>图集审核</h1><p>选择一个候选图集，补充命题、逐图理由和观看顺序。</p></main></div>
+<script src="/js/editorial.js"></script>
+</html>
