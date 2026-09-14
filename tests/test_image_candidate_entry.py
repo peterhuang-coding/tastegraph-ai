@@ -143,6 +143,13 @@ def test_zero_requested_images_does_not_create_links(setup):
     assert service.pack_repo.saved == []
 
 
+def test_candidate_generation_lock_rejects_concurrent_entry(setup):
+    with image_service._candidate_generation_lock():
+        with pytest.raises(RuntimeError, match="候选生成任务"):
+            with image_service._candidate_generation_lock():
+                pass
+
+
 def test_legacy_score_wrapper_delegates_to_common_score(setup, monkeypatch):
     from taste_graph_ai.services import editorial
     calls = []
@@ -173,6 +180,24 @@ def test_submitted_and_published_observations_are_excluded_without_inventing_sta
     before = setup.db.read_bytes()
     assert image_service._load_published_image_ids() == {"review", "published"}
     assert setup.db.read_bytes() == before
+
+
+def test_active_editorial_pack_reserves_images_until_explicit_rejection(setup):
+    active = setup.image("active")
+    alias = setup.image("alias", data=b"active")
+    free = setup.image("free")
+    with sqlite3.connect(setup.db) as db:
+        db.execute("INSERT INTO daily_packs(id,date,status,created_at) VALUES('draft-pack','2026-09-14','draft','2026-09-14')")
+        db.execute("INSERT INTO pack_images VALUES('draft-pack','active',0,'unreviewed')")
+    service = setup.service([active, alias, free])
+    assert [img.id for img in pick(service, count=9)] == ["free"]
+
+    with sqlite3.connect(setup.db) as db:
+        db.execute("INSERT INTO pack_editorial VALUES('draft-pack','{}','rejected','2026-09-14')")
+    service = setup.service([active, alias, free])
+    selected = {img.id for img in pick(service, count=9)}
+    assert "free" in selected
+    assert len(selected & {"active", "alias"}) == 1
 
 
 def seed_legacy_post_log(path, ids):

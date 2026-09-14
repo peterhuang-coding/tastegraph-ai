@@ -21,6 +21,7 @@ data/exports/
 
 # Ingestion runtime artifacts (运行锁与每日摘要，每次跑生成)
 data/ingestion.lock
+data/candidate_generation.lock
 data/daily_ingestion_status.json
 
 # tmp (caches, session state)

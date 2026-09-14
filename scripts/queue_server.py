@@ -282,7 +282,8 @@ def _md_to_html(md: str) -> str:
         elif s.startswith("> "):
             out.append(f"<blockquote>{_h.escape(s[2:])}</blockquote>")
         elif _re.match(r"^\d+\.\s", s):
-            out.append(f"<li>{_h.escape(_re.sub(r'^\\d+\\.\\s', '', s))}</li>")
+            item = _re.sub(r"^\d+\.\s", "", s)
+            out.append(f"<li>{_h.escape(item)}</li>")
         elif s.startswith("- "):
             out.append(f"<li>{_h.escape(s[2:])}</li>")
         elif not s.strip():

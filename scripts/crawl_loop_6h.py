@@ -20,11 +20,13 @@ import argparse
 import hashlib
 import json
 import random
+import re
 import signal
 import sys
 import time
 from collections import Counter
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+from email.utils import parsedate_to_datetime
 from pathlib import Path
 from urllib.parse import urljoin, urlparse
 
@@ -36,6 +38,12 @@ DATA_DIR = PROJECT_ROOT / "data"
 RUNS_DIR = PROJECT_ROOT / "runs"
 SHARED_DEDUP_FILE = RUNS_DIR / "shared_dedup.json"
 DISCOVERY_QUEUE_FILE = RUNS_DIR / "discovery_queue.json"
+RETRY_STATE_FILE = RUNS_DIR / "crawl_retry_state.json"
+MAX_FETCH_ATTEMPTS = 4
+RETRY_BASE_SECONDS = 5 * 60
+RETRY_MAX_SECONDS = 6 * 60 * 60
+TERMINAL_RETRY_SECONDS = 24 * 60 * 60
+MISSING_PAGE_RETRY_SECONDS = 30 * 24 * 60 * 60
 
 # ── Source quality control ──────────────────────────────────
 # Domains that are noise / off-brand for the editorial/brutalist aesthetic.
@@ -248,7 +256,107 @@ def load_discovery_queue() -> list[dict]:
 
 def save_discovery_queue(queue: list[dict]):
     DISCOVERY_QUEUE_FILE.parent.mkdir(parents=True, exist_ok=True)
-    DISCOVERY_QUEUE_FILE.write_text(json.dumps(queue, ensure_ascii=False), encoding="utf-8")
+    _atomic_write_json(DISCOVERY_QUEUE_FILE, queue)
+
+
+def _atomic_write_json(path: Path, value) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    staged = path.with_name(path.name + ".tmp")
+    staged.write_text(json.dumps(value, ensure_ascii=False), encoding="utf-8")
+    staged.replace(path)
+
+
+def load_retry_state() -> dict[str, dict]:
+    if not RETRY_STATE_FILE.exists():
+        return {}
+    try:
+        value = json.loads(RETRY_STATE_FILE.read_text(encoding="utf-8"))
+        return value if isinstance(value, dict) else {}
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def save_retry_state(state: dict[str, dict]) -> None:
+    _atomic_write_json(RETRY_STATE_FILE, state)
+
+
+def _parse_retry_after(value: str | None) -> int:
+    if not value:
+        return 0
+    try:
+        return max(0, int(value))
+    except (TypeError, ValueError):
+        try:
+            target = parsedate_to_datetime(value)
+            if target.tzinfo is None:
+                target = target.replace(tzinfo=timezone.utc)
+            return max(0, int((target - datetime.now(timezone.utc)).total_seconds()))
+        except (TypeError, ValueError, OverflowError):
+            return 0
+
+
+def _retryable_error(error: str) -> bool:
+    if error.startswith("skip_domain:") or error.startswith("403"):
+        return False
+    match = re.search(r"HTTP (\d{3})", error)
+    if match:
+        status = int(match.group(1))
+        return status == 408 or status == 429 or status >= 500
+    return True
+
+
+def due_retry_items(state: dict[str, dict], now: datetime | None = None) -> list[dict]:
+    now = now or datetime.now(timezone.utc)
+    due = []
+    for key, entry in state.items():
+        try:
+            target = datetime.fromisoformat(entry.get("next_retry_at", "").replace("Z", "+00:00"))
+            if target.tzinfo is None:
+                target = target.replace(tzinfo=timezone.utc)
+        except (TypeError, ValueError):
+            target = now
+        if target <= now and isinstance(entry.get("item"), dict):
+            item = dict(entry["item"])
+            item["_retry_key"] = key
+            due.append(item)
+    return due
+
+
+def schedule_retry(state: dict[str, dict], key: str, item: dict, error: str,
+                   retry_after: int = 0, now: datetime | None = None) -> dict | None:
+    """Persist bounded retry/cooldown state so failures never disappear silently."""
+    now = now or datetime.now(timezone.utc)
+    clean_item = {k: v for k, v in item.items() if not k.startswith("_retry")}
+    previous = state.get(key, {})
+    attempts = int(previous.get("attempt_count", 0)) + 1
+    if not _retryable_error(error):
+        status = re.search(r"HTTP (\d{3})", error)
+        delay = MISSING_PAGE_RETRY_SECONDS if status and int(status.group(1)) in {404, 410} else TERMINAL_RETRY_SECONDS
+        entry = {
+            "item": clean_item, "attempt_count": attempts,
+            "last_error": error[:300], "cooldown": True,
+            "next_retry_at": (now + timedelta(seconds=delay)).isoformat(),
+        }
+        state[key] = entry
+        return entry
+    if attempts >= MAX_FETCH_ATTEMPTS:
+        entry = {
+            "item": clean_item, "attempt_count": 0,
+            "last_error": error[:300], "cooldown": True,
+            "next_retry_at": (now + timedelta(seconds=TERMINAL_RETRY_SECONDS)).isoformat(),
+        }
+        state[key] = entry
+        return entry
+    delay = min(RETRY_MAX_SECONDS, RETRY_BASE_SECONDS * (2 ** (attempts - 1)))
+    delay = max(delay, max(0, int(retry_after or 0)))
+    entry = {
+        "item": clean_item,
+        "attempt_count": attempts,
+        "last_error": error[:300],
+        "next_retry_at": (now + timedelta(seconds=delay)).isoformat(),
+    }
+    state[key] = entry
+    return entry
 
 
 # ── Dedup ────────────────────────────────────────────────────
@@ -270,10 +378,10 @@ def load_dedup() -> set[str]:
 
 def save_dedup(keys: set[str], stats: dict):
     SHARED_DEDUP_FILE.parent.mkdir(parents=True, exist_ok=True)
-    SHARED_DEDUP_FILE.write_text(json.dumps({
+    _atomic_write_json(SHARED_DEDUP_FILE, {
         "keys": sorted(keys), "stats": stats,
         "updated": datetime.now(timezone.utc).isoformat()
-    }, ensure_ascii=False), encoding="utf-8")
+    })
 
 
 # ── Page fetcher ─────────────────────────────────────────────
@@ -306,15 +414,13 @@ def fetch_page(url: str) -> dict:
             _rotate_ua()
         r = c.get(url)
         if r.status_code == 403:
-            return {"_error": "403 anti-bot"}
+            return {"_error": "403 anti-bot", "_retryable": False}
         if r.status_code == 429:
-            time.sleep(random.uniform(20, 30))
-            _rotate_ua()
-            r = c.get(url)
-            if r.status_code != 200:
-                return {"_error": f"HTTP {r.status_code} after 429"}
+            return {"_error": "HTTP 429", "_retryable": True,
+                    "_retry_after": _parse_retry_after(r.headers.get("Retry-After"))}
         if r.status_code != 200:
-            return {"_error": f"HTTP {r.status_code}"}
+            return {"_error": f"HTTP {r.status_code}",
+                    "_retryable": r.status_code == 408 or r.status_code >= 500}
 
         from bs4 import BeautifulSoup
         soup = BeautifulSoup(r.text, "html.parser")
@@ -445,7 +551,7 @@ def fetch_page(url: str) -> dict:
 
         return result
     except Exception as e:
-        return {"_error": f"{type(e).__name__}: {str(e)[:100]}"}
+        return {"_error": f"{type(e).__name__}: {str(e)[:100]}", "_retryable": True}
 
 
 # ── Signal ──────────────────────────────────────────────────
@@ -476,6 +582,7 @@ def main() -> int:
     rate = RateLimiter(per_hour=args.rate_limit)
     processed_keys = load_dedup()
     discovery_queue = load_discovery_queue()
+    retry_state = load_retry_state()
 
     stats = {"cycles": 0, "total_processed": len(processed_keys),
              "fetched": 0, "fetch_error": 0, "discovered": 0, "skipped": 0}
@@ -494,6 +601,7 @@ def main() -> int:
     print()
 
     cycle = 0
+    seen_seed_keys: set[str] = set()
     while time.time() < deadline and not _shutdown:
         cycle += 1
         cycle_start = time.time()
@@ -504,8 +612,9 @@ def main() -> int:
         print(f"[cycle {cycle}] {remaining_h:.1f}h left | ~{remaining_req} req remaining | {rate.stats()}")
 
         # A saved specific article/work gets fetched before refreshing entry pages.
-        all_items = discovery_queue + load_seeds()
+        all_items = due_retry_items(retry_state) + discovery_queue + load_seeds()
         all_items.sort(key=lambda item: (
+            not bool(item.get("_retry_key")),
             (item.get("page_kind") or classify_page(item.get("url") or item.get("source_page") or "")) != "detail",
             bool(item.get("_seed")),
         ))
@@ -521,11 +630,20 @@ def main() -> int:
                 continue
             if item_url:
                 cycle_urls.add(item_url)
+            k = _dkey(item)
+            if item.get("_retry_key"):
+                fresh.append(item)
+                continue
+            if k in retry_state:
+                dups += 1
+                continue
+            if item.get("_seed") and k in seen_seed_keys:
+                dups += 1
+                continue
             # Seeds always refresh — only child links (discovered) get dedup'd
             if item.get("_seed"):
                 fresh.append(item)
                 continue
-            k = _dkey(item)
             if k in processed_keys:
                 dups += 1
             else:
@@ -540,6 +658,7 @@ def main() -> int:
         if not fresh:
             print(f"[cycle {cycle}] Nothing new. Waiting {args.cycle_wait}s...")
             save_dedup(processed_keys, stats)
+            save_retry_state(retry_state)
             if time.time() >= deadline: break
             time.sleep(min(args.cycle_wait, deadline - time.time()))
             continue
@@ -599,8 +718,18 @@ def main() -> int:
                     if meta["_error"].startswith("skip_domain:"):
                         record["status"] = "skipped"
                         cycle_skip += 1
+                        processed_keys.add(k)
+                        retry_state.pop(k, None)
                     else:
                         cycle_fail += 1
+                        entry = schedule_retry(
+                            retry_state, k, item, meta["_error"],
+                            meta.get("_retry_after", 0),
+                        )
+                        record["retryable"] = not bool(entry.get("cooldown"))
+                        record["attempt_count"] = entry["attempt_count"]
+                        record["next_retry_at"] = entry["next_retry_at"]
+                        save_retry_state(retry_state)
                 else:
                     record["page_title"] = meta.get("title", "")
                     record["page_description"] = meta.get("description", "")
@@ -626,6 +755,8 @@ def main() -> int:
                         record["title"] = meta["title"]
                     record["status"] = "fetched"
                     cycle_ok += 1
+                    processed_keys.add(k)
+                    retry_state.pop(k, None)
 
                     # Deep discovery: queue child links
                     for child in meta.get("child_links", []):
@@ -637,7 +768,10 @@ def main() -> int:
                             cycle_discovered += 1
 
             batch.append(record)
-            processed_keys.add(k)
+            if not url or not url.startswith("http"):
+                processed_keys.add(k)
+            if item.get("_seed"):
+                seen_seed_keys.add(k)
 
             # Flush periodically
             if len(batch) >= 10:
@@ -646,6 +780,7 @@ def main() -> int:
                         f.write(json.dumps(r, ensure_ascii=False, default=str) + "\n")
                 batch.clear()
                 save_dedup(processed_keys, stats)
+                save_retry_state(retry_state)
 
             # Status
             if (cycle_ok + cycle_fail + cycle_skip) % 15 == 0 and (cycle_ok + cycle_fail + cycle_skip) > 0:
@@ -671,6 +806,7 @@ def main() -> int:
 
         save_dedup(processed_keys, stats)
         save_discovery_queue(discovery_queue)
+        save_retry_state(retry_state)
 
         elapsed = time.time() - cycle_start
         print(f"[cycle {cycle}] Done {elapsed:.0f}s — {cycle_ok} ok, {cycle_fail} fail, {cycle_skip} skip, "
@@ -691,6 +827,7 @@ def main() -> int:
     print(f"  Fetch err:   {stats.get('fetch_error', 0)}")
     print(f"  Discovered:  {stats.get('discovered', 0)}")
     print(f"  Skipped:     {stats.get('skipped', 0)}")
+    print(f"  Retry queue: {len(retry_state)}")
     print(f"  Output:      {out_file}")
     print("=" * 60)
 

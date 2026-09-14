@@ -43,7 +43,6 @@ from taste_graph_ai.infrastructure.repos.sources import SourceRepository
 from taste_graph_ai.infrastructure.repos.packs import PackRepository
 from taste_graph_ai.infrastructure.repos.feedback import FeedbackRepository
 from taste_graph_ai.domain.enums import ImageStatus
-from taste_graph_ai.services.clip import get_clip
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -51,27 +50,17 @@ from taste_graph_ai.services.clip import get_clip
 # ═══════════════════════════════════════════════════════════════
 
 def step_crawl(duration_hours: float = 1, max_items: int = 50) -> int:
-    """运行爬虫循环。"""
+    """Run the canonical ingestion entry point through download."""
     print("\n" + "=" * 60)
     print("  Step 1: 爬取 — 多源内容发现")
     print("=" * 60)
 
-    from scripts.crawl_loop_6h import main as crawl_main
-    # 保存并恢复 sys.argv，避免污染其他模块
-    import sys
-    _saved_argv = sys.argv
-    sys.argv = [
-        "crawl_loop_6h.py",
-        "--duration-hours", str(duration_hours),
-        "--rate-limit", "200",
-        "--max-discovered", "50",
+    cmd = [
+        sys.executable, "-u", str(BASE_DIR / "scripts" / "daily_ingestion.py"),
+        "--stage", "ingest", "--duration-hours", str(duration_hours),
+        "--rate-limit", "200", "--max-discovered", "50", "--max", str(max_items),
     ]
-    try:
-        return crawl_main()
-    except SystemExit as e:
-        return e.code if e.code is not None else 0
-    finally:
-        sys.argv = _saved_argv
+    return subprocess.run(cmd, cwd=str(BASE_DIR), check=False).returncode
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -139,6 +128,7 @@ async def step_select_images(count: int = 6) -> list:
 
     print(f"  Found {len(valid)} valid images")
 
+    from taste_graph_ai.services.clip import get_clip
     clip_svc = get_clip()
     graph = get_container().taste_graph
 
@@ -291,6 +281,7 @@ async def step_generate_packs(picked: list, date_str: str = None) -> Path:
     all_sources = await source_repo.list_all()
     source_names = {s.id: s.name for s in all_sources}
 
+    from taste_graph_ai.services.clip import get_clip
     clip_svc = get_clip()
 
     batch_dir = Path(str(BASE_DIR / "posts" / date_str))
@@ -451,7 +442,7 @@ async def full_pipeline(
     date_str: str = None,
     start_serve: bool = True,
 ) -> None:
-    """执行完整 pipeline：爬取 → 选图 → 生成 → 启动服务。"""
+    """Run canonical ingestion, then optionally start the workbench."""
     start_time = time.time()
 
     print(f"\n{'='*60}")
@@ -462,24 +453,19 @@ async def full_pipeline(
     if date_str is None:
         date_str = date.today().isoformat()
 
-    # Step 1: 爬取
-    if not skip_crawl:
-        step_crawl(duration_hours=crawl_hours)
+    if skip_crawl:
+        cmd = [sys.executable, "-u", str(BASE_DIR / "scripts" / "generate_publish_packs.py"),
+               "--count", str(image_count), "--pack-size", "9"]
+        if date_str:
+            cmd += ["--date", date_str]
     else:
-        print("  ⏭️ 跳过爬取（使用已有数据）")
-
-    # Step 2: 图谱
-    step_graph()
-
-    # Step 3: 选图
-    picked = await step_select_images(count=image_count)
-    if not picked:
-        print("\n  ❌ 没有可用的图片。请先运行爬取，或启用 --skip-crawl 使用已有数据。")
-        print(f"    试试: python3 scripts/pipeline.py --skip-crawl\n")
+        cmd = [sys.executable, "-u", str(BASE_DIR / "scripts" / "daily_ingestion.py"),
+               "--resume", "--duration-hours", str(crawl_hours),
+               "--max", str(max(1, image_count * 10))]
+    result = subprocess.run(cmd, cwd=str(BASE_DIR), check=False)
+    if result.returncode != 0:
+        print(f"\n  ❌ 统一采集任务退出: {result.returncode}")
         return
-
-    # Step 4: 生成发布包
-    await step_generate_packs(picked, date_str=date_str)
 
     elapsed = time.time() - start_time
     print(f"\n  ⏱ 全部用时: {elapsed:.0f}s")

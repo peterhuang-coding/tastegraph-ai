@@ -1,151 +1,77 @@
-from pydantic import BaseModel
+import os
+import subprocess
+import sys
+import uuid
+from datetime import datetime, timezone
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends
 
 from taste_graph_ai.api import schemas
-from taste_graph_ai.api.deps import (
-    get_source_repo,
-    get_pack_repo,
-    get_task_repo,
-    get_image_repo,
-    get_feedback_repo,
-    get_event_log,
-)
-from taste_graph_ai.infrastructure.repos.sources import SourceRepository
-from taste_graph_ai.infrastructure.repos.packs import PackRepository
-from taste_graph_ai.infrastructure.repos.tasks import TaskRepository
-from taste_graph_ai.infrastructure.repos.images import ImageRepository
-from taste_graph_ai.infrastructure.repos.feedback import FeedbackRepository
-from taste_graph_ai.infrastructure.repos.scrape_failures import ScrapeFailureRepository
+from taste_graph_ai.api.deps import get_event_log
+from taste_graph_ai.config import BASE_DIR, LOGS_DIR
 from taste_graph_ai.infrastructure.db.event_log import EventLog
-from taste_graph_ai.infrastructure.ai.client import AIClient
-from taste_graph_ai.services.discovery import DiscoveryService
-from taste_graph_ai.services.tasks import TaskService
-from taste_graph_ai.services.generator import PackGenerationService
-from taste_graph_ai.services.images import ImageFetchService
 
 router = APIRouter(prefix="/api/v1/pipeline", tags=["pipeline"])
 
 
+def _start_ingestion(stage: str, event_log: EventLog) -> schemas.PipelineResult:
+    """Start the canonical ingestion worker instead of running a second pipeline."""
+    LOGS_DIR.mkdir(parents=True, exist_ok=True)
+    run_id = "manual-" + datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S") + "-" + uuid.uuid4().hex[:4]
+    log_path = LOGS_DIR / f"{run_id}.log"
+    env = os.environ.copy()
+    env["TASTEGRAPH_JOB_NAME"] = "manual_ingestion"
+    env["TASTEGRAPH_JOB_LOG_PATH"] = str(log_path)
+    env["PYTHONUNBUFFERED"] = "1"
+    cmd = [sys.executable, "-u", str(BASE_DIR / "scripts" / "daily_ingestion.py")]
+    if stage == "all":
+        cmd.append("--resume")
+    cmd += ["--stage", stage]
+    log_file = open(log_path, "ab")
+    try:
+        proc = subprocess.Popen(
+            cmd, cwd=str(BASE_DIR), stdin=subprocess.DEVNULL,
+            stdout=log_file, stderr=subprocess.STDOUT,
+            start_new_session=True, env=env,
+        )
+    except OSError as exc:
+        log_file.close()
+        event_log.append("pipeline.ingestion_start_error", {"stage": stage, "error": str(exc)})
+        return schemas.PipelineResult(success=False, message=f"采集任务启动失败: {exc}")
+    log_file.close()
+    event_log.append("pipeline.ingestion_started", {
+        "stage": stage, "pid": proc.pid, "run_id": run_id, "log_path": str(log_path),
+    })
+    return schemas.PipelineResult(
+        success=True,
+        message="已启动统一采集任务；进度与结果写入运行状态。",
+        data={"run_id": run_id, "pid": proc.pid, "stage": stage},
+    )
+
+
 @router.post("/discover", response_model=schemas.PipelineResult)
 async def trigger_discover(
-    source_repo: SourceRepository = Depends(get_source_repo),
     event_log: EventLog = Depends(get_event_log),
 ):
-    try:
-        ai = AIClient()
-        discovery = DiscoveryService(source_repo, event_log, ai)
-        new_sources = await discovery.run_discovery()
-        await ai.close()
-        return schemas.PipelineResult(
-            success=True,
-            message=f"Found {len(new_sources)} new sources",
-            data={"new_sources": len(new_sources)},
-        )
-    except Exception as e:
-        event_log.append("pipeline.discovery_error", {"error": str(e)})
-        return schemas.PipelineResult(
-            success=False,
-            message=f"Discovery failed: {e}",
-        )
+    return _start_ingestion("discover", event_log)
 
 
 @router.post("/scrape-images", response_model=schemas.PipelineResult)
 async def trigger_scrape_images(
-    source_repo: SourceRepository = Depends(get_source_repo),
-    image_repo: ImageRepository = Depends(get_image_repo),
-    pack_repo: PackRepository = Depends(get_pack_repo),
     event_log: EventLog = Depends(get_event_log),
-    feedback_repo: FeedbackRepository = Depends(get_feedback_repo),
 ):
-    try:
-        img_service = ImageFetchService(image_repo, source_repo, pack_repo, feedback_repo, event_log, ScrapeFailureRepository(image_repo.db))
-        count = await img_service.scrape_approved_sources()
-        return schemas.PipelineResult(
-            success=True,
-            message=f"Scraped {count} images from approved sources",
-            data={"images": count},
-        )
-    except Exception as e:
-        event_log.append("pipeline.scrape_error", {"error": str(e)})
-        return schemas.PipelineResult(
-            success=False,
-            message=f"Scrape failed: {e}",
-        )
+    return _start_ingestion("ingest", event_log)
 
 
 @router.post("/generate", response_model=schemas.PipelineResult)
 async def trigger_generate(
-    source_repo: SourceRepository = Depends(get_source_repo),
-    pack_repo: PackRepository = Depends(get_pack_repo),
-    image_repo: ImageRepository = Depends(get_image_repo),
     event_log: EventLog = Depends(get_event_log),
-    feedback_repo: FeedbackRepository = Depends(get_feedback_repo),
 ):
-    try:
-        ai = AIClient()
-        img_service = ImageFetchService(image_repo, source_repo, pack_repo, feedback_repo, event_log, ScrapeFailureRepository(image_repo.db))
-        gen = PackGenerationService(pack_repo, event_log, ai, img_service)
-        packs = await gen.generate_daily_packs()
-        await ai.close()
-        return schemas.PipelineResult(
-            success=True,
-            message=f"Generated {len(packs)} daily packs",
-            data={"packs": len(packs)},
-        )
-    except Exception as e:
-        return schemas.PipelineResult(
-            success=False,
-            message=f"Generation failed: {e}",
-        )
+    return _start_ingestion("pack", event_log)
 
 
 @router.post("/full", response_model=schemas.PipelineResult)
 async def trigger_full(
-    source_repo: SourceRepository = Depends(get_source_repo),
-    pack_repo: PackRepository = Depends(get_pack_repo),
-    task_repo: TaskRepository = Depends(get_task_repo),
-    image_repo: ImageRepository = Depends(get_image_repo),
     event_log: EventLog = Depends(get_event_log),
-    feedback_repo: FeedbackRepository = Depends(get_feedback_repo),
 ):
-    try:
-        ai = AIClient()
-        img_service = ImageFetchService(image_repo, source_repo, pack_repo, feedback_repo, event_log, ScrapeFailureRepository(image_repo.db))
-
-        # 1. Discovery
-        discovery = DiscoveryService(source_repo, event_log, ai)
-        new_sources = await discovery.run_discovery()
-
-        # 2. Scrape approved sources for images
-        img_count = await img_service.scrape_approved_sources()
-
-        # 3. Tasks
-        task_service = TaskService(source_repo, pack_repo, task_repo, event_log)
-        tasks = await task_service.persist_daily_tasks()
-
-        # 4. Daily packs
-        gen = PackGenerationService(pack_repo, event_log, ai, img_service)
-        packs = await gen.generate_daily_packs()
-
-        await ai.close()
-
-        # 自动发布永久禁用（2026-07-29 老板关停）：策展产物只导出/打包，
-        # 由人工发布后在发布账本登记；浏览器自动化发布适配层已归档，无运行时调用。
-
-        return schemas.PipelineResult(
-            success=True,
-            message=f"Pipeline complete: {len(new_sources)} sources, {img_count} images, {len(tasks)} tasks, {len(packs)} packs",
-            data={
-                "new_sources": len(new_sources),
-                "images": img_count,
-                "tasks": len(tasks),
-                "packs": len(packs),
-            },
-        )
-    except Exception as e:
-        event_log.append("pipeline.error", {"error": str(e)})
-        return schemas.PipelineResult(
-            success=False,
-            message=f"Pipeline failed: {e}",
-        )
+    return _start_ingestion("all", event_log)

@@ -21,6 +21,11 @@
 | 图谱控制台 | `python3 -m taste_graph_ai.server` | 8787，默认环回、不 reload、CORS 白名单 |
 | （可选）tape 多任务调度 | `python3 scripts/daemon_scheduler.py` | job_runs 持久化 + detached worker；launchd 直挂采集后一般不需要 |
 
+工作台 Pipeline 按钮、`scripts/pipeline.py` 的 crawl/full 模式，以及旧的
+`taste_graph_ai.scheduler.daily_pipeline` / `scrape_cron` 入口均为兼容包装，
+统一转发到 `scripts/daily_ingestion.py`。采集、持久化、下载、去重和运行态只在
+这个入口维护。
+
 launchd 安装/切换/卸载步骤见 [`deploy/launchd/README.md`](../deploy/launchd/README.md)。
 **仓库内任何脚本都不执行 launchctl**；加载/卸载是老板的人工动作。
 
@@ -351,4 +356,4 @@ python3 scripts/cleanup_stale_data.py  # 清理 30 天未用
 
 ---
 
-**最后更新**:2026-09-08（Phase 3：job_runs 持久化调度、detached worker、launchd 服务项、SQLite 在线备份、CORS/绑定加固；见 §0/§6/§7 与 deploy/launchd/）
+**最后更新**:2026-09-14（统一采集入口、持久失败重试、待审候选占位去重；见 §0）

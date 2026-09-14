@@ -461,10 +461,10 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="每日安全采集唯一入口")
     ap.add_argument("--resume", action="store_true", help="复用当天未完结 run_id 恢复")
     ap.add_argument("--stage", default="all",
-                    choices=["all", "crawl", "persist", "download", "pack", "summary"],
-                    help="只跑指定阶段（短跑调试）")
+                    choices=["all", "discover", "ingest", "crawl", "persist", "download", "pack", "summary"],
+                    help="all=全链路；discover=抓取并持久化；ingest=抓取、持久化并下载；其余用于短跑调试")
     ap.add_argument("--max", type=int, default=400, help="下载阶段单次最多处理 item 数")
-    ap.add_argument("--duration-hours", type=int, default=4)
+    ap.add_argument("--duration-hours", type=float, default=4)
     ap.add_argument("--rate-limit", type=int, default=400)
     ap.add_argument("--max-discovered", type=int, default=200)
     ap.add_argument("--crawl-timeout", type=int, default=21600)
@@ -561,7 +561,7 @@ def main() -> int:
         job_run_heartbeat(con, job_run_id, run)
 
     # ── crawl ──
-    if args.stage in ("all", "crawl"):
+    if args.stage in ("all", "discover", "ingest", "crawl"):
         if stages.get("crawl") == "done":
             print("[ingest] crawl 阶段已完成，跳过")
         else:
@@ -586,7 +586,7 @@ def main() -> int:
         ctx["loop_dirs"] = []
 
     # ── persist ──
-    if args.stage in ("all", "persist") and args.stage != "summary":
+    if args.stage in ("all", "discover", "ingest", "persist") and args.stage != "summary":
         if stages.get("persist") == "done":
             print("[ingest] persist 阶段已完成，跳过")
         else:
@@ -596,7 +596,7 @@ def main() -> int:
             mark_stage("persist")
 
     # ── download（crawl 成功/partial 且 persist 有产出后消费 backlog）──
-    if args.stage in ("all", "download") and args.stage != "summary":
+    if args.stage in ("all", "ingest", "download") and args.stage != "summary":
         out = stage_download(con, run, args.max)
         run["images_downloaded"] += out["downloaded"]
         print(f"[ingest] download: 下载 {out['downloaded']}，入库 {out['inserted']}，"

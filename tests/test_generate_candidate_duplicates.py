@@ -48,3 +48,38 @@ def test_generate_excludes_alias_of_under_review_image(tmp_path, monkeypatch, du
     manifests = list(folder.glob("*/curation.json"))
     assert len(manifests) == 1
     assert json.loads(manifests[0].read_text())["image_ids"] == ["z-unique"]
+
+
+def test_generate_excludes_images_reserved_by_unreviewed_draft(tmp_path, monkeypatch):
+    from scripts import generate_publish_packs as generator
+    from taste_graph_ai import config
+    from taste_graph_ai.graph.taste_graph import TasteGraph
+    from taste_graph_ai.infrastructure.db import connection
+    from taste_graph_ai.services import images
+
+    db_path = tmp_path / "data" / "test.db"
+    db_path.parent.mkdir()
+    for module in (config, connection, images):
+        monkeypatch.setattr(module, "DB_FILE", db_path)
+    for module in (generator, images):
+        monkeypatch.setattr(module, "BASE_DIR", tmp_path)
+    monkeypatch.setattr(generator, "POSTS_DIR", tmp_path / "posts")
+    monkeypatch.setattr(generator, "ensure_dirs", lambda: None)
+    monkeypatch.setattr(generator, "get_container", lambda: SimpleNamespace(taste_graph=TasteGraph()))
+    asyncio.run(connection.init_db())
+    reserved = tmp_path / "reserved.jpg"
+    duplicate = tmp_path / "duplicate.jpg"
+    unique = tmp_path / "unique.jpg"
+    reserved.write_bytes(b"reserved photograph")
+    duplicate.write_bytes(b"reserved photograph")
+    unique.write_bytes(b"new photograph")
+    with sqlite3.connect(db_path) as db:
+        db.execute("INSERT INTO daily_packs(id,date,status,created_at) VALUES('waiting','2026-09-13','draft','2026-09-13')")
+        for id, path in (("reserved", reserved), ("duplicate", duplicate), ("unique", unique)):
+            db.execute("INSERT INTO images(id,url,page_url,local_path,status,created_at) VALUES(?,?,?,?,?,?)",
+                       (id, f"https://example.test/{id}.jpg", f"https://example.test/project/{id}", str(path), "pending", "2026-09-13"))
+        db.execute("INSERT INTO pack_images VALUES('waiting','reserved',0,'unreviewed')")
+    folder = asyncio.run(generator.generate("2026-09-14", count=1, pack_size=9, skip_queue=True))
+    manifests = list(folder.glob("*/curation.json"))
+    assert len(manifests) == 1
+    assert json.loads(manifests[0].read_text())["image_ids"] == ["unique"]

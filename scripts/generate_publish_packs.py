@@ -40,7 +40,6 @@ from taste_graph_ai.infrastructure.repos.sources import SourceRepository
 from taste_graph_ai.infrastructure.repos.packs import PackRepository
 from taste_graph_ai.infrastructure.repos.feedback import FeedbackRepository
 from taste_graph_ai.domain.enums import ImageStatus
-from taste_graph_ai.services.clip import get_clip
 
 
 POSTS_DIR = BASE_DIR / "posts"
@@ -85,6 +84,13 @@ def _load_published_image_ids() -> set:
 
 
 async def generate(date_str: str = None, count: int = 5, skip_queue: bool = False, pack_size: int = 1) -> Path:
+    """Serialize candidate generation so concurrent runs cannot reuse images."""
+    from taste_graph_ai.services.images import _candidate_generation_lock
+    with _candidate_generation_lock():
+        return await _generate(date_str, count, skip_queue, pack_size)
+
+
+async def _generate(date_str: str = None, count: int = 5, skip_queue: bool = False, pack_size: int = 1) -> Path:
     """Export traceable research candidates; an editorial review is required before use."""
     from datetime import datetime
     import uuid
@@ -103,10 +109,12 @@ async def generate(date_str: str = None, count: int = 5, skip_queue: bool = Fals
         image_repo = ImageRepository(db)
         liked_ids = await FeedbackRepository(db).get_liked_image_ids()
         annotations = load_annotations(DB_FILE)
+        from taste_graph_ai.services.images import _load_reserved_image_ids
         published_ids = _load_published_image_ids()
+        unavailable_ids = published_ids | _load_reserved_image_ids()
         from taste_graph_ai.services.images import _image_content_hash
         published_urls, published_hashes = set(), set()
-        for image_id in published_ids:
+        for image_id in unavailable_ids:
             original = await image_repo.get_by_id(image_id)
             if original is None:
                 continue
@@ -121,7 +129,7 @@ async def generate(date_str: str = None, count: int = 5, skip_queue: bool = Fals
         candidates = [image_repo._row_to_image(row) for row in rows]
         valid = []
         for img in candidates:
-            if img.id in published_ids or img.url in published_urls:
+            if img.id in unavailable_ids or img.url in published_urls:
                 continue
             local = _resolve_local_path(img)
             if local and Path(local).is_file():
@@ -135,7 +143,7 @@ async def generate(date_str: str = None, count: int = 5, skip_queue: bool = Fals
         for img in valid:
             parts = score_candidate(img, graph, annotations.get(img.id), liked_ids)
             scored.append({"img":img, **parts, "kws":list(img.keywords)})
-        groups = choose_candidate_groups(scored,count,pack_size,annotations,published_ids)
+        groups = choose_candidate_groups(scored,count,pack_size,annotations,unavailable_ids)
         names = _build_source_lookup(await SourceRepository(db).list_all())
         run_key = datetime.now().strftime("%H%M%S") + "-" + uuid.uuid4().hex[:4]
         post_dirs = []

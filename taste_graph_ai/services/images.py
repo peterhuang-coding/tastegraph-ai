@@ -1,5 +1,6 @@
 import hashlib
 import uuid
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -72,6 +73,39 @@ def _load_published_image_ids() -> set[str]:
     return ids
 
 
+def _load_reserved_image_ids() -> set[str]:
+    """Return images held by active editorial packs.
+
+    Draft/selected packs are an operator queue, so their images must not be
+    offered again by a later batch. Explicitly rejected packs release their
+    images for reuse. This is separate from permanent publication exclusion.
+    """
+    import sqlite3
+    from contextlib import closing
+
+    if not Path(DB_FILE).is_file():
+        return set()
+    uri = Path(DB_FILE).resolve().as_uri() + "?mode=ro"
+    with closing(sqlite3.connect(uri, uri=True)) as db:
+        tables = {row[0] for row in db.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'"
+        )}
+        if not {"daily_packs", "pack_images"}.issubset(tables):
+            return set()
+        if "pack_editorial" in tables:
+            rows = db.execute("""SELECT DISTINCT pi.image_id
+                FROM pack_images pi
+                JOIN daily_packs p ON p.id=pi.pack_id
+                LEFT JOIN pack_editorial pe ON pe.pack_id=p.id
+                WHERE p.status IN ('draft','selected')
+                  AND COALESCE(pe.status,'candidate') != 'rejected'""")
+        else:
+            rows = db.execute("""SELECT DISTINCT pi.image_id
+                FROM pack_images pi JOIN daily_packs p ON p.id=pi.pack_id
+                WHERE p.status IN ('draft','selected')""")
+        return {row[0] for row in rows}
+
+
 def _image_content_hash(img: Image) -> str | None:
     if not img.local_path:
         return None
@@ -79,6 +113,26 @@ def _image_content_hash(img: Image) -> str | None:
         return hashlib.sha256(Path(img.local_path).read_bytes()).hexdigest()
     except OSError:
         return None
+
+
+@contextmanager
+def _candidate_generation_lock():
+    """Prevent independent candidate entry points from reserving the same image."""
+    import fcntl
+
+    path = Path(BASE_DIR) / "data" / "candidate_generation.lock"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    lock_file = open(path, "w")
+    try:
+        fcntl.flock(lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError as exc:
+        lock_file.close()
+        raise RuntimeError("已有候选生成任务在运行") from exc
+    try:
+        yield
+    finally:
+        fcntl.flock(lock_file, fcntl.LOCK_UN)
+        lock_file.close()
 
 
 class ImageFetchService:
@@ -358,6 +412,12 @@ class ImageFetchService:
     async def pick_for_pack(
         self, pack_id: str, theme: str, count: int = None, exclude_ids: set[str] = None
     ) -> list[Image]:
+        with _candidate_generation_lock():
+            return await self._pick_for_pack_locked(pack_id, theme, count, exclude_ids)
+
+    async def _pick_for_pack_locked(
+        self, pack_id: str, theme: str, count: int = None, exclude_ids: set[str] = None
+    ) -> list[Image]:
         """Link one topic/page candidate group, awaiting the operator's review.
 
         `theme` remains accepted for callers; candidates are grouped by evidence
@@ -372,7 +432,8 @@ class ImageFetchService:
             count = DAILY_IMAGES_PER_PACK
         if count <= 0:
             return []
-        excluded = set(exclude_ids or ()) | _load_published_image_ids()
+        excluded = (set(exclude_ids or ()) | _load_published_image_ids()
+                    | _load_reserved_image_ids())
         excluded_urls, excluded_hashes = set(), set()
         # Resolve excluded IDs independently of candidate status: a published
         # original may be rejected/archived while a second ID has identical bytes.
