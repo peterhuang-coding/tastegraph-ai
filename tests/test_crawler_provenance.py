@@ -271,3 +271,55 @@ def test_download_preserves_original_webp_bytes(con, tmp_path, monkeypatch):
     assert ingest.stage_download(con,{'id':'run-fixture'},1)['inserted']==1
     assert path.read_bytes()==content
     assert con.execute('SELECT local_path FROM images WHERE id=?',(uid,)).fetchone()[0]==str(path)
+
+
+@pytest.mark.parametrize('code', [401, 403, 404, 410, 429, 503])
+def test_download_http_terminal_failures_are_not_retried(con, tmp_path, monkeypatch, code):
+    from urllib.error import HTTPError
+    monkeypatch.setattr(ingest, 'IMAGES_DIR', tmp_path)
+    record = {'status': 'fetched', 'url': 'https://design.example/works/test',
+              'images': [{'url': 'https://media.example/test.jpg', 'alt': 'Test'}]}
+    persist_record(con, tmp_path, monkeypatch, record)
+    calls = []
+
+    def fail(req, **kwargs):
+        calls.append(req.full_url)
+        raise HTTPError(req.full_url, code, 'fixture', None, None)
+
+    monkeypatch.setattr(ingest.urllib.request, 'urlopen', fail)
+    result = ingest.stage_download(con, {}, 10)
+    terminal = code in (401, 403, 404, 410)
+    status, attempts, error = con.execute(
+        'SELECT status,attempt_count,last_error FROM ingestion_items').fetchone()
+    assert status == ('skipped' if terminal else 'failed')
+    assert attempts == 1 and str(code) in error
+    assert result['permanent_failed'] == int(terminal)
+    assert result['transient_failed'] == int(not terminal)
+    ingest.stage_download(con, {}, 10)
+    assert len(calls) == (1 if terminal else 2)
+
+
+@pytest.mark.parametrize(('original', 'transport'), [
+    ('https://media.example/二十周年/封面 图.jpg',
+     'https://media.example/%E4%BA%8C%E5%8D%81%E5%91%A8%E5%B9%B4/%E5%B0%81%E9%9D%A2%20%E5%9B%BE.jpg'),
+    ('https://media.example/a\u202fb.jpg?name=夏 天&sig=a%2Fb+c',
+     'https://media.example/a%E2%80%AFb.jpg?name=%E5%A4%8F%20%E5%A4%A9&sig=a%2Fb+c'),
+    ('https://media.example/a%20b.jpg?sig=x%2Fy&size=800',
+     'https://media.example/a%20b.jpg?sig=x%2Fy&size=800'),
+])
+def test_download_encodes_transport_but_preserves_source_url(con, tmp_path, monkeypatch, original, transport):
+    from io import BytesIO
+    monkeypatch.setattr(ingest, 'IMAGES_DIR', tmp_path)
+    monkeypatch.setattr(ingest.time, 'sleep', lambda _: None)
+    record = {'status': 'fetched', 'url': 'https://design.example/works/example',
+              'images': [{'url': original, 'alt': 'Source image'}]}
+    persist_record(con, tmp_path, monkeypatch, record)
+    requested = []
+    def response(req, **kwargs):
+        requested.append(req.full_url)
+        return BytesIO(b'original-fixture-bytes' * 200)
+    monkeypatch.setattr(ingest.urllib.request, 'urlopen', response)
+    assert ingest.stage_download(con, {}, 1)['downloaded'] == 1
+    assert requested == [transport]
+    assert con.execute('SELECT url FROM images').fetchone()[0] == original
+    assert con.execute('SELECT image_url FROM ingestion_items').fetchone()[0] == original

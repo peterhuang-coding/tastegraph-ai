@@ -340,10 +340,11 @@ def schedule_retry(state: dict[str, dict], key: str, item: dict, error: str,
         state[key] = entry
         return entry
     if attempts >= MAX_FETCH_ATTEMPTS:
+        delay = max(TERMINAL_RETRY_SECONDS, max(0, int(retry_after or 0)))
         entry = {
             "item": clean_item, "attempt_count": 0,
             "last_error": error[:300], "cooldown": True,
-            "next_retry_at": (now + timedelta(seconds=TERMINAL_RETRY_SECONDS)).isoformat(),
+            "next_retry_at": (now + timedelta(seconds=delay)).isoformat(),
         }
         state[key] = entry
         return entry

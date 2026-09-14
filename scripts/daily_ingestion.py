@@ -29,9 +29,10 @@ import subprocess
 import sys
 import time
 import urllib.request
+from urllib.error import HTTPError
 from datetime import datetime, timezone
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import quote, urlparse, urlsplit, urlunsplit
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(BASE_DIR))
@@ -371,8 +372,13 @@ def stage_download(con, run, max_items: int) -> dict:
             ext = ".jpg"
         dest = IMAGES_DIR / f"{uid}{ext}"
         if not dest.exists():
-            req = urllib.request.Request(url, headers={"User-Agent": UA, "Referer": "https://www.google.com/"})
             try:
+                # Encode transport only; retain original URL for identity/provenance.
+                parts = urlsplit(url)
+                request_url = urlunsplit((parts.scheme, parts.netloc,
+                    quote(parts.path, safe="/%:@!$&'()*+,;="),
+                    quote(parts.query, safe="/?%:@!$&'()*+,;="), parts.fragment))
+                req = urllib.request.Request(request_url, headers={"User-Agent": UA, "Referer": "https://www.google.com/"})
                 with urllib.request.urlopen(req, timeout=15) as resp:
                     data = resp.read()
                 if len(data) < 2000:
@@ -380,14 +386,16 @@ def stage_download(con, run, max_items: int) -> dict:
                 dest.write_bytes(data)
             except Exception as e:
                 attempts += 1
-                if attempts >= MAX_ATTEMPTS:
+                # Access refusals and missing resources need review, not retries.
+                terminal_http = isinstance(e, HTTPError) and e.code in (401, 403, 404, 410)
+                if terminal_http or attempts >= MAX_ATTEMPTS:
                     permanent += 1
                 else:
                     transient += 1
                 con.execute(
-                    "UPDATE ingestion_items SET status='failed', attempt_count=?, "
+                    "UPDATE ingestion_items SET status=?, attempt_count=?, "
                     "last_error=?, updated_at=? WHERE id=?",
-                    (attempts, str(e)[:200], now_iso(), item_id),
+                    ('skipped' if terminal_http else 'failed', attempts, str(e)[:200], now_iso(), item_id),
                 )
                 con.commit()
                 continue

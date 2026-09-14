@@ -505,7 +505,8 @@ def _collect_coverage(errors: list[str]) -> dict[str, Any]:
                 if "image_editorial" in tables else set()
             )
             provenance = int(conn.execute(
-                "SELECT COUNT(DISTINCT image_id) FROM image_provenance"
+                "SELECT COUNT(DISTINCT p.image_id) FROM image_provenance p "
+                "JOIN images i ON i.id=p.image_id"
             ).fetchone()[0]) if "image_id" in provenance_columns else 0
             annotated = int(conn.execute(
                 "SELECT COUNT(DISTINCT image_id) FROM image_editorial"
