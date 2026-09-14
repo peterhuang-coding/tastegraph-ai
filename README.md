@@ -6,6 +6,12 @@
 
 ---
 
+## 产品方向与昼夜协作
+
+[Notion 决策入口](https://app.notion.com/p/3db3285284df8118b399c52c95ddb71f) · [产品调研待办](docs/product-research-backlog.md) · [白天决策、夜间执行](docs/day-night-workflow.md) · [执行主线](.claude/autopilot/mainline.md)
+
+先由用户选定一个问题与验收范围，夜班只推进该项。五个初始方向均待拍板。下方保留原始视觉参考；当前产品阶段与可执行范围以 [产品功能门槛](docs/product-feature-gates.md) 和执行主线为准，图数由策展内容决定。
+
 ## 源 Moodboard: Hidden NY x JJJJound
 
 这个文件夹用来沉淀你的小红书账号视觉方向,目标不是完全模仿,而是提炼一种更适合你内容的气质:

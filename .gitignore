@@ -37,7 +37,11 @@ tmp/
 # IDE
 .vscode/
 .idea/
-.claude/
+# Track only the portable decision mainline; keep worktrees and local state ignored.
+.claude/*
+!.claude/autopilot/
+.claude/autopilot/*
+!.claude/autopilot/mainline.md
 
 # Scripts pycache
 scripts/__pycache__/
