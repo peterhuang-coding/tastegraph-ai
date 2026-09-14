@@ -1,13 +1,19 @@
+import json
 import os
 import shutil
 import sqlite3
 import subprocess
 import time
+from datetime import date as date_type
 from pathlib import Path
 from typing import Any
 
-import psutil
 from fastapi import APIRouter
+
+try:
+    import psutil
+except ImportError:  # Health evidence should remain available in minimal installs.
+    psutil = None
 
 from taste_graph_ai.api import schemas
 from taste_graph_ai.config import (
@@ -19,13 +25,17 @@ from taste_graph_ai.config import (
     LOGS_DIR,
 )
 from taste_graph_ai.container import get_container
+from taste_graph_ai.services.candidate_queue import (
+    DEFAULT_ACTIVE_PACK_LIMIT,
+    count_active_candidate_packs,
+)
 
 router = APIRouter(prefix="/api", tags=["health"])
 
 # Track server start time for uptime calculation
 _SERVER_START_TIME = time.time()
 _SERVER_PID = os.getpid()
-_SERVER_PROCESS = psutil.Process(_SERVER_PID)
+_SERVER_PROCESS = psutil.Process(_SERVER_PID) if psutil is not None else None
 
 # Known launchd plist labels we manage for tastegraph
 _TASTEGRAPH_PLIST_LABELS = [
@@ -148,7 +158,6 @@ def _collect_daemons(errors: list[str]) -> list[dict[str, Any]]:
 
 
 def _collect_database(errors: list[str]) -> dict[str, Any]:
-    path = str(DB_FILE)
     size_mb: float | None = None
     tables: list[str] = []
     try:
@@ -156,11 +165,12 @@ def _collect_database(errors: list[str]) -> dict[str, Any]:
             size_mb = round(DB_FILE.stat().st_size / 1024 / 1024, 2)
         else:
             errors.append("database: file missing")
+            return {"path": _display_path(DB_FILE), "sizeMb": None, "tables": []}
     except Exception as e:
         errors.append(f"database: stat failed ({e})")
 
     try:
-        conn = sqlite3.connect(path)
+        conn = _readonly_connection()
         try:
             cur = conn.cursor()
             cur.execute(
@@ -170,9 +180,9 @@ def _collect_database(errors: list[str]) -> dict[str, Any]:
         finally:
             conn.close()
     except Exception as e:
-        errors.append(f"database: sqlite open failed ({e})")
+        errors.append(f"database: sqlite open failed ({type(e).__name__})")
 
-    return {"path": path, "sizeMb": size_mb, "tables": tables}
+    return {"path": _display_path(DB_FILE), "sizeMb": size_mb, "tables": tables}
 
 
 def _collect_git(errors: list[str]) -> dict[str, Any]:
@@ -232,8 +242,8 @@ def _collect_data_dirs(errors: list[str]) -> dict[str, Any]:
         "imagesMb": None,
         "exportsMb": None,
         "logsMb": None,
-        "baseDir": str(BASE_DIR),
-        "dataDir": str(DATA_DIR),
+        "baseDir": ".",
+        "dataDir": _display_path(DATA_DIR),
     }
     for key, target in (
         ("imagesMb", IMAGES_DIR),
@@ -245,6 +255,288 @@ def _collect_data_dirs(errors: list[str]) -> dict[str, Any]:
         except Exception as e:
             errors.append(f"data_dirs.{key}: {e}")
     return result
+
+
+def _display_path(path: Path) -> str:
+    """Return a UI-safe repository-relative path, never a host absolute path."""
+    try:
+        return path.resolve().relative_to(BASE_DIR.resolve()).as_posix() or "."
+    except (OSError, ValueError):
+        return path.name
+
+
+def _readonly_connection() -> sqlite3.Connection:
+    uri = DB_FILE.resolve().as_uri() + "?mode=ro"
+    conn = sqlite3.connect(uri, uri=True, timeout=5)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def _table_names(conn: sqlite3.Connection) -> set[str]:
+    return {
+        str(row[0])
+        for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")
+    }
+
+
+def _table_columns(conn: sqlite3.Connection, table: str) -> set[str]:
+    return {str(row[1]) for row in conn.execute(f"PRAGMA table_info({table})")}
+
+
+def _order_expression(columns: set[str]) -> str:
+    order_fields = [
+        field
+        for field in ("finished_at", "recorded_at", "started_at", "scheduled_for", "created_at")
+        if field in columns
+    ]
+    return (
+        "COALESCE(" + ",".join(order_fields) + ",'') DESC"
+        if order_fields
+        else "rowid DESC"
+    )
+
+
+def _latest_row(conn: sqlite3.Connection, table: str) -> dict[str, Any] | None:
+    columns = _table_columns(conn, table)
+    row = conn.execute(
+        f"SELECT * FROM {table} ORDER BY {_order_expression(columns)} LIMIT 1"
+    ).fetchone()
+    return dict(row) if row else None
+
+
+def _run_timestamp(row: dict[str, Any]) -> Any:
+    return (
+        row.get("finished_at")
+        or row.get("recorded_at")
+        or row.get("started_at")
+        or row.get("scheduled_for")
+        or row.get("created_at")
+    )
+
+
+def _run_evidence(row: dict[str, Any] | None, *, crawl: bool = False) -> dict[str, Any] | None:
+    if not row:
+        return None
+    result = {
+        "id": row.get("id"),
+        "status": row.get("status"),
+        "scheduledFor": row.get("scheduled_for"),
+        "startedAt": row.get("started_at"),
+        "finishedAt": row.get("finished_at"),
+        "errorSummary": row.get("error_summary") or "",
+    }
+    if crawl:
+        for key in (
+            "pages_attempted",
+            "pages_fetched",
+            "pages_failed",
+            "images_discovered",
+            "images_downloaded",
+            "backlog_count",
+        ):
+            result[key] = row.get(key)
+    else:
+        result["jobName"] = row.get("job_name")
+        result["scheduledDate"] = row.get("scheduled_date")
+        summary = row.get("summary_json")
+        if summary:
+            try:
+                result["summary"] = json.loads(summary)
+            except (TypeError, ValueError):
+                result["summary"] = None
+        log_path = row.get("log_path")
+        if log_path:
+            result["logFile"] = Path(str(log_path)).name
+    return result
+
+
+def _read_json(path: Path) -> Any:
+    if not path.is_file():
+        return None
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+
+
+def _collect_operations(errors: list[str]) -> dict[str, Any]:
+    operations: dict[str, Any] = {
+        "latestJobRun": None,
+        "latestCrawlRun": None,
+        "todayStatus": {
+            "date": date_type.today().isoformat(),
+            "status": "not_run",
+            "lastRunAt": None,
+            "lastSuccessAt": None,
+        },
+        "backlogCount": 0,
+        "activeCandidatePacks": 0,
+        "activePackLimit": DEFAULT_ACTIVE_PACK_LIMIT,
+        "retryQueueCount": 0,
+        "lastBackup": None,
+    }
+
+    if DB_FILE.is_file():
+        try:
+            conn = _readonly_connection()
+            try:
+                tables = _table_names(conn)
+                if "job_runs" in tables:
+                    latest_job = _latest_row(conn, "job_runs")
+                    operations["latestJobRun"] = _run_evidence(latest_job)
+                    columns = _table_columns(conn, "job_runs")
+                    today = operations["todayStatus"]["date"]
+                    today_row = None
+                    if {"job_name", "status", "scheduled_date"}.issubset(columns):
+                        today_row = conn.execute(
+                            "SELECT * FROM job_runs WHERE job_name='daily_ingestion' "
+                            f"AND scheduled_date=? ORDER BY {_order_expression(columns)} LIMIT 1",
+                            (today,),
+                        ).fetchone()
+                    elif {"job_name", "status", "scheduled_for"}.issubset(columns):
+                        today_row = conn.execute(
+                            "SELECT * FROM job_runs WHERE job_name='daily_ingestion' "
+                            "AND substr(scheduled_for,1,10)=? "
+                            f"ORDER BY {_order_expression(columns)} LIMIT 1",
+                            (today,),
+                        ).fetchone()
+                    success = None
+                    if {"job_name", "status"}.issubset(columns):
+                        success = conn.execute(
+                            "SELECT * FROM job_runs WHERE job_name='daily_ingestion' "
+                            f"AND status='succeeded' ORDER BY {_order_expression(columns)} LIMIT 1"
+                        ).fetchone()
+                    if today_row:
+                        today_data = dict(today_row)
+                        operations["todayStatus"].update({
+                            "status": today_data.get("status") or "unknown",
+                            "lastRunAt": _run_timestamp(today_data),
+                        })
+                    if success:
+                        operations["todayStatus"]["lastSuccessAt"] = _run_timestamp(dict(success))
+                if "crawl_runs" in tables:
+                    operations["latestCrawlRun"] = _run_evidence(
+                        _latest_row(conn, "crawl_runs"), crawl=True
+                    )
+                if (
+                    "ingestion_items" in tables
+                    and "status" in _table_columns(conn, "ingestion_items")
+                ):
+                    operations["backlogCount"] = int(conn.execute(
+                        "SELECT COUNT(*) FROM ingestion_items "
+                        "WHERE status IN ('discovered','failed')"
+                    ).fetchone()[0])
+                operations["activeCandidatePacks"] = count_active_candidate_packs(conn)
+            finally:
+                conn.close()
+        except sqlite3.Error as e:
+            errors.append(f"operations: database read failed ({type(e).__name__})")
+
+    retry_state = _read_json(BASE_DIR / "runs" / "crawl_retry_state.json")
+    if isinstance(retry_state, (dict, list)):
+        operations["retryQueueCount"] = len(retry_state)
+
+    backup = _read_json(DATA_DIR / "backups" / "latest_backup.json")
+    if isinstance(backup, dict):
+        operations["lastBackup"] = {
+            "ok": backup.get("ok") is True,
+            "finishedAt": backup.get("finished_at"),
+            "integrity": backup.get("integrity"),
+            "countsMatch": backup.get("counts_match"),
+            "backupFile": Path(str(backup.get("backup", ""))).name or None,
+            "backupBytes": backup.get("backup_bytes"),
+        }
+    return operations
+
+
+def _coverage_value(count: int, total: int) -> dict[str, Any]:
+    return {
+        "count": int(count),
+        "total": int(total),
+        "percent": round((count / total) * 100, 1) if total else 0.0,
+    }
+
+
+def _collect_coverage(errors: list[str]) -> dict[str, Any]:
+    empty = {
+        "totalImages": 0,
+        "sourceResolved": _coverage_value(0, 0),
+        "contentHashed": _coverage_value(0, 0),
+        "provenanceCovered": _coverage_value(0, 0),
+        "editorialAnnotated": _coverage_value(0, 0),
+        "sourceVerified": _coverage_value(0, 0),
+        "activePacks": 0,
+        "publicationObserved": 0,
+    }
+    if not DB_FILE.is_file():
+        return empty
+
+    try:
+        conn = _readonly_connection()
+        try:
+            tables = _table_names(conn)
+            if "images" not in tables:
+                return empty
+            total = int(conn.execute("SELECT COUNT(*) FROM images").fetchone()[0])
+            result = dict(empty)
+            result["totalImages"] = total
+            image_columns = _table_columns(conn, "images")
+            if (
+                "sources" in tables
+                and "id" in _table_columns(conn, "sources")
+                and "source_id" in image_columns
+            ):
+                resolved = int(conn.execute(
+                    "SELECT COUNT(*) FROM images i WHERE i.source_id IS NOT NULL "
+                    "AND i.source_id != '' AND EXISTS "
+                    "(SELECT 1 FROM sources s WHERE s.id=i.source_id)"
+                ).fetchone()[0])
+            else:
+                resolved = 0
+            hashed = int(conn.execute(
+                "SELECT COUNT(*) FROM images WHERE content_hash IS NOT NULL AND content_hash != ''"
+            ).fetchone()[0]) if "content_hash" in image_columns else 0
+            provenance_columns = (
+                _table_columns(conn, "image_provenance")
+                if "image_provenance" in tables else set()
+            )
+            editorial_columns = (
+                _table_columns(conn, "image_editorial")
+                if "image_editorial" in tables else set()
+            )
+            provenance = int(conn.execute(
+                "SELECT COUNT(DISTINCT image_id) FROM image_provenance"
+            ).fetchone()[0]) if "image_id" in provenance_columns else 0
+            annotated = int(conn.execute(
+                "SELECT COUNT(DISTINCT image_id) FROM image_editorial"
+            ).fetchone()[0]) if "image_id" in editorial_columns else 0
+            verified = 0
+            if "annotation_json" in editorial_columns:
+                for row in conn.execute("SELECT annotation_json FROM image_editorial"):
+                    try:
+                        verified += json.loads(row[0]).get("source_verified") is True
+                    except (TypeError, ValueError, AttributeError):
+                        continue
+            result.update({
+                "sourceResolved": _coverage_value(resolved, total),
+                "contentHashed": _coverage_value(hashed, total),
+                "provenanceCovered": _coverage_value(provenance, total),
+                "editorialAnnotated": _coverage_value(annotated, total),
+                "sourceVerified": _coverage_value(verified, total),
+                "activePacks": count_active_candidate_packs(conn),
+                "publicationObserved": int(conn.execute(
+                    "SELECT COUNT(DISTINCT pack_id) FROM publication_observations"
+                ).fetchone()[0]) if (
+                    "publication_observations" in tables
+                    and "pack_id" in _table_columns(conn, "publication_observations")
+                ) else 0,
+            })
+            return result
+        finally:
+            conn.close()
+    except sqlite3.Error as e:
+        errors.append(f"coverage: database read failed ({type(e).__name__})")
+        return empty
 
 
 # ── Detailed endpoint ─────────────────────────────────────────
@@ -261,21 +553,27 @@ async def health_detailed() -> dict[str, Any]:
         "pid": _SERVER_PID,
     }
     try:
+        if _SERVER_PROCESS is None:
+            raise RuntimeError("psutil unavailable")
         mem = _SERVER_PROCESS.memory_info()
         server["memoryMb"] = round(mem.rss / 1024 / 1024, 2)
-    except (psutil.Error, OSError) as e:
+    except Exception as e:
         server["memoryMb"] = None
-        errors.append(f"server.memory: {e}")
+        errors.append(f"server.memory: {type(e).__name__}")
     try:
+        if _SERVER_PROCESS is None:
+            raise RuntimeError("psutil unavailable")
         server["cpuPercent"] = _SERVER_PROCESS.cpu_percent(interval=None)
-    except (psutil.Error, OSError) as e:
+    except Exception as e:
         server["cpuPercent"] = None
-        errors.append(f"server.cpu: {e}")
+        errors.append(f"server.cpu: {type(e).__name__}")
 
     daemons = _collect_daemons(errors)
     database = _collect_database(errors)
     git_info = _collect_git(errors)
     data_dirs = _collect_data_dirs(errors)
+    operations = _collect_operations(errors)
+    coverage = _collect_coverage(errors)
 
     return {
         "server": server,
@@ -283,6 +581,8 @@ async def health_detailed() -> dict[str, Any]:
         "database": database,
         "git": git_info,
         "dataDirs": data_dirs,
+        "operations": operations,
+        "coverage": coverage,
         "errors": errors,
         "checkedAt": int(time.time()),
     }

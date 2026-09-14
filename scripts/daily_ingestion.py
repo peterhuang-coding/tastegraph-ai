@@ -39,6 +39,10 @@ from taste_graph_ai.services.provenance import (
     classify_page, ensure_provenance_schema, is_site_asset,
     link_downloaded_image, save_image_provenance,
 )
+from taste_graph_ai.services.candidate_queue import (
+    DEFAULT_ACTIVE_PACK_LIMIT,
+    count_active_candidate_packs,
+)
 # TASTEGRAPH_DB 仅用于 /tmp 副本演练；生产默认 data/taste_graph.db。
 DB_PATH = Path(os.environ.get("TASTEGRAPH_DB", str(BASE_DIR / "data" / "taste_graph.db")))
 IMAGES_DIR = BASE_DIR / "data" / "images"
@@ -432,17 +436,26 @@ def stage_download(con, run, max_items: int) -> dict:
 
 
 def stage_pack(con, args) -> dict:
-    """pack：今天已有未完成包则不堆积；无候选正常结束（no_candidates）。"""
+    """pack：只补一个候选槽位；队列满或无候选都正常结束。"""
     today = datetime.now().strftime("%Y-%m-%d")
-    posts_today = BASE_DIR / "posts" / today
-    existing = list(posts_today.glob("pack-*")) if posts_today.is_dir() else []
-    if existing:
-        return {"pack_generated": False, "reason": "today already has packs"}
+    active_before = count_active_candidate_packs(con)
+    if active_before >= DEFAULT_ACTIVE_PACK_LIMIT:
+        return {
+            "pack_generated": False,
+            "reason": "queue_full",
+            "active_candidate_packs": active_before,
+            "active_pack_limit": DEFAULT_ACTIVE_PACK_LIMIT,
+        }
     candidates = con.execute(
         "SELECT COUNT(*) FROM images WHERE status='pending' AND local_path != ''"
     ).fetchone()[0]
     if candidates == 0:
-        return {"pack_generated": False, "reason": "no_candidates"}
+        return {
+            "pack_generated": False,
+            "reason": "no_candidates",
+            "active_candidate_packs": active_before,
+            "active_pack_limit": DEFAULT_ACTIVE_PACK_LIMIT,
+        }
     cmd = [sys.executable, "-u", str(BASE_DIR / "scripts" / "generate_publish_packs.py"),
            "--date", today, "--count", "1", "--pack-size", "9"]
     print(f"[ingest] pack: {' '.join(cmd)}")
@@ -451,7 +464,20 @@ def stage_pack(con, args) -> dict:
     except subprocess.TimeoutExpired:
         return {"pack_generated": False, "reason": "pack generation timeout"}
     if r.returncode == 0:
-        return {"pack_generated": True, "reason": ""}
+        active_after = count_active_candidate_packs(con)
+        if active_after > active_before:
+            return {
+                "pack_generated": True,
+                "reason": "",
+                "active_candidate_packs": active_after,
+                "active_pack_limit": DEFAULT_ACTIVE_PACK_LIMIT,
+            }
+        return {
+            "pack_generated": False,
+            "reason": "no_candidates",
+            "active_candidate_packs": active_after,
+            "active_pack_limit": DEFAULT_ACTIVE_PACK_LIMIT,
+        }
     return {"pack_generated": False, "reason": f"pack exit={r.returncode}"}
 
 
@@ -610,9 +636,9 @@ def main() -> int:
         else:
             out = stage_pack(con, args)
             ctx["pack"] = out
-            if out["reason"] == "no_candidates":
-                print("[ingest] pack: no_candidates（正常结束）")
-            elif not out["pack_generated"] and out["reason"] != "today already has packs":
+            if out["reason"] in {"no_candidates", "queue_full"}:
+                print(f"[ingest] pack: {out['reason']}（正常结束）")
+            elif not out["pack_generated"]:
                 errors_acc.append(f"pack: {out['reason']}")
             mark_stage("pack")
 
@@ -643,6 +669,9 @@ def main() -> int:
         "images_inserted": run["images_downloaded"],  # 本入口下载即入库；失败项单独计
         "backlog_count": run["backlog_count"],
         "pack_generated": bool(ctx.get("pack", {}).get("pack_generated")),
+        "pack_reason": ctx.get("pack", {}).get("reason", "not_requested"),
+        "active_candidate_packs": ctx.get("pack", {}).get("active_candidate_packs"),
+        "active_pack_limit": ctx.get("pack", {}).get("active_pack_limit", DEFAULT_ACTIVE_PACK_LIMIT),
         "started_at": run["started_at"],
         "finished_at": run["finished_at"],
         "error_summary": run["error_summary"],

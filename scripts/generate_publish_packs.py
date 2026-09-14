@@ -40,6 +40,10 @@ from taste_graph_ai.infrastructure.repos.sources import SourceRepository
 from taste_graph_ai.infrastructure.repos.packs import PackRepository
 from taste_graph_ai.infrastructure.repos.feedback import FeedbackRepository
 from taste_graph_ai.domain.enums import ImageStatus
+from taste_graph_ai.services.candidate_queue import (
+    DEFAULT_ACTIVE_PACK_LIMIT,
+    count_active_candidate_packs_async,
+)
 
 
 POSTS_DIR = BASE_DIR / "posts"
@@ -83,14 +87,26 @@ def _load_published_image_ids() -> set:
     return load_ids()
 
 
-async def generate(date_str: str = None, count: int = 5, skip_queue: bool = False, pack_size: int = 1) -> Path:
+async def generate(
+    date_str: str = None,
+    count: int = 5,
+    skip_queue: bool = False,
+    pack_size: int = 1,
+    active_pack_limit: int = DEFAULT_ACTIVE_PACK_LIMIT,
+) -> Path:
     """Serialize candidate generation so concurrent runs cannot reuse images."""
     from taste_graph_ai.services.images import _candidate_generation_lock
     with _candidate_generation_lock():
-        return await _generate(date_str, count, skip_queue, pack_size)
+        return await _generate(date_str, count, skip_queue, pack_size, active_pack_limit)
 
 
-async def _generate(date_str: str = None, count: int = 5, skip_queue: bool = False, pack_size: int = 1) -> Path:
+async def _generate(
+    date_str: str = None,
+    count: int = 5,
+    skip_queue: bool = False,
+    pack_size: int = 1,
+    active_pack_limit: int = DEFAULT_ACTIVE_PACK_LIMIT,
+) -> Path:
     """Export traceable research candidates; an editorial review is required before use."""
     from datetime import datetime
     import uuid
@@ -100,12 +116,24 @@ async def _generate(date_str: str = None, count: int = 5, skip_queue: bool = Fal
 
     date_str = date_str or date_type.today().isoformat()
     batch_dir = POSTS_DIR / date_str
-    batch_dir.mkdir(parents=True, exist_ok=True)
     ensure_dirs()
     await init_db()
-    graph = get_container().taste_graph
     db = await get_db()
     try:
+        active_count = await count_active_candidate_packs_async(db)
+        available_slots = max(0, max(0, active_pack_limit) - active_count)
+        requested_count = max(0, count)
+        count = min(requested_count, available_slots)
+        if count == 0:
+            reason = "queue_full" if available_slots == 0 else "count_zero"
+            print(
+                f"Candidate generation skipped: {reason}; "
+                f"active={active_count}, limit={max(0, active_pack_limit)}"
+            )
+            return batch_dir
+
+        batch_dir.mkdir(parents=True, exist_ok=True)
+        graph = get_container().taste_graph
         image_repo = ImageRepository(db)
         liked_ids = await FeedbackRepository(db).get_liked_image_ids()
         annotations = load_annotations(DB_FILE)
@@ -170,6 +198,7 @@ async def _generate(date_str: str = None, count: int = 5, skip_queue: bool = Fal
                 "workflow_status":"needs_editorial_review","thesis":"","sequence_reason":"",
                 "image_ids":[item["img"].id for item in group],"image_count":len(group),"images":notes,
                 "pool_size":len(valid),"avg_score":sum(item["total"] for item in group)/len(group),
+                "queue_budget":{"active_before":active_count,"limit":max(0,active_pack_limit)},
                 "sources":list({note["source_name"]:sum(n["source_name"]==note["source_name"] for n in notes) for note in notes}.items()),
                 "score_formula":"图谱50% + 出处已核验20% + 具体内容页10% + 运营优先10% + 明确单图喜欢10%",
                 "grouping":"按运营命题或具体来源页归组；关系与顺序仍待审核"}
@@ -1354,10 +1383,22 @@ def main():
     parser.add_argument("--date", default=date_type.today().isoformat(), help="日期 (YYYY-MM-DD)")
     parser.add_argument("--count", type=int, default=5, help="生成几篇/几包")
     parser.add_argument("--pack-size", type=int, default=1, help="每包图片数（9 = 一包 9 图候选）")
+    parser.add_argument(
+        "--active-pack-limit",
+        type=int,
+        default=DEFAULT_ACTIVE_PACK_LIMIT,
+        help="全局活跃待审图集上限；达到后正常跳过",
+    )
     parser.add_argument("--skip-queue", action="store_true", help="不生成 QUEUE.html（自动模式）")
     args = parser.parse_args()
 
-    asyncio.run(generate(date_str=args.date, count=args.count, skip_queue=args.skip_queue, pack_size=args.pack_size))
+    asyncio.run(generate(
+        date_str=args.date,
+        count=args.count,
+        skip_queue=args.skip_queue,
+        pack_size=args.pack_size,
+        active_pack_limit=args.active_pack_limit,
+    ))
 
 
 if __name__ == "__main__":

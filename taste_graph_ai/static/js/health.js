@@ -15,7 +15,12 @@ const HealthTab = {
   },
 
   render(container, data) {
+    const operations = data.operations || {};
     const cards = [
+      this._ingestionCard(operations),
+      this._candidateQueueCard(operations),
+      this._coverageCard(data.coverage || {}),
+      this._backupCard(operations.lastBackup),
       this._serverCard(data.server),
       this._daemonsCard(data.daemons),
       this._databaseCard(data.database),
@@ -40,6 +45,81 @@ const HealthTab = {
       ${errorsBlock}
     `;
     this._bindExpands(container);
+  },
+
+  _ingestionCard(operations) {
+    const today = operations.todayStatus || {};
+    const crawl = operations.latestCrawlRun || {};
+    const status = today.status || 'not_run';
+    const labels = {
+      succeeded: '成功', partial: '部分完成', running: '运行中',
+      failed: '失败', skipped: '已跳过', not_run: '今日未运行',
+    };
+    const level = status === 'succeeded' ? 'ok' : (status === 'failed' ? 'err' : 'warn');
+    const downloaded = crawl.images_downloaded != null ? crawl.images_downloaded : 0;
+    const backlog = operations.backlogCount != null ? operations.backlogCount : 0;
+    const retry = operations.retryQueueCount != null ? operations.retryQueueCount : 0;
+    return this._card({
+      icon: '📥',
+      title: '今日采集',
+      summary: `${labels[status] || status} · 下载 ${downloaded} · 积压 ${backlog} · 重试 ${retry}`,
+      level,
+      detail: {
+        today: today,
+        latestJobRun: operations.latestJobRun || null,
+        latestCrawlRun: operations.latestCrawlRun || null,
+      },
+    });
+  },
+
+  _candidateQueueCard(operations) {
+    const active = operations.activeCandidatePacks != null ? operations.activeCandidatePacks : 0;
+    const limit = operations.activePackLimit != null ? operations.activePackLimit : 5;
+    const remaining = Math.max(0, limit - active);
+    const level = active >= limit ? 'warn' : 'ok';
+    return this._card({
+      icon: '🗂',
+      title: '待审候选',
+      summary: `${active}/${limit} 组 · 还可补 ${remaining} 组`,
+      level,
+      detail: {activeCandidatePacks: active, activePackLimit: limit, remainingSlots: remaining},
+    });
+  },
+
+  _coverageCard(coverage) {
+    const source = this._pct(coverage.sourceResolved);
+    const hash = this._pct(coverage.contentHashed);
+    const provenance = this._pct(coverage.provenanceCovered);
+    const editorial = this._pct(coverage.editorialAnnotated);
+    const level = Math.min(source, hash, provenance) >= 90 ? 'ok' : 'warn';
+    return this._card({
+      icon: '🧭',
+      title: '数据覆盖',
+      summary: `来源 ${source}% · 指纹 ${hash}% · 溯源 ${provenance}% · 标注 ${editorial}%`,
+      level,
+      detail: coverage,
+    });
+  },
+
+  _backupCard(backup) {
+    if (!backup) {
+      return this._card({
+        icon: '💾', title: '最近备份', summary: '暂无可验证的备份记录', level: 'warn', detail: null,
+      });
+    }
+    const level = backup.ok ? 'ok' : 'err';
+    const status = backup.ok ? '校验通过' : '校验失败';
+    return this._card({
+      icon: '💾',
+      title: '最近备份',
+      summary: `${status} · ${backup.finishedAt || '时间未知'}`,
+      level,
+      detail: backup,
+    });
+  },
+
+  _pct(value) {
+    return value && value.percent != null ? value.percent : 0;
   },
 
   _serverCard(server) {
