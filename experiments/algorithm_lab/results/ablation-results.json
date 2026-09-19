@@ -1,0 +1,151 @@
+{
+  "context": {
+    "available_role_count": 6,
+    "filter_metric_note": "Benchmark evaluate() labels some ineligible records under operator_negative_selected; this ablation reports separately recalculated ineligible, excluded-ID, and operator-negative totals, retaining the mixed benchmark field for audit only.",
+    "frozen_inputs_reused_across_methods": true,
+    "gold_policy_note": "Ideal match gap is computed within the chosen subject only. Naive global cross-subject top-match is explicitly not treated as gold.",
+    "limitations": [
+      "non-production experimental harness",
+      "synthetic randomized fixtures only; no real candidates, users, labels, or traffic",
+      "200 fixed offline trials with synthetic role/subject distributions",
+      "timing is process- and machine-dependent and is not a load/scale test",
+      "no causal business, relevance, or user-satisfaction effect is claimed"
+    ],
+    "methods": {
+      "current_prototype": "imported rank_pack with existing quality and role-diversity selection",
+      "match_only_quality": "temporarily replaces ranking._quality with (match_score, match_score)",
+      "no_diversity_select": "temporarily replaces ranking._select_in_group with the first N candidates from the existing quality-ordered pool"
+    },
+    "module_invocation": "python -m experiments.algorithm_lab.ablation_ranking",
+    "monkeypatch_scope": "temporary in-process replacement; each variant restores the prior function in try/finally",
+    "performance_input": {
+      "candidate_count": 1000,
+      "pack_size": 8,
+      "repeats_per_variant": 5,
+      "timer": "time.perf_counter"
+    },
+    "performance_random_seed": 100173,
+    "production_files_modified": false,
+    "roles": [
+      "lead",
+      "support",
+      "wide",
+      "detail",
+      "context",
+      "edge"
+    ],
+    "same_excluded_sets_reused_across_methods": true,
+    "seeded_offline_stdout_json": true,
+    "trial_inputs": {
+      "candidate_count_max": 140,
+      "candidate_count_min": 26,
+      "excluded_ids_per_trial": 5,
+      "fixture_group_counts": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "fixture_roles_per_subject": [
+        2,
+        3,
+        4,
+        5
+      ],
+      "pack_sizes": [
+        3,
+        4,
+        5,
+        6
+      ],
+      "total_candidate_records": 14500,
+      "trial_count": 200
+    },
+    "trial_random_seed": 20260214
+  },
+  "observed_metrics": {
+    "current_prototype": {
+      "chosen_subject_ideal_top_match_gap_mean": 0.0013715424642543386,
+      "coherent_one_subject_rate": 1.0,
+      "duplicate_output_ids_mean": 0,
+      "duplicate_output_ids_total": 0,
+      "excluded_id_selected_proper_mean": 0,
+      "excluded_id_selected_proper_total": 0,
+      "ineligible_selected_proper_mean": 0,
+      "ineligible_selected_proper_total": 0,
+      "mean_match_score_mean": 0.8323409060704668,
+      "operator_negative_selected_proper_mean": 0,
+      "operator_negative_selected_proper_total": 0,
+      "permutation_stable_rate": 1.0,
+      "role_coverage_mean": 0.6560833333333334,
+      "selected_count_mean": 4.5,
+      "selected_count_total": 900,
+      "single_selected_subject_rate": 1.0,
+      "trials": 200,
+      "unknown_output_ids_mean": 0,
+      "unknown_output_ids_total": 0
+    },
+    "match_only_quality": {
+      "chosen_subject_ideal_top_match_gap_mean": 2.2179980093691154e-05,
+      "coherent_one_subject_rate": 1.0,
+      "duplicate_output_ids_mean": 0,
+      "duplicate_output_ids_total": 0,
+      "excluded_id_selected_proper_mean": 0,
+      "excluded_id_selected_proper_total": 0,
+      "ineligible_selected_proper_mean": 0,
+      "ineligible_selected_proper_total": 0,
+      "mean_match_score_mean": 0.8355038936231514,
+      "operator_negative_selected_proper_mean": 0,
+      "operator_negative_selected_proper_total": 0,
+      "permutation_stable_rate": 1.0,
+      "role_coverage_mean": 0.652,
+      "selected_count_mean": 4.5,
+      "selected_count_total": 900,
+      "single_selected_subject_rate": 1.0,
+      "trials": 200,
+      "unknown_output_ids_mean": 0,
+      "unknown_output_ids_total": 0
+    },
+    "no_diversity_select": {
+      "chosen_subject_ideal_top_match_gap_mean": 0.0013655327061040654,
+      "coherent_one_subject_rate": 1.0,
+      "duplicate_output_ids_mean": 0,
+      "duplicate_output_ids_total": 0,
+      "excluded_id_selected_proper_mean": 0,
+      "excluded_id_selected_proper_total": 0,
+      "ineligible_selected_proper_mean": 0,
+      "ineligible_selected_proper_total": 0,
+      "mean_match_score_mean": 0.8323469158286171,
+      "operator_negative_selected_proper_mean": 0,
+      "operator_negative_selected_proper_total": 0,
+      "permutation_stable_rate": 1.0,
+      "role_coverage_mean": 0.6513333333333333,
+      "selected_count_mean": 4.5,
+      "selected_count_total": 900,
+      "single_selected_subject_rate": 1.0,
+      "trials": 200,
+      "unknown_output_ids_mean": 0,
+      "unknown_output_ids_total": 0
+    }
+  },
+  "performance_5_repeat_median_for_1000_candidates": {
+    "current_prototype": {
+      "candidate_count": 1000,
+      "median_seconds": 0.004832541104406118,
+      "pack_size": 8,
+      "repeats": 5
+    },
+    "match_only_quality": {
+      "candidate_count": 1000,
+      "median_seconds": 0.002607709029689431,
+      "pack_size": 8,
+      "repeats": 5
+    },
+    "no_diversity_select": {
+      "candidate_count": 1000,
+      "median_seconds": 0.001421458087861538,
+      "pack_size": 8,
+      "repeats": 5
+    }
+  }
+}

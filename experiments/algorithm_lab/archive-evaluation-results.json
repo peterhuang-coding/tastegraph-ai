@@ -1,0 +1,534 @@
+{
+  "mode": "raw caption and date_evidence ONLY, no reference years supplied to classifier; rejected baseline unchanged",
+  "labels_status": "Coding Plan proposals checked locally against existing public metadata; not user/operator judgments",
+  "limitations": [
+    "30 purposive examples from4sources, not representative of full library",
+    "ACROSS date treated as observation round, exact capture unknown in this strict task",
+    "Dated precision is null when classifier returns no dates, not zero or one",
+    "High abstention is not a successful extractor",
+    "Age implementation remains rejected due other confirmed false positives"
+  ],
+  "metrics": {
+    "sample_count": 30,
+    "reference_dated_count": 14,
+    "reference_unknown_count": 16,
+    "predicted_dated_count": 0,
+    "precision_on_dated_predictions": null,
+    "dated_reference_recall": 0.0,
+    "abstention_rate": 1.0,
+    "exact_row_match_count": 16,
+    "unknown_reference_false_fill_count": 0
+  },
+  "rows": [
+    {
+      "group": "owens",
+      "index": 1,
+      "input": {
+        "caption": "Suburbia gallery image 1",
+        "capture_evidence": "Series foreword signed Bill Owens, Summer 1972; no individual capture date on gallery. https://www.billowens.com/photographs/suburbia"
+      },
+      "reference_kind": "unknown",
+      "reference_capture_year": null,
+      "prediction": {
+        "kind": "unknown",
+        "capture_year": null,
+        "confidence": "unknown",
+        "evidence": []
+      },
+      "exact_match": true
+    },
+    {
+      "group": "owens",
+      "index": 2,
+      "input": {
+        "caption": "Suburbia gallery image 2",
+        "capture_evidence": "Series foreword signed Bill Owens, Summer 1972; no individual capture date on gallery. https://www.billowens.com/photographs/suburbia"
+      },
+      "reference_kind": "unknown",
+      "reference_capture_year": null,
+      "prediction": {
+        "kind": "unknown",
+        "capture_year": null,
+        "confidence": "unknown",
+        "evidence": []
+      },
+      "exact_match": true
+    },
+    {
+      "group": "owens",
+      "index": 3,
+      "input": {
+        "caption": "Suburbia gallery image 3",
+        "capture_evidence": "Series foreword signed Bill Owens, Summer 1972; no individual capture date on gallery. https://www.billowens.com/photographs/suburbia"
+      },
+      "reference_kind": "unknown",
+      "reference_capture_year": null,
+      "prediction": {
+        "kind": "unknown",
+        "capture_year": null,
+        "confidence": "unknown",
+        "evidence": []
+      },
+      "exact_match": true
+    },
+    {
+      "group": "owens",
+      "index": 4,
+      "input": {
+        "caption": "Suburbia gallery image 5",
+        "capture_evidence": "Series foreword signed Bill Owens, Summer 1972; no individual capture date on gallery. https://www.billowens.com/photographs/suburbia"
+      },
+      "reference_kind": "unknown",
+      "reference_capture_year": null,
+      "prediction": {
+        "kind": "unknown",
+        "capture_year": null,
+        "confidence": "unknown",
+        "evidence": []
+      },
+      "exact_match": true
+    },
+    {
+      "group": "owens",
+      "index": 5,
+      "input": {
+        "caption": "Suburbia gallery image 6",
+        "capture_evidence": "Series foreword signed Bill Owens, Summer 1972; no individual capture date on gallery. https://www.billowens.com/photographs/suburbia"
+      },
+      "reference_kind": "unknown",
+      "reference_capture_year": null,
+      "prediction": {
+        "kind": "unknown",
+        "capture_year": null,
+        "confidence": "unknown",
+        "evidence": []
+      },
+      "exact_match": true
+    },
+    {
+      "group": "owens",
+      "index": 6,
+      "input": {
+        "caption": "Suburbia gallery image 7",
+        "capture_evidence": "Series foreword signed Bill Owens, Summer 1972; no individual capture date on gallery. https://www.billowens.com/photographs/suburbia"
+      },
+      "reference_kind": "unknown",
+      "reference_capture_year": null,
+      "prediction": {
+        "kind": "unknown",
+        "capture_year": null,
+        "confidence": "unknown",
+        "evidence": []
+      },
+      "exact_match": true
+    },
+    {
+      "group": "owens",
+      "index": 7,
+      "input": {
+        "caption": "Suburbia gallery image 9",
+        "capture_evidence": "Series foreword signed Bill Owens, Summer 1972; no individual capture date on gallery. https://www.billowens.com/photographs/suburbia"
+      },
+      "reference_kind": "unknown",
+      "reference_capture_year": null,
+      "prediction": {
+        "kind": "unknown",
+        "capture_year": null,
+        "confidence": "unknown",
+        "evidence": []
+      },
+      "exact_match": true
+    },
+    {
+      "group": "owens",
+      "index": 8,
+      "input": {
+        "caption": "Suburbia gallery image 12",
+        "capture_evidence": "Series foreword signed Bill Owens, Summer 1972; no individual capture date on gallery. https://www.billowens.com/photographs/suburbia"
+      },
+      "reference_kind": "unknown",
+      "reference_capture_year": null,
+      "prediction": {
+        "kind": "unknown",
+        "capture_year": null,
+        "confidence": "unknown",
+        "evidence": []
+      },
+      "exact_match": true
+    },
+    {
+      "group": "shabazz",
+      "index": 1,
+      "input": {
+        "caption": "Jamel Shabazz, School Days, Brooklyn, 1981. Courtesy the artist",
+        "capture_evidence": "Jamel Shabazz, School Days, Brooklyn, 1981. Courtesy the artist | https://aperture.org/editorial/vision-justice-jamel-shabazz/"
+      },
+      "reference_kind": "historical_photo",
+      "reference_capture_year": 1981,
+      "prediction": {
+        "kind": "unknown",
+        "capture_year": null,
+        "confidence": "unknown",
+        "evidence": []
+      },
+      "exact_match": false
+    },
+    {
+      "group": "shabazz",
+      "index": 2,
+      "input": {
+        "caption": "Jamel Shabazz, The Ranks, Chicago, Illinois, 1997",
+        "capture_evidence": "Jamel Shabazz, The Ranks, Chicago, Illinois, 1997 | https://aperture.org/editorial/vision-justice-jamel-shabazz/"
+      },
+      "reference_kind": "historical_photo",
+      "reference_capture_year": 1997,
+      "prediction": {
+        "kind": "unknown",
+        "capture_year": null,
+        "confidence": "unknown",
+        "evidence": []
+      },
+      "exact_match": false
+    },
+    {
+      "group": "shabazz",
+      "index": 3,
+      "input": {
+        "caption": "Jamel Shabazz, We Must Be Brothers, Harlem, New York, 1997",
+        "capture_evidence": "Jamel Shabazz, We Must Be Brothers, Harlem, New York, 1997 | https://aperture.org/editorial/vision-justice-jamel-shabazz/"
+      },
+      "reference_kind": "historical_photo",
+      "reference_capture_year": 1997,
+      "prediction": {
+        "kind": "unknown",
+        "capture_year": null,
+        "confidence": "unknown",
+        "evidence": []
+      },
+      "exact_match": false
+    },
+    {
+      "group": "shabazz",
+      "index": 4,
+      "input": {
+        "caption": "Jamel Shabazz, Cultured and Refined, New York, 2005. Courtesy the artist",
+        "capture_evidence": "Jamel Shabazz, Cultured and Refined, New York, 2005. Courtesy the artist | https://aperture.org/editorial/vision-justice-jamel-shabazz/"
+      },
+      "reference_kind": "historical_photo",
+      "reference_capture_year": 2005,
+      "prediction": {
+        "kind": "unknown",
+        "capture_year": null,
+        "confidence": "unknown",
+        "evidence": []
+      },
+      "exact_match": false
+    },
+    {
+      "group": "shabazz",
+      "index": 5,
+      "input": {
+        "caption": "Jamel Shabazz, Best Friends, Brooklyn, 1980. Courtesy the artist",
+        "capture_evidence": "Jamel Shabazz, Best Friends, Brooklyn, 1980. Courtesy the artist | https://aperture.org/editorial/vision-justice-jamel-shabazz/"
+      },
+      "reference_kind": "historical_photo",
+      "reference_capture_year": 1980,
+      "prediction": {
+        "kind": "unknown",
+        "capture_year": null,
+        "confidence": "unknown",
+        "evidence": []
+      },
+      "exact_match": false
+    },
+    {
+      "group": "shabazz",
+      "index": 6,
+      "input": {
+        "caption": "Jamel Shabazz, Sisters, Brooklyn, New York, 2003. Courtesy the artist",
+        "capture_evidence": "Jamel Shabazz, Sisters, Brooklyn, New York, 2003. Courtesy the artist | https://aperture.org/editorial/vision-justice-jamel-shabazz/"
+      },
+      "reference_kind": "historical_photo",
+      "reference_capture_year": 2003,
+      "prediction": {
+        "kind": "unknown",
+        "capture_year": null,
+        "confidence": "unknown",
+        "evidence": []
+      },
+      "exact_match": false
+    },
+    {
+      "group": "across",
+      "index": 1,
+      "input": {
+        "caption": "06174 メンズライクなコーディネートにさりげないへそ出しでオチャメなスタイル。見せパンが最近のブーム。",
+        "capture_evidence": "PARCO ACROSS 第175回，1995/07/01；具体访谈页 https://www.web-across.com/observe/srnrj2000003f9vl.html"
+      },
+      "reference_kind": "unknown",
+      "reference_capture_year": null,
+      "prediction": {
+        "kind": "unknown",
+        "capture_year": null,
+        "confidence": "unknown",
+        "evidence": []
+      },
+      "exact_match": true
+    },
+    {
+      "group": "across",
+      "index": 2,
+      "input": {
+        "caption": "06175 着てって頼まれて好きになったショート丈トップス。最近はボディーボードに夢中。",
+        "capture_evidence": "PARCO ACROSS 第175回，1995/07/01；具体访谈页 https://www.web-across.com/observe/srnrj2000003f9y1.html"
+      },
+      "reference_kind": "unknown",
+      "reference_capture_year": null,
+      "prediction": {
+        "kind": "unknown",
+        "capture_year": null,
+        "confidence": "unknown",
+        "evidence": []
+      },
+      "exact_match": true
+    },
+    {
+      "group": "across",
+      "index": 3,
+      "input": {
+        "caption": "06176 大人っぽいモノトーンでもチラ見せおへそでかわいらしく。日焼けにハマり中。",
+        "capture_evidence": "PARCO ACROSS 第175回，1995/07/01；具体访谈页 https://www.web-across.com/observe/srnrj2000003fa0h.html"
+      },
+      "reference_kind": "unknown",
+      "reference_capture_year": null,
+      "prediction": {
+        "kind": "unknown",
+        "capture_year": null,
+        "confidence": "unknown",
+        "evidence": []
+      },
+      "exact_match": true
+    },
+    {
+      "group": "across",
+      "index": 4,
+      "input": {
+        "caption": "06177 夏でも冬でもへそ出しスタイル。最近はゲームとサーフィンにハマっています！",
+        "capture_evidence": "PARCO ACROSS 第175回，1995/07/01；具体访谈页 https://www.web-across.com/observe/srnrj2000003fa2x.html"
+      },
+      "reference_kind": "unknown",
+      "reference_capture_year": null,
+      "prediction": {
+        "kind": "unknown",
+        "capture_year": null,
+        "confidence": "unknown",
+        "evidence": []
+      },
+      "exact_match": true
+    },
+    {
+      "group": "across",
+      "index": 5,
+      "input": {
+        "caption": "06178 夏らしいマリンコーデで爽やかに。最近はパーティなどのイベントに夢中！",
+        "capture_evidence": "PARCO ACROSS 第175回，1995/07/01；具体访谈页 https://www.web-across.com/observe/srnrj2000003fa5d.html"
+      },
+      "reference_kind": "unknown",
+      "reference_capture_year": null,
+      "prediction": {
+        "kind": "unknown",
+        "capture_year": null,
+        "confidence": "unknown",
+        "evidence": []
+      },
+      "exact_match": true
+    },
+    {
+      "group": "across",
+      "index": 6,
+      "input": {
+        "caption": "06180 スーパーモデルとか黒人女性みたいになりたい！海外でも日本でもいいから海に行きたい！",
+        "capture_evidence": "PARCO ACROSS 第175回，1995/07/01；具体访谈页 https://www.web-across.com/observe/srnrj2000003faa9.html"
+      },
+      "reference_kind": "unknown",
+      "reference_capture_year": null,
+      "prediction": {
+        "kind": "unknown",
+        "capture_year": null,
+        "confidence": "unknown",
+        "evidence": []
+      },
+      "exact_match": true
+    },
+    {
+      "group": "across",
+      "index": 7,
+      "input": {
+        "caption": "06181 バランスよく見えるショート丈トップスが最近の気分！クラブに行くのにハマってます。",
+        "capture_evidence": "PARCO ACROSS 第175回，1995/07/01；具体访谈页 https://www.web-across.com/observe/srnrj2000003facp.html"
+      },
+      "reference_kind": "unknown",
+      "reference_capture_year": null,
+      "prediction": {
+        "kind": "unknown",
+        "capture_year": null,
+        "confidence": "unknown",
+        "evidence": []
+      },
+      "exact_match": true
+    },
+    {
+      "group": "across",
+      "index": 8,
+      "input": {
+        "caption": "06182 1〜2年前からへそ出しスタイルブームが継続中。短いのが好き！",
+        "capture_evidence": "PARCO ACROSS 第175回，1995/07/01；具体访谈页 https://www.web-across.com/observe/srnrj2000003faf5.html"
+      },
+      "reference_kind": "unknown",
+      "reference_capture_year": null,
+      "prediction": {
+        "kind": "unknown",
+        "capture_year": null,
+        "confidence": "unknown",
+        "evidence": []
+      },
+      "exact_match": true
+    },
+    {
+      "group": "holland",
+      "index": 1,
+      "input": {
+        "caption": "Hugh Holland, Arthur's Attitude (Arthur Lake), Kenter Canyon Elementary, 1976",
+        "capture_evidence": "Hugh Holland, Arthur's Attitude (Arthur Lake), Kenter Canyon Elementary, 1976 | https://www.mbphoto.com/artists/16/series/1970%27s-color/4143/"
+      },
+      "reference_kind": "historical_photo",
+      "reference_capture_year": 1976,
+      "prediction": {
+        "kind": "unknown",
+        "capture_year": null,
+        "confidence": "unknown",
+        "evidence": []
+      },
+      "exact_match": false
+    },
+    {
+      "group": "holland",
+      "index": 2,
+      "input": {
+        "caption": "Hugh Holland, Hollywood Local, 1976",
+        "capture_evidence": "Hugh Holland, Hollywood Local, 1976 | https://www.mbphoto.com/artists/16/series/1970%27s-color/6429/"
+      },
+      "reference_kind": "historical_photo",
+      "reference_capture_year": 1976,
+      "prediction": {
+        "kind": "unknown",
+        "capture_year": null,
+        "confidence": "unknown",
+        "evidence": []
+      },
+      "exact_match": false
+    },
+    {
+      "group": "holland",
+      "index": 3,
+      "input": {
+        "caption": "Hugh Holland, Skate Shooter, Kenter Canyon, 1976",
+        "capture_evidence": "Hugh Holland, Skate Shooter, Kenter Canyon, 1976 | https://www.mbphoto.com/artists/16/series/1970%27s-color/6139/"
+      },
+      "reference_kind": "historical_photo",
+      "reference_capture_year": 1976,
+      "prediction": {
+        "kind": "unknown",
+        "capture_year": null,
+        "confidence": "unknown",
+        "evidence": []
+      },
+      "exact_match": false
+    },
+    {
+      "group": "holland",
+      "index": 4,
+      "input": {
+        "caption": "Hugh Holland, Team Line-Up (No. 60), 1976",
+        "capture_evidence": "Hugh Holland, Team Line-Up (No. 60), 1976 | https://www.mbphoto.com/artists/16/series/1970%27s-color/7983/"
+      },
+      "reference_kind": "historical_photo",
+      "reference_capture_year": 1976,
+      "prediction": {
+        "kind": "unknown",
+        "capture_year": null,
+        "confidence": "unknown",
+        "evidence": []
+      },
+      "exact_match": false
+    },
+    {
+      "group": "holland",
+      "index": 5,
+      "input": {
+        "caption": "Hugh Holland, Canyon Sunset Ride, Hollywood Hills, 1975",
+        "capture_evidence": "Hugh Holland, Canyon Sunset Ride, Hollywood Hills, 1975 | https://www.mbphoto.com/artists/16/series/1970%27s-color/11350/"
+      },
+      "reference_kind": "historical_photo",
+      "reference_capture_year": 1975,
+      "prediction": {
+        "kind": "unknown",
+        "capture_year": null,
+        "confidence": "unknown",
+        "evidence": []
+      },
+      "exact_match": false
+    },
+    {
+      "group": "holland",
+      "index": 6,
+      "input": {
+        "caption": "Hugh Holland, Left Turn Only, Orange County (No. 58), 1975",
+        "capture_evidence": "Hugh Holland, Left Turn Only, Orange County (No. 58), 1975 | https://www.mbphoto.com/artists/16/series/1970%27s-color/8996/"
+      },
+      "reference_kind": "historical_photo",
+      "reference_capture_year": 1975,
+      "prediction": {
+        "kind": "unknown",
+        "capture_year": null,
+        "confidence": "unknown",
+        "evidence": []
+      },
+      "exact_match": false
+    },
+    {
+      "group": "holland",
+      "index": 7,
+      "input": {
+        "caption": "Hugh Holland, Skate Contest Spectators, Torrance (No. 62), 1975",
+        "capture_evidence": "Hugh Holland, Skate Contest Spectators, Torrance (No. 62), 1975 | https://www.mbphoto.com/artists/16/series/1970%27s-color/9173/"
+      },
+      "reference_kind": "historical_photo",
+      "reference_capture_year": 1975,
+      "prediction": {
+        "kind": "unknown",
+        "capture_year": null,
+        "confidence": "unknown",
+        "evidence": []
+      },
+      "exact_match": false
+    },
+    {
+      "group": "holland",
+      "index": 8,
+      "input": {
+        "caption": "Hugh Holland, Red Skater at Rest, 1975",
+        "capture_evidence": "Hugh Holland, Red Skater at Rest, 1975 | https://www.mbphoto.com/artists/16/series/1970%27s-color/11461/"
+      },
+      "reference_kind": "historical_photo",
+      "reference_capture_year": 1975,
+      "prediction": {
+        "kind": "unknown",
+        "capture_year": null,
+        "confidence": "unknown",
+        "evidence": []
+      },
+      "exact_match": false
+    }
+  ]
+}

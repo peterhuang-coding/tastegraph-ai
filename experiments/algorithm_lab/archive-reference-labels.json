@@ -1,0 +1,276 @@
+{
+  "schema_version": 1,
+  "source": "machine_proposed_reference_labels_requiring_local_verification",
+  "rows": [
+    {
+      "group": "owens",
+      "index": 1,
+      "capture_year": null,
+      "kind": "unknown",
+      "evidence_scope": "foreword",
+      "evidence_quote": "Series foreword signed Bill Owens, Summer 1972",
+      "reason": "The supplied evidence dates a series foreword, while the individual gallery image has no asserted capture date; a photograph is visually suggested by the source context, but the strict capture-year/kind label cannot be established from this record."
+    },
+    {
+      "group": "owens",
+      "index": 2,
+      "capture_year": null,
+      "kind": "unknown",
+      "evidence_scope": "foreword",
+      "evidence_quote": "Series foreword signed Bill Owens, Summer 1972",
+      "reason": "The supplied evidence dates a series foreword, while the individual gallery image has no asserted capture date; a photograph is visually suggested by the source context, but the strict capture-year/kind label cannot be established from this record."
+    },
+    {
+      "group": "owens",
+      "index": 3,
+      "capture_year": null,
+      "kind": "unknown",
+      "evidence_scope": "foreword",
+      "evidence_quote": "Series foreword signed Bill Owens, Summer 1972",
+      "reason": "The supplied evidence dates a series foreword, while the individual gallery image has no asserted capture date; a photograph is visually suggested by the source context, but the strict capture-year/kind label cannot be established from this record."
+    },
+    {
+      "group": "owens",
+      "index": 4,
+      "capture_year": null,
+      "kind": "unknown",
+      "evidence_scope": "foreword",
+      "evidence_quote": "Series foreword signed Bill Owens, Summer 1972",
+      "reason": "The supplied evidence dates a series foreword, while the individual gallery image has no asserted capture date; a photograph is visually suggested by the source context, but the strict capture-year/kind label cannot be established from this record."
+    },
+    {
+      "group": "owens",
+      "index": 5,
+      "capture_year": null,
+      "kind": "unknown",
+      "evidence_scope": "foreword",
+      "evidence_quote": "Series foreword signed Bill Owens, Summer 1972",
+      "reason": "The supplied evidence dates a series foreword, while the individual gallery image has no asserted capture date; a photograph is visually suggested by the source context, but the strict capture-year/kind label cannot be established from this record."
+    },
+    {
+      "group": "owens",
+      "index": 6,
+      "capture_year": null,
+      "kind": "unknown",
+      "evidence_scope": "foreword",
+      "evidence_quote": "Series foreword signed Bill Owens, Summer 1972",
+      "reason": "The supplied evidence dates a series foreword, while the individual gallery image has no asserted capture date; a photograph is visually suggested by the source context, but the strict capture-year/kind label cannot be established from this record."
+    },
+    {
+      "group": "owens",
+      "index": 7,
+      "capture_year": null,
+      "kind": "unknown",
+      "evidence_scope": "foreword",
+      "evidence_quote": "Series foreword signed Bill Owens, Summer 1972",
+      "reason": "The supplied evidence dates a series foreword, while the individual gallery image has no asserted capture date; a photograph is visually suggested by the source context, but the strict capture-year/kind label cannot be established from this record."
+    },
+    {
+      "group": "owens",
+      "index": 8,
+      "capture_year": null,
+      "kind": "unknown",
+      "evidence_scope": "foreword",
+      "evidence_quote": "Series foreword signed Bill Owens, Summer 1972",
+      "reason": "The supplied evidence dates a series foreword, while the individual gallery image has no asserted capture date; a photograph is visually suggested by the source context, but the strict capture-year/kind label cannot be established from this record."
+    },
+    {
+      "group": "shabazz",
+      "index": 1,
+      "capture_year": 1981,
+      "kind": "historical_photo",
+      "evidence_scope": "single_image_caption",
+      "evidence_quote": "School Days, Brooklyn, 1981",
+      "reason": "The individual image caption explicitly names the artist/title/location and includes 1981; metadata photo_created matches that explicit year, pending local verification."
+    },
+    {
+      "group": "shabazz",
+      "index": 2,
+      "capture_year": 1997,
+      "kind": "historical_photo",
+      "evidence_scope": "single_image_caption",
+      "evidence_quote": "The Ranks, Chicago, Illinois, 1997",
+      "reason": "The individual image caption explicitly names the artist/title/location and includes 1997; metadata photo_created matches that explicit year, pending local verification."
+    },
+    {
+      "group": "shabazz",
+      "index": 3,
+      "capture_year": 1997,
+      "kind": "historical_photo",
+      "evidence_scope": "single_image_caption",
+      "evidence_quote": "We Must Be Brothers, Harlem, New York, 1997",
+      "reason": "The individual image caption explicitly names the artist/title/location and includes 1997; metadata photo_created matches that explicit year, pending local verification."
+    },
+    {
+      "group": "shabazz",
+      "index": 4,
+      "capture_year": 2005,
+      "kind": "historical_photo",
+      "evidence_scope": "single_image_caption",
+      "evidence_quote": "Cultured and Refined, New York, 2005",
+      "reason": "The individual image caption explicitly names the artist/title/location and includes 2005; metadata photo_created matches that explicit year, pending local verification."
+    },
+    {
+      "group": "shabazz",
+      "index": 5,
+      "capture_year": 1980,
+      "kind": "historical_photo",
+      "evidence_scope": "single_image_caption",
+      "evidence_quote": "Best Friends, Brooklyn, 1980",
+      "reason": "The individual image caption explicitly names the artist/title/location and includes 1980; metadata photo_created matches that explicit year, pending local verification."
+    },
+    {
+      "group": "shabazz",
+      "index": 6,
+      "capture_year": 2003,
+      "kind": "historical_photo",
+      "evidence_scope": "single_image_caption",
+      "evidence_quote": "Sisters, Brooklyn, New York, 2003",
+      "reason": "The individual image caption explicitly names the artist/title/location and includes 2003; metadata photo_created matches that explicit year, pending local verification."
+    },
+    {
+      "group": "across",
+      "index": 1,
+      "capture_year": null,
+      "kind": "unknown",
+      "evidence_scope": "observation_round",
+      "evidence_quote": "PARCO ACROSS 第175回，1995/07/01",
+      "reason": "The date is supplied for an observation round/interview page and is not uniquely asserted as this individual image's capture date; no strict kind should be inferred beyond the available page framing."
+    },
+    {
+      "group": "across",
+      "index": 2,
+      "capture_year": null,
+      "kind": "unknown",
+      "evidence_scope": "observation_round",
+      "evidence_quote": "PARCO ACROSS 第175回，1995/07/01",
+      "reason": "The date is supplied for an observation round/interview page and is not uniquely asserted as this individual image's capture date; no strict kind should be inferred beyond the available page framing."
+    },
+    {
+      "group": "across",
+      "index": 3,
+      "capture_year": null,
+      "kind": "unknown",
+      "evidence_scope": "observation_round",
+      "evidence_quote": "PARCO ACROSS 第175回，1995/07/01",
+      "reason": "The date is supplied for an observation round/interview page and is not uniquely asserted as this individual image's capture date; no strict kind should be inferred beyond the available page framing."
+    },
+    {
+      "group": "across",
+      "index": 4,
+      "capture_year": null,
+      "kind": "unknown",
+      "evidence_scope": "observation_round",
+      "evidence_quote": "PARCO ACROSS 第175回，1995/07/01",
+      "reason": "The date is supplied for an observation round/interview page and is not uniquely asserted as this individual image's capture date; no strict kind should be inferred beyond the available page framing."
+    },
+    {
+      "group": "across",
+      "index": 5,
+      "capture_year": null,
+      "kind": "unknown",
+      "evidence_scope": "observation_round",
+      "evidence_quote": "PARCO ACROSS 第175回，1995/07/01",
+      "reason": "The date is supplied for an observation round/interview page and is not uniquely asserted as this individual image's capture date; no strict kind should be inferred beyond the available page framing."
+    },
+    {
+      "group": "across",
+      "index": 6,
+      "capture_year": null,
+      "kind": "unknown",
+      "evidence_scope": "observation_round",
+      "evidence_quote": "PARCO ACROSS 第175回，1995/07/01",
+      "reason": "The date is supplied for an observation round/interview page and is not uniquely asserted as this individual image's capture date; no strict kind should be inferred beyond the available page framing."
+    },
+    {
+      "group": "across",
+      "index": 7,
+      "capture_year": null,
+      "kind": "unknown",
+      "evidence_scope": "observation_round",
+      "evidence_quote": "PARCO ACROSS 第175回，1995/07/01",
+      "reason": "The date is supplied for an observation round/interview page and is not uniquely asserted as this individual image's capture date; no strict kind should be inferred beyond the available page framing."
+    },
+    {
+      "group": "across",
+      "index": 8,
+      "capture_year": null,
+      "kind": "unknown",
+      "evidence_scope": "observation_round",
+      "evidence_quote": "PARCO ACROSS 第175回，1995/07/01",
+      "reason": "The date is supplied for an observation round/interview page and is not uniquely asserted as this individual image's capture date; no strict kind should be inferred beyond the available page framing."
+    },
+    {
+      "group": "holland",
+      "index": 1,
+      "capture_year": 1976,
+      "kind": "historical_photo",
+      "evidence_scope": "single_image_caption",
+      "evidence_quote": "Arthur's Attitude (Arthur Lake), Kenter Canyon Elementary, 1976",
+      "reason": "The individual artwork/image caption explicitly includes the title/location and 1976; metadata photo_created matches that explicit year, pending local verification."
+    },
+    {
+      "group": "holland",
+      "index": 2,
+      "capture_year": 1976,
+      "kind": "historical_photo",
+      "evidence_scope": "single_image_caption",
+      "evidence_quote": "Hollywood Local, 1976",
+      "reason": "The individual artwork/image caption explicitly includes the title and 1976; metadata photo_created matches that explicit year, pending local verification."
+    },
+    {
+      "group": "holland",
+      "index": 3,
+      "capture_year": 1976,
+      "kind": "historical_photo",
+      "evidence_scope": "single_image_caption",
+      "evidence_quote": "Skate Shooter, Kenter Canyon, 1976",
+      "reason": "The individual artwork/image caption explicitly includes the title/location and 1976; metadata photo_created matches that explicit year, pending local verification."
+    },
+    {
+      "group": "holland",
+      "index": 4,
+      "capture_year": 1976,
+      "kind": "historical_photo",
+      "evidence_scope": "single_image_caption",
+      "evidence_quote": "Team Line-Up (No. 60), 1976",
+      "reason": "The individual artwork/image caption explicitly includes the title and 1976; metadata photo_created matches that explicit year, pending local verification."
+    },
+    {
+      "group": "holland",
+      "index": 5,
+      "capture_year": 1975,
+      "kind": "historical_photo",
+      "evidence_scope": "single_image_caption",
+      "evidence_quote": "Canyon Sunset Ride, Hollywood Hills, 1975",
+      "reason": "The individual artwork/image caption explicitly includes the title/location and 1975; metadata photo_created matches that explicit year, pending local verification."
+    },
+    {
+      "group": "holland",
+      "index": 6,
+      "capture_year": 1975,
+      "kind": "historical_photo",
+      "evidence_scope": "single_image_caption",
+      "evidence_quote": "Left Turn Only, Orange County (No. 58), 1975",
+      "reason": "The individual artwork/image caption explicitly includes the title/location and 1975; metadata photo_created matches that explicit year, pending local verification."
+    },
+    {
+      "group": "holland",
+      "index": 7,
+      "capture_year": 1975,
+      "kind": "historical_photo",
+      "evidence_scope": "single_image_caption",
+      "evidence_quote": "Skate Contest Spectators, Torrance (No. 62), 1975",
+      "reason": "The individual artwork/image caption explicitly includes the title/location and 1975; metadata photo_created matches that explicit year, pending local verification."
+    },
+    {
+      "group": "holland",
+      "index": 8,
+      "capture_year": 1975,
+      "kind": "historical_photo",
+      "evidence_scope": "single_image_caption",
+      "evidence_quote": "Red Skater at Rest, 1975",
+      "reason": "The individual artwork/image caption explicitly includes the title and 1975; metadata photo_created matches that explicit year, pending local verification."
+    }
+  ]
+}

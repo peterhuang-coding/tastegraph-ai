@@ -1,0 +1,213 @@
+{
+  "by_match_gap": {
+    "0.0": {
+      "cases": 256,
+      "equal_raw_match_ties": 256,
+      "fixed_rank_selects_lower_match": 0,
+      "fixed_rank_selects_lower_match_rate": null,
+      "gap": 0.0,
+      "raw_match_only_control_selects_lower_match": 0,
+      "raw_match_only_control_selects_lower_match_rate": null,
+      "stronger_match": 0.8,
+      "weaker_match": 0.8
+    },
+    "0.005": {
+      "cases": 256,
+      "equal_raw_match_ties": 0,
+      "fixed_rank_selects_lower_match": 110,
+      "fixed_rank_selects_lower_match_rate": 0.4296875,
+      "gap": 0.005,
+      "raw_match_only_control_selects_lower_match": 0,
+      "raw_match_only_control_selects_lower_match_rate": 0.0,
+      "stronger_match": 0.8,
+      "weaker_match": 0.795
+    },
+    "0.01": {
+      "cases": 256,
+      "equal_raw_match_ties": 0,
+      "fixed_rank_selects_lower_match": 110,
+      "fixed_rank_selects_lower_match_rate": 0.4296875,
+      "gap": 0.01,
+      "raw_match_only_control_selects_lower_match": 0,
+      "raw_match_only_control_selects_lower_match_rate": 0.0,
+      "stronger_match": 0.8,
+      "weaker_match": 0.79
+    },
+    "0.05": {
+      "cases": 256,
+      "equal_raw_match_ties": 0,
+      "fixed_rank_selects_lower_match": 55,
+      "fixed_rank_selects_lower_match_rate": 0.21484375,
+      "gap": 0.05,
+      "raw_match_only_control_selects_lower_match": 0,
+      "raw_match_only_control_selects_lower_match_rate": 0.0,
+      "stronger_match": 0.8,
+      "weaker_match": 0.75
+    },
+    "0.1": {
+      "cases": 256,
+      "equal_raw_match_ties": 0,
+      "fixed_rank_selects_lower_match": 16,
+      "fixed_rank_selects_lower_match_rate": 0.0625,
+      "gap": 0.1,
+      "raw_match_only_control_selects_lower_match": 0,
+      "raw_match_only_control_selects_lower_match_rate": 0.0,
+      "stronger_match": 0.8,
+      "weaker_match": 0.7
+    },
+    "0.2": {
+      "cases": 256,
+      "equal_raw_match_ties": 0,
+      "fixed_rank_selects_lower_match": 0,
+      "fixed_rank_selects_lower_match_rate": 0.0,
+      "gap": 0.2,
+      "raw_match_only_control_selects_lower_match": 0,
+      "raw_match_only_control_selects_lower_match_rate": 0.0,
+      "stronger_match": 0.8,
+      "weaker_match": 0.6
+    }
+  },
+  "case_count_check": {
+    "expected_total_cases": 1536,
+    "feature_settings_per_candidate": 16,
+    "gaps": 6,
+    "match_only_control_rule": "max by raw match_score, role, id",
+    "matches_expected_total": true,
+    "observed_total_cases": 1536,
+    "two_candidate_settings": 256
+  },
+  "control": {
+    "name": "match_only_raw_score_control",
+    "rule": "select higher raw match_score; equal matches are ties, not lower-match mistakes",
+    "total_lower_match_selections": 0
+  },
+  "counterexample_count_shown": 6,
+  "design": {
+    "age_confidence_values": [
+      null,
+      0.0,
+      0.5,
+      1.0
+    ],
+    "candidates_per_case": 2,
+    "eligible": true,
+    "fixed_weights_from_module": {
+      "age_confidence": 0.06,
+      "match_score": 0.86,
+      "source_trust": 0.08
+    },
+    "human_feedback_present": false,
+    "match_gap_values": [
+      0.0,
+      0.005,
+      0.01,
+      0.05,
+      0.1,
+      0.2
+    ],
+    "missing_feature_meaning": "key omitted; swept separately from explicit 0.0. In the current quality function, omission and explicit 0.0 make the same numerical score contribution, even though their semantics and explanations may differ.",
+    "requested_size": 1,
+    "same_subject": true,
+    "source_trust_values": [
+      null,
+      0.0,
+      0.5,
+      1.0
+    ],
+    "stronger_base_match": 0.8,
+    "subjects_per_case": 1,
+    "weaker_base_match_rule": "0.8 - match_gap"
+  },
+  "experiment": "evidence_sensitivity",
+  "module_under_test": "experiments.algorithm_lab.ranking.rank_pack",
+  "reproducible_counterexamples_first_up_to_6": [
+    {
+      "gap": 0.005,
+      "selected_age_confidence": 0.5,
+      "selected_fixed_quality": 0.7137,
+      "selected_id": "weaker",
+      "selected_raw_match": 0.795,
+      "selected_source_trust": null,
+      "unselected_age_confidence": null,
+      "unselected_fixed_quality": 0.6880000000000001,
+      "unselected_raw_match": 0.8,
+      "unselected_source_trust": null
+    },
+    {
+      "gap": 0.005,
+      "selected_age_confidence": 1.0,
+      "selected_fixed_quality": 0.7437,
+      "selected_id": "weaker",
+      "selected_raw_match": 0.795,
+      "selected_source_trust": null,
+      "unselected_age_confidence": null,
+      "unselected_fixed_quality": 0.6880000000000001,
+      "unselected_raw_match": 0.8,
+      "unselected_source_trust": null
+    },
+    {
+      "gap": 0.005,
+      "selected_age_confidence": 0.5,
+      "selected_fixed_quality": 0.7137,
+      "selected_id": "weaker",
+      "selected_raw_match": 0.795,
+      "selected_source_trust": 0.0,
+      "unselected_age_confidence": null,
+      "unselected_fixed_quality": 0.6880000000000001,
+      "unselected_raw_match": 0.8,
+      "unselected_source_trust": null
+    },
+    {
+      "gap": 0.005,
+      "selected_age_confidence": 1.0,
+      "selected_fixed_quality": 0.7437,
+      "selected_id": "weaker",
+      "selected_raw_match": 0.795,
+      "selected_source_trust": 0.0,
+      "unselected_age_confidence": null,
+      "unselected_fixed_quality": 0.6880000000000001,
+      "unselected_raw_match": 0.8,
+      "unselected_source_trust": null
+    },
+    {
+      "gap": 0.005,
+      "selected_age_confidence": null,
+      "selected_fixed_quality": 0.7237,
+      "selected_id": "weaker",
+      "selected_raw_match": 0.795,
+      "selected_source_trust": 0.5,
+      "unselected_age_confidence": null,
+      "unselected_fixed_quality": 0.6880000000000001,
+      "unselected_raw_match": 0.8,
+      "unselected_source_trust": null
+    },
+    {
+      "gap": 0.005,
+      "selected_age_confidence": 0.0,
+      "selected_fixed_quality": 0.7237,
+      "selected_id": "weaker",
+      "selected_raw_match": 0.795,
+      "selected_source_trust": 0.5,
+      "unselected_age_confidence": null,
+      "unselected_fixed_quality": 0.6880000000000001,
+      "unselected_raw_match": 0.8,
+      "unselected_source_trust": null
+    }
+  ],
+  "synthetic_limitations": [
+    "Candidates are synthetic, share one subject and role, and do not establish real-world ranking validity.",
+    "Only two eligible candidates and size=1 are measured; larger packs, role diversity, exclusions, multiple subjects, and incomplete groups are outside this sweep.",
+    "Feature values are limited to None, 0, 0.5, and 1; missing keys are measured separately from explicit zero but contribute equally to the current numerical quality score.",
+    "The experiment tests fixed-weight sensitivity only and makes no source reputation or aesthetic quality claim.",
+    "No files or network are used, and the match-only control is a direct raw-score comparison rather than a separate production model."
+  ],
+  "totals": {
+    "all_reported_metrics_finite": true,
+    "cases": 1536,
+    "cases_with_all_reported_metrics_finite": 1536,
+    "equal_raw_match_ties": 256,
+    "fixed_rank_lower_match_selection_rate": 0.22734375,
+    "fixed_rank_lower_match_selections": 291,
+    "non_tie_cases": 1280
+  }
+}

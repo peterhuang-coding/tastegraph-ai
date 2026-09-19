@@ -1,0 +1,42 @@
+{
+  "status": "completed_partial_results_awaiting_review",
+  "deadline": "2026-09-20T03:59:31.220294+08:00",
+  "branch": "codex/algorithm-four-hour-20260919",
+  "production_deployed": false,
+  "provider": "volcengine-plan",
+  "current_model": "doubao-seed-evolving",
+  "max_concurrency": 4,
+  "tests": {
+    "passed": 125,
+    "known_expected_failures": 11,
+    "note": "11 assertion failures reproduced with --runxfail; not fixes"
+  },
+  "readiness": {
+    "age": "rejected after one implementation correction; only preserved for negative evidence",
+    "dedup": "rejected after one implementation correction; only preserved for negative evidence",
+    "ranking": "provisional;200 synthetic trials coherent,lower meanmatch and rolecoverage than illustrative naive baseline",
+    "backlog": "not implemented;test packet failed twice"
+  },
+  "production_source_sync_findings": "5 isolated failing source-status assertions; proposed fix only, original code unchanged",
+  "experimental_files": {
+    "age.py": "a738d12e32a724d2b1cec7c89ced80b888971e54a7082e12fe4a8eb8299abd03",
+    "benchmark_ranking.py": "0aa407c934be94c86ad4405207a7391a40180ee6ce879f09a63c658a6ee52e30",
+    "dedup.py": "322faa53f668d4f9ba950ca2b4f8b3fbab1d124556fbe0e7f41227c5ec8423c4",
+    "ranking.py": "9bf0ff969816d550ca7e96043041ab8bbfca01ae062d54cc2eb2452b5a081fe2"
+  },
+  "current_wave": null,
+  "archive_recall_note": "0of14 known dated records retrieved from rawmetadata;30abstained;precisionnull",
+  "diagnostics": {
+    "sensitivity": "1536cases,256ties,291/1280 lower raw match picks;featuretradeoffonly",
+    "feedback_isolation": "35 adopted cases;invalid duplicateID test rejected",
+    "oracle": "rejected after one correction;wrong artifact",
+    "source_concentration": "rejected after one correction;no runnable artifact"
+  },
+  "actual_attempts": 37,
+  "logical_jobs": 20,
+  "four_track_acceptance": false,
+  "combined_related_tests": {
+    "passed": 176,
+    "known_expected_failures": 11
+  }
+}

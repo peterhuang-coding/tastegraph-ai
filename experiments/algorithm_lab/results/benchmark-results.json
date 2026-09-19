@@ -1,0 +1,71 @@
+{
+  "context": {
+    "baseline_label": "naive independent top-match baseline (illustrative; not existing production)",
+    "random_seed_note": "Python random.Random 20260214 trials; timing RNG 99273/100173",
+    "seeded_offline": true,
+    "shared_filters": "eligible flag, excluded ids, operator-negative human preference",
+    "sweep": {
+      "fixture_group_counts": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "pack_sizes": [
+        3,
+        4,
+        5,
+        6
+      ],
+      "role_counts": [
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    "synthetic_fixtures": "randomized subject/role groups plus eligible=False, operator-negative, and excluded-ID cases",
+    "trials": 200,
+    "weights_note": "observational offline synthetic benchmark; exact internal weights are not assumed; no real-world/production effect claimed"
+  },
+  "observed_metrics": {
+    "naive_independent_top_match_baseline_illustrative_not_production": {
+      "coherent_one_subject": 0.025,
+      "duplicate_output_ids": 0,
+      "excluded_id_selected": 0,
+      "ineligible_selected": 0,
+      "mean_match_score": 0.9126230433455274,
+      "operator_negative_selected": 0,
+      "permutation_stable": 1.0,
+      "role_coverage": 0.69975,
+      "selected_count": 4.5,
+      "trials": 200,
+      "unknown_output_ids": 0
+    },
+    "prototype": {
+      "coherent_one_subject": 1.0,
+      "duplicate_output_ids": 0,
+      "excluded_id_selected": 0,
+      "ineligible_selected": 0,
+      "mean_match_score": 0.8211693649381018,
+      "operator_negative_selected": 0,
+      "permutation_stable": 1.0,
+      "role_coverage": 0.6706666666666666,
+      "selected_count": 4.495,
+      "trials": 200,
+      "unknown_output_ids": 0
+    }
+  },
+  "timing_perf_counter_5_repeat_median": {
+    "100": {
+      "actual_candidate_count": 100,
+      "median_seconds": 0.0005435829516500235,
+      "repeats": 5
+    },
+    "1000": {
+      "actual_candidate_count": 1000,
+      "median_seconds": 0.004829208133742213,
+      "repeats": 5
+    }
+  }
+}
