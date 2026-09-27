@@ -16,8 +16,8 @@
 - [x] Browser E2E single synthetic toy: create, upload public/private images, evidence, draft, edit, export, reload and negative cases.
 
 ## Delivery
-- [ ] Run related regression suites, diff checks and public-data boundary review. Commit/push task branch; do not merge or deploy.
-- [ ] Notion C1待验收 and unchecked; Hub evidence and exact remaining real-item validation; the fixed approved session budget.
+- [x] Related regressions (127 tests), JavaScript syntax, staged diff and public-data checks passed. Task branch pushed and Draft PR opened; no merge or production deployment.
+- [x] Notion C1 is 待验收 and unchecked. Private Hub evidence records the remaining real-item validation and the fixed session budget; no automatic continuation.
 
 ## Scope delivered for owner acceptance
 This slice implements archive/edit/export plus local OCR and encyclopedia background lookup. It does not implement multimodal toy identity matching, version authentication, autonomous primary-source deep research, generated narrative alternatives or a real-owner time-savings study. The first real object is still required. Model-generated implementation and review outputs are treated as unverified until tests/browser checks; the core public documentation contains no private collection data.
