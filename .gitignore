@@ -70,3 +70,6 @@ data/publish_log.json
 # Local editorial state and test cache
 data/workbench_state.json
 .pytest_cache/
+
+# Owner collection originals, previews and private export snapshots
+data/collections-media/

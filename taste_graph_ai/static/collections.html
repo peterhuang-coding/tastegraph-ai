@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>藏品档案 · 单件玩具收藏</title>
+<link rel="stylesheet" href="/css/collections.css">
+<header class="top">
+  <div class="brand">藏品档案<small>单件玩具 · 照片与证据台账</small></div>
+  <nav><a href="/">回到图谱</a></nav>
+</header>
+<div id="status" role="status" aria-live="polite"></div>
+<main class="layout">
+  <aside class="left">
+    <section class="list-block">
+      <h2>档案列表</h2>
+      <div id="listLoading" class="muted">正在载入档案列表…</div>
+      <div id="listError" class="inline-error hidden">
+        <p id="listErrorText"></p>
+        <button type="button" id="listRetry">重新载入</button>
+      </div>
+      <div id="listBody" class="hidden"></div>
+    </section>
+    <section class="new-block">
+      <h2>新建档案</h2>
+      <form id="newForm">
+        <label for="newTitle">玩具名称</label>
+        <input id="newTitle" name="title" type="text" maxlength="120" autocomplete="off" placeholder="例如：铁皮青蛙">
+        <label for="newKnown">已知信息（可选）</label>
+        <textarea id="newKnown" name="known_info" rows="3" placeholder="你已经知道的来历、材质、年代等"></textarea>
+        <p class="muted small">默认类别为“玩具”。创建后可继续添加照片、问题与证据。</p>
+        <button type="submit" id="createBtn" class="primary">新建档案</button>
+      </form>
+    </section>
+  </aside>
+  <section class="right">
+    <div id="wsEmpty" class="ws-state">
+      <p>从左侧选择一件档案，或新建第一件玩具的档案。</p>
+      <p class="muted small">照片默认私有；这里不会自动生成任何示例记录。</p>
+    </div>
+    <div id="wsLoading" class="ws-state hidden">
+      <p>正在读取档案…</p>
+    </div>
+    <div id="wsError" class="ws-state hidden">
+      <p id="wsErrorText" class="inline-error"></p>
+      <button type="button" id="wsRetry">重新读取</button>
+    </div>
+    <div id="wsPanels" class="hidden">
+      <div id="pLedger" class="panel"></div>
+      <div id="pPhotos" class="panel"></div>
+      <div id="pDetails" class="panel"></div>
+      <div id="pTarget" class="panel"></div>
+      <div id="pResearch" class="panel"></div>
+      <div id="pClaims" class="panel"></div>
+      <div id="pDraft" class="panel"></div>
+      <div id="pExports" class="panel"></div>
+    </div>
+  </section>
+</main>
+
+<div id="claimModal" class="modal hidden" aria-modal="true" role="dialog" aria-labelledby="claimModalTitle">
+  <div class="modal-box">
+    <h2 id="claimModalTitle">证据卡片</h2>
+    <form id="claimForm">
+      <label for="ceField">字段</label>
+      <input id="ceField" name="field" type="text" maxlength="80" placeholder="例如：生产年代 / 首次发售 / 产地 / 材质">
+      <label for="ceText">说法内容</label>
+      <textarea id="ceText" name="text" rows="3" placeholder="这张卡片要记录的事实是什么"></textarea>
+      <div class="form-grid">
+        <div>
+          <label for="ceOrigin">来源</label>
+          <select id="ceOrigin" name="origin">
+            <option value="observation">观察所得</option>
+            <option value="user">我提供的</option>
+            <option value="external">外部资料</option>
+          </select>
+        </div>
+        <div>
+          <label for="ceCertainty">确定程度</label>
+          <select id="ceCertainty" name="certainty">
+            <option value="supported">有证据支持</option>
+            <option value="inferred">推断</option>
+            <option value="unknown">未能确认</option>
+          </select>
+        </div>
+        <div>
+          <label for="ceReview">人工复核</label>
+          <select id="ceReview" name="review">
+            <option value="pending">待复核</option>
+            <option value="accepted">复核接受</option>
+            <option value="disputed">有争议</option>
+          </select>
+        </div>
+      </div>
+      <label class="check"><input type="checkbox" id="cePublic"> 公开此卡片（默认不公开）</label>
+      <fieldset class="evidence">
+        <legend>佐证材料（外部资料“有证据支持”时必须填写完整；链接只记录，不自动抓取）</legend>
+        <div id="evRows"></div>
+        <button type="button" id="evAdd" class="small-btn">添加一条佐证</button>
+      </fieldset>
+      <p id="ceError" class="inline-error hidden"></p>
+      <div class="modal-actions">
+        <button type="button" id="claimCancel">取消</button>
+        <button type="submit" id="claimSave" class="primary">保存卡片</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script src="/js/collections.js"></script>
+</html>
