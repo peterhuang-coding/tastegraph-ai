@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from taste_graph_ai.api.routes import editorial
 
-from taste_graph_ai.api.routes import sources, daily, graph, tasks, history, pipeline, health, exports, curation, feedback_routes, crawler, trend
+from taste_graph_ai.api.routes import sources, daily, graph, tasks, history, pipeline, health, exports, curation, feedback_routes, crawler, trend, data_ops
 
 api_router = APIRouter()
 api_router.include_router(editorial.router)
@@ -17,3 +17,4 @@ api_router.include_router(curation.router)
 api_router.include_router(feedback_routes.router)
 api_router.include_router(crawler.router)
 api_router.include_router(trend.router)
+api_router.include_router(data_ops.router)
